@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import logging
 from ..database import get_db  # Importación añadida
-from models import Grapevine  # Importación añadida
-from schemas.schemas_grapevines import GrapevineResponse  # Importación añadida
-from crud  .crud_grapevines import get_all_grapevines, get_varieties, get_rootstocks  # Importación añadida
+from ..models import Grapevine  # Importación añadida
+from ..schemas.schemas_grapevines import GrapevineResponse  # Importación añadida
+from ..crud.crud_grapevines import get_all_grapevines, get_varieties, get_rootstocks  # Importación añadida
 
 router = APIRouter(
     prefix="/grapevines",

@@ -6,12 +6,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from database import get_db
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-# Modelos
-from models import Usuario
+from ..database import get_db
+from ..models import Usuario
 
 # Configuración
 SECRET_KEY = "tu_clave_secreta_muy_segura_cambiame_en_produccion"

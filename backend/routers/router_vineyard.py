@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import logging
 from ..database import get_db  # Importación añadida
-from models import Vineyard  # Importación añadida
-from schemas.schemas_vineyard import VineyardResponse  # Importación añadida
-from crud .crud_vineyard import get_all_vineyards, get_management, get_conduction  # Importación añadida
+from ..models import Vineyard  # Importación añadida
+from ..schemas.schemas_vineyard import VineyardResponse  # Importación añadida
+from ..crud.crud_vineyard import get_all_vineyards, get_management, get_conduction  # Importación añadida
 
 router = APIRouter(
     prefix="/vineyard",

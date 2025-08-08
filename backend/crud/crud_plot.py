@@ -6,8 +6,8 @@ from sqlalchemy.orm import joinedload
 from geoalchemy2 import WKTElement
 from fastapi import HTTPException
 from typing import List
-from models import Plot, Grapevine
-from schemas.schemas_plot import PlotCreate, PlotUpdate, PlotResponse
+from ..models import Plot, Grapevine
+from ..schemas.schemas_plot import PlotCreate, PlotUpdate, PlotResponse
 import logging
 from shapely.geometry import shape
 from geoalchemy2.elements import WKTElement

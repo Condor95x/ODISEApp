@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from ..database import get_db
-from schemas.schemas_plot import PlotCreate, PlotUpdate, PlotResponse
-from crud.crud_plot import create_plot, get_plots, get_plot, update_plot, delete_plot_permanent, archive_plot
+from ..schemas.schemas_plot import PlotCreate, PlotUpdate, PlotResponse
+from ..crud.crud_plot import create_plot, get_plots, get_plot, update_plot, delete_plot_permanent, archive_plot
 import logging
 
 logger = logging.getLogger(__name__)

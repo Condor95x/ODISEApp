@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import List
 from fastapi import HTTPException
 import logging
-from models import Vineyard  # Importación añadida
+from ..models import Vineyard  # Importación añadida
 from sqlalchemy.exc import SQLAlchemyError  # Importación añadida
 
 logger = logging.getLogger(__name__)

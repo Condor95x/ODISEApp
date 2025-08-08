@@ -3,8 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, status
-from models import TaskList
-from schemas.schemas_tasklist import TaskListResponse
+from ..models import TaskList
+from ..schemas.schemas_tasklist import TaskListResponse
 import logging
 
 logger = logging.getLogger(__name__)

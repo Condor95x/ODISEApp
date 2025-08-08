@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
-from crud.crud_tasklist import get_task_lists, get_task_lists_by_type
-from schemas.schemas_tasklist import TaskListResponse
+from ..crud.crud_tasklist import get_task_lists, get_task_lists_by_type
+from ..schemas.schemas_tasklist import TaskListResponse
 import logging
 
 logger = logging.getLogger(__name__)

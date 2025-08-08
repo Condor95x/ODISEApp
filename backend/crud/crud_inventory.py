@@ -5,12 +5,12 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any, Union
 from decimal import Decimal
 import sqlalchemy.exc
-from models import InputCategory, Input, Warehouse, InputStock, InventoryMovement, Supplier, PurchaseOrder, PurchaseOrderDetail, TaskInput
-import schemas.schemas_inventory as schemas
+from ..models import InputCategory, Input, Warehouse, InputStock, InventoryMovement, Supplier, PurchaseOrder, PurchaseOrderDetail, TaskInput
+from ..schemas.schemas_inventory import TaskInputUpdate,TaskInputCreate,PurchaseOrderDetailUpdate,PurchaseOrderUpdate,PurchaseOrderCreate,SupplierUpdate,SupplierCreate,InventoryMovementCreate,InputStockUpdate,InputStockCreate,WarehouseUpdate,WarehouseCreate,InputUpdate,Input,InputCreate,InputCategoryUpdate 
 from fastapi import HTTPException
 # ==================== Input Categories CRUD ====================
 '''
-async def create_input(db: AsyncSession, input_item: schemas.InputCreate) -> Input:
+async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
     # Buscar la categoría por nombre
     category = await db.execute(select(InputCategory).where(InputCategory.name == input_item.category_name))
     category = category.scalars().first()
@@ -63,7 +63,7 @@ async def get_input_categories(
 async def update_input_category(
     db: AsyncSession, 
     category_id: int, 
-    category: schemas.InputCategoryUpdate
+    category: InputCategoryUpdate
 ) -> Optional[InputCategory]:
     category_data = category.dict(exclude_unset=True)
     if not category_data:
@@ -86,7 +86,7 @@ async def delete_input_category(db: AsyncSession, category_id: int) -> bool:
 
 # ==================== Input CRUD ====================
 
-async def create_input(db: AsyncSession, input_item: schemas.InputCreate) -> Input:
+async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
     print(f"Creando input con: {input_item.dict()}")
     try:
         # Buscar la categoría por ID
@@ -140,7 +140,7 @@ async def get_inputs(
     limit: int = 100,
     category_id: Optional[int] = None,
     is_active: Optional[bool] = None
-) -> List[schemas.Input]:
+) -> List[Input]:
     query = select(Input)
 
     if category_id is not None:
@@ -157,7 +157,7 @@ async def get_inputs(
     for input_item in inputs:
         category = await db.execute(select(InputCategory).where(InputCategory.id == input_item.category_id))
         category = category.scalars().first()
-        result_list.append(schemas.Input(
+        result_list.append(Input(
             id=input_item.id,
             name=input_item.name,
             category_id=input_item.category_id, # Usar el category_id del input_item
@@ -176,7 +176,7 @@ async def get_inputs(
 async def update_input(
     db: AsyncSession, 
     input_id: int, 
-    input_item: schemas.InputUpdate
+    input_item: InputUpdate
 ) -> Optional[Input]:
     input_data = input_item.dict(exclude_unset=True)
     if not input_data:
@@ -209,7 +209,7 @@ async def delete_input(db: AsyncSession, input_id: int) -> bool:
 
 # ==================== Warehouses CRUD ====================
 
-async def create_warehouse(db: AsyncSession, warehouse: schemas.WarehouseCreate) -> Warehouse:
+async def create_warehouse(db: AsyncSession, warehouse: WarehouseCreate) -> Warehouse:
     db_warehouse = Warehouse(**warehouse.dict())
     db.add(db_warehouse)
     await db.commit()
@@ -238,7 +238,7 @@ async def get_warehouses(
 async def update_warehouse(
     db: AsyncSession, 
     warehouse_id: int, 
-    warehouse: schemas.WarehouseUpdate
+    warehouse: WarehouseUpdate
 ) -> Optional[Warehouse]:
     warehouse_data = warehouse.dict(exclude_unset=True)
     if not warehouse_data:
@@ -262,7 +262,7 @@ async def delete_warehouse(db: AsyncSession, warehouse_id: int) -> bool:
 
 # ==================== Input Stock CRUD ====================
 
-async def create_input_stock(db: AsyncSession, stock: schemas.InputStockCreate) -> InputStock:
+async def create_input_stock(db: AsyncSession, stock: InputStockCreate) -> InputStock:
     db_stock = InputStock(**stock.dict())
     db.add(db_stock)
     await db.commit()
@@ -376,7 +376,7 @@ async def get_input_stocks_with_details(
 async def update_input_stock(
     db: AsyncSession, 
     stock_id: int, 
-    stock: schemas.InputStockUpdate
+    stock: InputStockUpdate
 ) -> Optional[InputStock]:
     stock_data = stock.dict(exclude_unset=True)
     if not stock_data:
@@ -402,7 +402,7 @@ async def delete_input_stock(db: AsyncSession, stock_id: int) -> bool:
 
 async def create_inventory_movement(
     db: AsyncSession, 
-    movement: schemas.InventoryMovementCreate
+    movement: InventoryMovementCreate
 ) -> InventoryMovement:
     # Create the movement
     db_movement = InventoryMovement(**movement.dict())
@@ -483,7 +483,7 @@ async def get_inventory_movements(
 
 # ==================== Suppliers CRUD ====================
 
-async def create_supplier(db: AsyncSession, supplier: schemas.SupplierCreate) -> Supplier:
+async def create_supplier(db: AsyncSession, supplier: SupplierCreate) -> Supplier:
     db_supplier = Supplier(**supplier.dict())
     db.add(db_supplier)
     await db.commit()
@@ -512,7 +512,7 @@ async def get_suppliers(
 async def update_supplier(
     db: AsyncSession, 
     supplier_id: int, 
-    supplier: schemas.SupplierUpdate
+    supplier: SupplierUpdate
 ) -> Optional[Supplier]:
     supplier_data = supplier.dict(exclude_unset=True)
     if not supplier_data:
@@ -538,7 +538,7 @@ async def delete_supplier(db: AsyncSession, supplier_id: int) -> bool:
 
 async def create_purchase_order(
     db: AsyncSession, 
-    order: schemas.PurchaseOrderCreate
+    order: PurchaseOrderCreate
 ) -> PurchaseOrder:
     # Extract order details
     order_details = order.order_details
@@ -633,7 +633,7 @@ async def get_purchase_orders(
 async def update_purchase_order(
     db: AsyncSession, 
     order_id: int, 
-    order: schemas.PurchaseOrderUpdate
+    order: PurchaseOrderUpdate
 ) -> Optional[PurchaseOrder]:
     order_data = order.dict(exclude_unset=True)
     if not order_data:
@@ -651,7 +651,7 @@ async def update_purchase_order(
 async def update_purchase_order_detail(
     db: AsyncSession, 
     detail_id: int, 
-    detail: schemas.PurchaseOrderDetailUpdate
+    detail: PurchaseOrderDetailUpdate
 ) -> Optional[PurchaseOrderDetail]:
     detail_data = detail.dict(exclude_unset=True)
     if not detail_data:
@@ -771,7 +771,7 @@ async def delete_purchase_order(db: AsyncSession, order_id: int) -> bool:
 
 # ==================== Task Input CRUD ====================
 
-async def create_task_input(db: AsyncSession, task_input: schemas.TaskInputCreate) -> TaskInput:
+async def create_task_input(db: AsyncSession, task_input: TaskInputCreate) -> TaskInput:
     db_task_input = TaskInput(**task_input.dict())
     db.add(db_task_input)
     await db.commit()
@@ -843,7 +843,7 @@ async def get_task_inputs_with_details(
 async def update_task_input(
     db: AsyncSession, 
     task_input_id: int, 
-    task_input: schemas.TaskInputUpdate
+    task_input: TaskInputUpdate
 ) -> Optional[TaskInput]:
     task_input_data = task_input.dict(exclude_unset=True)
     if not task_input_data:
@@ -897,7 +897,7 @@ async def delete_task_input(db: AsyncSession, task_input_id: int) -> bool:
 
 async def create_inventory_movement(
     db: AsyncSession,
-    movement: schemas.InventoryMovementCreate
+    movement: InventoryMovementCreate
 ):
     try:
         print(f"DEBUG: Movement data: {movement.dict()}")

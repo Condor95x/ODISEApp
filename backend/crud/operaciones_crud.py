@@ -1,6 +1,6 @@
-from models import Operacion, TaskInput, InputStock, TaskList
-from operaciones_schemas import OperacionCreate, OperacionUpdate, OperacionResponse, TaskInputUpdate
-from crud.crud_inventory import create_inventory_movement
+from ..models import Operacion, TaskInput, InputStock, TaskList
+from ..schemas.operaciones_schemas import OperacionCreate, OperacionUpdate, OperacionResponse, TaskInputUpdate
+from .crud_inventory import create_inventory_movement
 from passlib.context import CryptContext
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Dict, Any
 from fastapi import HTTPException
 from datetime import datetime
-from schemas.schemas_inventory import InventoryMovementCreate, TaskInputCreate
+from ..schemas.schemas_inventory import InventoryMovementCreate, TaskInputCreate
 import logging
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  # Para encriptar contraseñas

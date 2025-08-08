@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional,List
 from pydantic import BaseModel
-import schemas.schemas_inventory as schemas
+#import schemas.schemas_inventory as schemas
 
 class VesselBase(BaseModel):
     name: str

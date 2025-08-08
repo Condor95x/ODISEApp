@@ -1,12 +1,12 @@
 from pydantic_settings import BaseSettings
+from pathlib import Path
 
 class Settings(BaseSettings):
     DATABASE_URL: str
 
-    
     class Config:
-        env_file = ".env"
-        case_sensitive = True # Ensure environment variables are case-sensitive
-        extra = "ignore" # Ignore extra env vars not defined in model
+        env_file = Path(__file__).parent / ".env"
+        case_sensitive = True
+        extra = "ignore"
 
-settings = Settings(_env_file=".env") # Pass env file explicitly
+settings = Settings()

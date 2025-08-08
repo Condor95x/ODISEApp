@@ -4,7 +4,7 @@ from datetime import date
 from geoalchemy2.shape import to_shape
 from geoalchemy2.types import WKBElement
 from geoalchemy2.shape import to_shape
-from schemas.schemas_inventory import TaskInput, TaskInputCreate
+from .schemas_inventory import TaskInput, TaskInputCreate
 
 class ParcelaBase(BaseModel):
     id: int
