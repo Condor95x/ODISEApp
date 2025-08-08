@@ -3,8 +3,10 @@ from contextlib import asynccontextmanager
 from routers import operaciones_router, router_plot, router_grapevines, router_vineyard ,router_inventory, router_users,router_tasklist,router_winery
 from authentification import auth
 from database import engine, Base
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,3 +43,15 @@ app.add_middleware(
     allow_methods=["*"],  # Permite todos los métodos (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Permite todos los encabezados
 )
+
+# Ruta a la carpeta del build del frontend
+frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/build")
+
+# Servir archivos estáticos
+app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
+
+# Ruta para servir index.html
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    index_file = os.path.join(frontend_path, "index.html")
+    return FileResponse(index_file)
