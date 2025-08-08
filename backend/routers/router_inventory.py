@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Dict
 from datetime import datetime
-from database import get_db
+from ..database import get_db
 import crud.crud_inventory as crud
 import schemas.schemas_inventory as schemas
 
