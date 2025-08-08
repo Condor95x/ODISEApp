@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db
+from ..database import get_db
 import schemas.schemas_inventory
 import schemas.schemas_winery
 import crud.crud_winery

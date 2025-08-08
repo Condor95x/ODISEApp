@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy import select
-from database import get_db
+from ..database import get_db
 from operaciones_schemas import Operacion, OperacionCreate, OperacionInputsUpdate,OperacionUpdate, OperacionResponse
 from operaciones_crud import update_operacion, update_operacion_inputs, get_operacion, get_operaciones, create_operacion, delete_operacion, create_operation_with_inputs, get_vineyard_operaciones, get_winery_operaciones 
 from typing import List, Dict, Any
