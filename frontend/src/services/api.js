@@ -20,7 +20,7 @@ const handleResponse = async (response) => {
 // Obtener todas las parcelas
 export const getPlots = async (activeOnly = true) => {
   try {
-    const response = await API.get(`/plots?active_only=${activeOnly}`);
+    const response = await API.get(`/plots/?active_only=${activeOnly}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching plots:', error);
@@ -116,7 +116,7 @@ export const getPlotStatistics = async () => {
 // Obtener todas las vineyards
 export const getAllVineyards = async () => {
   try {
-    const response = await API.get('/vineyard');
+    const response = await API.get('/vineyard/vineyard/');
     return response.data;
   } catch (error) {
     console.error('Error fetching vineyards:', error);
@@ -126,7 +126,7 @@ export const getAllVineyards = async () => {
 // Obtener solo las management
 export const getManagement = async () => {
   try {
-    const response = await API.get('vineyard/vineyard/management');
+    const response = await API.get('/vineyard/vineyard/management');
     return response.data;
   } catch (error) {
     console.error('Error fetching management:', error);
@@ -136,7 +136,8 @@ export const getManagement = async () => {
 // Obtener solo los conduction
 export const getConduction = async () => {
   try {
-    const response = await API.get('vineyard/vineyard/conduction');
+    console.log("Base URL:", API.defaults.baseURL);
+    const response = await API.get('/vineyard/vineyard/conduction');
     return response.data;
   } catch (error) {
     console.error('Error fetching conduction:', error);
@@ -158,8 +159,8 @@ export const getAllGrapevines = async () => {
 // Obtener solo las variedades
 export const getVarieties = async () => {
   try {
-    const response = await API.get('grapevines/grapevines/varieties');
-    return response.data;
+  const response = await API.get('/grapevines/grapevines/varieties');
+  return response.data;
   } catch (error) {
     console.error('Error fetching varieties:', error);
     throw error;
@@ -168,7 +169,7 @@ export const getVarieties = async () => {
 // Obtener solo los portainjertos
 export const getRootstocks = async () => {
   try {
-    const response = await API.get('grapevines/grapevines/rootstocks');
+    const response = await API.get('/grapevines/grapevines/rootstocks');
     return response.data;
   } catch (error) {
     console.error('Error fetching rootstocks:', error);
@@ -234,40 +235,40 @@ export const deleteOperacion = async (id) => {
 
 //USERS
 export const getUsers = async () => {
-  const response = await API.get('/users');
+  const response = await API.get('/auth/users/me');
   return response.data;
 };
 
 //TASKLIST
 export const getVineyardTasks = async () => {
-  const response = await API.get('/task/vineyard');
+  const response = await API.get('/task/task/vineyard');
   return response.data;
 };
 export const getWineryTasks = async () => {
-  const response = await API.get('/task/winery');
+  const response = await API.get('/task/task/winery');
   return response.data;
 };
 
 //ENDPOINTS INVENTORY
 //INPUT CATEGORIES
 export const createCategory = async (category) => {
-  const response = await API.post('/inventory/categories/', category);
+  const response = await API.post('/inventory/inventory/categories', category);
   return response.data;
 };
 export const getCategory = async (categoryId) => {
-  const response = await API.get(`/categories/${categoryId}`);
+  const response = await API.get(`/inventory/inventory/categories/${categoryId}`);
   return response.data;
 };
 export const getCategories = async (params) => {
-  const response = await API.get('/inventory/categories/', { params });
+  const response = await API.get('/inventory/inventory/categories/', { params });
   return response.data;
 };
 export const updateCategory = async (categoryId, category) => {
-  const response = await API.put(`/inventory/categories/${categoryId}`, category);
+  const response = await API.put(`/inventory/inventory/categories/${categoryId}`, category);
   return response.data;
 };
 export const deleteCategory = async (categoryId) => {
-  const response = await API.delete(`/inventory/categories/${categoryId}`);
+  const response = await API.delete(`/inventory/inventory/categories/${categoryId}`);
   return response.data;
 };
 
@@ -320,23 +321,23 @@ export const deleteWarehouse = async (warehouseId) => {
 //INPUTS STOCKS
 
 export const createStock = async (stock) => {
-  const response = await API.post('/inventory/stocks/', stock);
+  const response = await API.post('/inventory/inventory/stocks/', stock);
   return response.data;
 };
 export const getStock = async (stockId) => {
-  const response = await API.get(`/inventory/stocks/${stockId}`);
+  const response = await API.get(`/inventory/inventory/stocks/${stockId}`);
   return response.data;
 };
 export const getStockByInputWarehouse = async (params) => {
-  const response = await API.get('/inventory/stocks/by_input_warehouse/', { params });
+  const response = await API.get('/inventory/inventory/stocks/by_input_warehouse/', { params });
   return response.data;
 };
 export const getStocks = async (params) => {
-  const response = await API.get('/inventory/stocks/', { params });
+  const response = await API.get('/inventory/inventory/stocks/', { params });
   return response.data;
 };
 export const getStocksWithDetails = async (params) => {
-  const response = await API.get('/inventory/stocks/details/', { params });
+  const response = await API.get('/inventory/inventory/stocks/details/', { params });
   return response.data;
 };
 
@@ -374,7 +375,7 @@ export const createInventoryMovement = async (movementData) => {
 ///Winery
 
 export const getVesselActivities = async (skip = 0, limit = 100) => {
-  return API.get('/winery/vessel_activities', { skip, limit });
+  return API.get('/winery/vessel_activities/', { skip, limit });
 };
 export const createVesselActivity = async (activityData) => {
   return API.post('/winery/vessel_activities/', activityData);
@@ -407,10 +408,10 @@ export const deleteVessel = async (vessel_id) => {
   return API.delete(`/winery/vessels/${vessel_id}`);
 };
 export const getBatches = async (skip = 0, limit = 100) => {
-  return API.get('/winery/batches', { skip, limit });
+  return API.get('/winery/batches/', { skip, limit });
 };
 export const getBatch = async (batch_id) => {
-  return API.get(`/winery/batches/${batch_id}`);
+  return API.get('/winery/batches/${batch_id}');
 };
 export const createBatch = async (batchData) => {
   return API.post('/winery/batches/', batchData);

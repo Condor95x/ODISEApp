@@ -119,11 +119,13 @@ const TablePlots = () => {
     fetchRootstocks();
   }, []);
 
-  const filteredPlots = plots.filter((p) => {
-    if (!filterValue) return true;
-    const value = String(p[filterField] || "").toLowerCase();
-    return value.includes(filterValue.toLowerCase());
-  });
+const filteredPlots = Array.isArray(plots)
+  ? plots.filter((p) => {
+      if (!filterValue) return true;
+      const value = String(p[filterField] || "").toLowerCase();
+      return value.includes(filterValue.toLowerCase());
+    })
+  : [];
 
   const sortedPlots = [...filteredPlots].sort((a, b) => {
     if (!sortConfig.key) return 0;
