@@ -5,3 +5,4 @@ uvicorn
 pydantic
 pydantic-settings
 asyncpg
+geoalchemy2
