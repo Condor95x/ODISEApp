@@ -1,12 +1,14 @@
+import sqlalchemy.exc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete, and_, func, or_
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Union
 from decimal import Decimal
-import sqlalchemy.exc
-from ..models import InputCategory, Input, Warehouse, InputStock, InventoryMovement, Supplier, PurchaseOrder, PurchaseOrderDetail, TaskInput
-from ..schemas.schemas_inventory import TaskInputUpdate,TaskInputCreate,PurchaseOrderDetailUpdate,PurchaseOrderUpdate,PurchaseOrderCreate,SupplierUpdate,SupplierCreate,InventoryMovementCreate,InputStockUpdate,InputStockCreate,WarehouseUpdate,WarehouseCreate,InputUpdate,Input,InputCreate,InputCategoryUpdate 
+from ..models import InputCategory, Warehouse, InputStock, InventoryMovement, Supplier, PurchaseOrder, PurchaseOrderDetail, TaskInput
+from ..models import  Input as InputModel
+from ..schemas.schemas_inventory import TaskInputUpdate,TaskInputCreate,PurchaseOrderDetailUpdate,PurchaseOrderUpdate,PurchaseOrderCreate,SupplierUpdate,SupplierCreate,InventoryMovementCreate,InputStockUpdate,InputStockCreate,WarehouseUpdate,WarehouseCreate,InputUpdate,InputCreate,InputCategoryUpdate 
+from ..schemas.schemas_inventory import Input as InputSchema
 from fastapi import HTTPException
 # ==================== Input Categories CRUD ====================
 '''
@@ -86,7 +88,7 @@ async def delete_input_category(db: AsyncSession, category_id: int) -> bool:
 
 # ==================== Input CRUD ====================
 
-async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
+async def create_input(db: AsyncSession, input_item: InputCreate) -> InputModel:
     print(f"Creando input con: {input_item.dict()}")
     try:
         # Buscar la categoría por ID
@@ -98,7 +100,7 @@ async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
 
         print(f"Categoría encontrada: {category}")
         # Crear el input con el ID de la categoría
-        db_input = Input(
+        db_input = InputSchema(
             name=input_item.name,
             category_id=category.id,
             brand=input_item.brand,
@@ -130,8 +132,8 @@ async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
         print(f"Error en create_input: {e}") #Log del error
         raise # Re-lanzar el error para que sea capturado en la ruta
 
-async def get_input(db: AsyncSession, input_id: int) -> Optional[Input]:
-    result = await db.execute(select(Input).where(Input.id == input_id))
+async def get_input(db: AsyncSession, input_id: int) -> Optional[InputModel]:
+    result = await db.execute(select(InputModel).where(InputModel.id == input_id))
     return result.scalars().first()
 
 async def get_inputs(
@@ -140,14 +142,14 @@ async def get_inputs(
     limit: int = 100,
     category_id: Optional[int] = None,
     is_active: Optional[bool] = None
-) -> List[Input]:
-    query = select(Input)
+) -> List[InputSchema]:
+    query = select(InputModel)
 
     if category_id is not None:
-        query = query.where(Input.category_id == category_id)
+        query = query.where(InputModel.category_id == category_id)
 
     if is_active is not None:
-        query = query.where(Input.is_active == is_active)
+        query = query.where(InputModel.is_active == is_active)
 
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
@@ -157,7 +159,7 @@ async def get_inputs(
     for input_item in inputs:
         category = await db.execute(select(InputCategory).where(InputCategory.id == input_item.category_id))
         category = category.scalars().first()
-        result_list.append(Input(
+        result_list.append(InputSchema(
             id=input_item.id,
             name=input_item.name,
             category_id=input_item.category_id, # Usar el category_id del input_item
@@ -177,15 +179,15 @@ async def update_input(
     db: AsyncSession, 
     input_id: int, 
     input_item: InputUpdate
-) -> Optional[Input]:
+) -> Optional[InputSchema]:
     input_data = input_item.dict(exclude_unset=True)
     if not input_data:
         return await get_input(db, input_id)
     
     input_data["updated_at"] = datetime.now()
     await db.execute(
-        update(Input)
-        .where(Input.id == input_id)
+        update(InputModel)
+        .where(InputModel.id == input_id)
         .values(**input_data)
     )
     await db.commit()
@@ -202,7 +204,7 @@ async def delete_input(db: AsyncSession, input_id: int) -> bool:
     await db.execute(delete(TaskInput).where(TaskInput.input_id == input_id)) # Asegúrate del nombre correcto de la columna
 
     result = await db.execute(
-        delete(Input).where(Input.id == input_id)
+        delete(InputModel).where(InputModel.id == input_id)
     )
     await db.commit()
     return result.rowcount > 0
@@ -319,10 +321,10 @@ async def get_input_stocks_with_details(
 
     query = select(
         InputStock,
-        Input,
+        InputModel,
         Warehouse
     ).join(
-        Input, InputStock.input_id == Input.id
+        InputModel, InputStock.input_id == InputModel.id
     ).join(
         Warehouse, InputStock.warehouse_id == Warehouse.id
     )
@@ -582,8 +584,8 @@ async def get_purchase_order_with_details(db: AsyncSession, order_id: int) -> Op
     
     # Get order details with input information
     details_result = await db.execute(
-        select(PurchaseOrderDetail, Input)
-        .join(Input, PurchaseOrderDetail.input_id == Input.id)
+        select(PurchaseOrderDetail, InputModel)
+        .join(InputModel, PurchaseOrderDetail.input_id == InputModel.id)
         .where(PurchaseOrderDetail.order_id == order_id)
     )
     
@@ -819,10 +821,10 @@ async def get_task_inputs_with_details(
 ) -> List[Dict]:
     query = select(
         TaskInput,
-        Input,
+        InputModel,
         Warehouse
     ).join(
-        Input, TaskInput.input_id == Input.id
+        InputModel, TaskInput.input_id == InputModel.id
     ).join(
         Warehouse, TaskInput.warehouse_id == Warehouse.id
     ).where(

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
 from ..schemas.schemas_inventory import TaskInputCreate
 from ..schemas.schemas_winery import VesselActivity,VesselActivityUpdate,VesselActivityCreate,VesselActivityResponse,Batch,BatchUpdate,BatchCreate,Vessel,VesselUpdate,VesselCreate
-from ..crud.crud_winery import delete_vessel_activity,update_vessel_activity,get_vessel_activities,create_vessel_activity_with_inputs,delete_batch,update_batch,get_batches,get_batch,create_batch,update_vessel,get_vessels,delete_vessel,get_vessel,create_vessel
+from ..crud.crud_winery import delete_vessel_activity,update_vessel_activity,get_vessel_activity, get_vessel_activities,create_vessel_activity_with_inputs,delete_batch,update_batch,get_batches,get_batch,create_batch,update_vessel,get_vessels,delete_vessel,get_vessel,create_vessel
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,17 +17,17 @@ router = APIRouter(
 async def create_vessel(vessel: VesselCreate, db: AsyncSession = Depends(get_db)):
     return await create_vessel(db, vessel)
 
+@router.get("/vessels/", response_model=list[Vessel])
+async def read_vessels(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    vessels = await get_vessels(db, skip=skip, limit=limit)
+    return vessels
+
 @router.get("/vessels/{vessel_id}", response_model=Vessel)
 async def read_vessel(vessel_id: int, db: AsyncSession = Depends(get_db)):
     db_vessel = await get_vessel(db, vessel_id)
     if db_vessel is None:
         raise HTTPException(status_code=404, detail="Vessel not found")
     return db_vessel
-
-@router.get("/vessels/", response_model=list[Vessel])
-async def read_vessels(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
-    vessels = await get_vessels(db, skip=skip, limit=limit)
-    return vessels
 
 @router.put("/vessels/{vessel_id}", response_model=Vessel)
 async def update_vessel(vessel_id: int, vessel: VesselUpdate, db: AsyncSession = Depends(get_db)):

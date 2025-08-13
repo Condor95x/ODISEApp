@@ -235,7 +235,7 @@ export const deleteOperacion = async (id) => {
 
 //USERS
 export const getUsers = async () => {
-  const response = await API.get('/auth/users/me');
+  const response = await API.get('/users/users/');
   return response.data;
 };
 
@@ -252,7 +252,7 @@ export const getWineryTasks = async () => {
 //ENDPOINTS INVENTORY
 //INPUT CATEGORIES
 export const createCategory = async (category) => {
-  const response = await API.post('/inventory/inventory/categories', category);
+  const response = await API.post('/inventory/inventory/categories/', category);
   return response.data;
 };
 export const getCategory = async (categoryId) => {
@@ -275,23 +275,23 @@ export const deleteCategory = async (categoryId) => {
 //INPUTS
 
 export const createInput = async (input) => {
-  const response = await API.post('/inventory/inputs/', input);
+  const response = await API.post('/inventory/inventory/inputs/', input);
   return response.data;
 };
 export const getInput = async (inputId) => {
-  const response = await API.get(`/inventory/inputs/${inputId}`);
+  const response = await API.get(`/inventory/inventory/inputs/${inputId}`);
   return response.data;
 };
 export const getInputs = async (params) => {
-  const response = await API.get('/inventory/inputs/', { params });
+  const response = await API.get('/inventory/inventory/inputs/', { params });
   return response.data;
 };
 export const updateInput = async (inputId, input) => {
-  const response = await API.put(`/inventory/inputs/${inputId}`, input);
+  const response = await API.put(`/inventory/inventory/inputs/${inputId}`, input);
   return response.data;
 };
 export const deleteInput = async (inputId) => {
-  const response = await API.delete(`/inventory/inputs/${inputId}`);
+  const response = await API.delete(`/inventory/inventory/inputs/${inputId}`);
   return response.data;
 };
 

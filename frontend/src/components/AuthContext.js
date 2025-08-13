@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   // Función para iniciar sesión
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8000/token', {
+      const response = await fetch('http://localhost:8000/auth/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.access_token);
       
       // Obtener datos del usuario
-      const userResponse = await fetch('http://localhost:8000/users/me', {
+      const userResponse = await fetch('http://localhost:8000/auth/users/me', {
         headers: {
           'Authorization': `Bearer ${data.access_token}`
         },
