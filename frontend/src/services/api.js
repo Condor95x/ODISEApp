@@ -391,7 +391,7 @@ export const getVessels = async (skip = 0, limit = 100) => {
 };
 export const getVessel = async (vessel_id) => {
   try {
-    const response = await API.get('/winery/vessels/'); // Asegurate que la ruta es correcta.
+    const response = await API.get(`/winery/vessels/${vessel_id}`); // Asegurate que la ruta es correcta.
     return response; // Devuelve la respuesta completa.
   } catch (error) {
     console.error("Error al obtener las vasijas:", error);
@@ -411,7 +411,7 @@ export const getBatches = async (skip = 0, limit = 100) => {
   return API.get('/winery/batches/', { skip, limit });
 };
 export const getBatch = async (batch_id) => {
-  return API.get('/winery/batches/${batch_id}');
+  return API.get(`/winery/batches/${batch_id}`);
 };
 export const createBatch = async (batchData) => {
   return API.post('/winery/batches/', batchData);
