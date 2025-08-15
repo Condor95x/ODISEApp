@@ -16,26 +16,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# CORS dinámico para desarrollo y producción
 def get_cors_origins():
-    """Configurar CORS según el entorno"""
+    """Configura CORS para desarrollo y Heroku."""
     origins = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1",
+        "https://odiseapp.herokuapp.com",  # Dominio principal de tu app
+        "https://odiseapp-bf4d8516bab4.herokuapp.com"  # Dominio del frontend que causa el error
     ]
-    
-    # Agregar dominio de Heroku en producción
-    heroku_app_url = os.getenv("APP_URL")
-    if heroku_app_url:
-        origins.append(heroku_app_url)
-    
-    # URL del frontend que está generando el error de CORS
-    # Es importante añadirla explícitamente para asegurar que funcione
-    frontend_origin = "https://odiseapp-bf4d8516bab4.herokuapp.com"
-    if frontend_origin not in origins:
-        origins.append(frontend_origin)
-            
     return origins
 
 # 💡 Mueve el middleware de CORS aquí, antes de cualquier router
