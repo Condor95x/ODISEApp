@@ -30,7 +30,7 @@ class TaskList(Base):
     task_type = Column(String)
     task_supclass = Column(String, nullable=True)
     task_class = Column(String, nullable=True)
-    task_name = Column(String)
+    task_name = Column(String, unique=True)
 
 class Insumo(Base):
     __tablename__ = "insumos"
@@ -72,8 +72,6 @@ class Plot(Base):
     plot_rootstock = Column(String, ForeignKey("grapevines.gv_id"), nullable=True)
     plot_implant_year = Column(Integer, nullable=True)
     plot_creation_year = Column(Integer, nullable=True)
-    plot_conduction = Column(String, nullable=True)
-    plot_management = Column(String, nullable=True)
     plot_conduction = Column(ForeignKey("vineyard.value"), nullable=True)
     plot_management = Column(ForeignKey("vineyard.value"), nullable=True)
     plot_description = Column(Text, nullable=True)
@@ -120,7 +118,7 @@ class Vineyard(Base):
     vy_id = Column(String, primary_key=True)
     description = Column(String)
     value = Column(String, unique=True)
-    
+
     #management_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_management])
     #conduction_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_conduction])
 
