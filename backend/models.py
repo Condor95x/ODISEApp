@@ -119,8 +119,8 @@ class Vineyard(Base):
 
     vy_id = Column(String, primary_key=True)
     description = Column(String)
-    value = Column(String)
-
+    value = Column(String, unique=True)
+    
     #management_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_management])
     #conduction_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_conduction])
 

@@ -139,7 +139,6 @@ function TableOperaciones() {
 
     const handleViewOperacion = (operacion) => {
         try {
-            console.log("Detalles de la operacion al visualizar:", operacion); // Agrega este log
             setShowOperacionModal(true);
             setIsEditingDetails(false);
             setOperacionDetails(operacion);
@@ -155,10 +154,7 @@ function TableOperaciones() {
 
     const handleSaveDetails = async () => {
         try {
-            console.log('=== SAVING DETAILS ===');
-            console.log('operacionDetails:', operacionDetails);
-            console.log('operacionDetails.inputs:', operacionDetails.inputs);
-            
+           
             if (!operacionDetails.id) {
                 throw new Error("No se puede guardar: ID de operacion no encontrado.");
             }
@@ -175,8 +171,6 @@ function TableOperaciones() {
                 parcela_id: parseInt(operacionDetails.parcela_id),
             };
 
-            console.log("Datos de operacion a enviar:", datosOperacion);
-
             // Actualizar los detalles básicos de la operación
             const updatedOperacion = await updateOperacion(operacionDetails.id, datosOperacion);
 
@@ -190,12 +184,9 @@ function TableOperaciones() {
                     used_quantity: parseInt(insumo.used_quantity) || 0, // Manejar valores undefined/null
                 }));
 
-                console.log("Datos de insumos a enviar:", inputsParaEnviar);
-
                 // ✅ CORRECCIÓN: Enviar en el formato correcto que espera el backend
                 await updateOperacionInputs(operacionDetails.id, { inputs: inputsParaEnviar });
             } else {
-                console.log("No hay insumos para actualizar");
                 // Enviar array vacío para limpiar los inputs si es necesario
                 await updateOperacionInputs(operacionDetails.id, { inputs: [] });
             }
@@ -542,7 +533,6 @@ function TableOperaciones() {
                                                 const index = updatedInsumos.findIndex(i => i.insumo_id === insumo.insumo_id);
                                                 updatedInsumos[index].cantidad = parseInt(e.target.value);
                                                 setNewOperacion({ ...newOperacion, inputs: updatedInsumos });
-                                                console.log("Updated insumos:", updatedInsumos);
                                             }} className="modal-form-input" />
                                         </div>
                                     ))}
@@ -670,7 +660,6 @@ function TableOperaciones() {
                                     </div>
                                     <div className="mb-4">
                                         <label className="modal-form-label">Insumos Consumidos:</label>
-                                        {console.log("operacionDetails.inputs en el modal:", operacionDetails.inputs)} {/* Mantén este log */}
                                         {isEditingDetails ? (
                                             <select
                                                 multiple
