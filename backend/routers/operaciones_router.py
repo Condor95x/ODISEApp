@@ -5,6 +5,7 @@ from sqlalchemy import select
 from ..database import get_db
 from ..schemas.operaciones_schemas import Operacion, OperacionCreate, OperacionInputsUpdate,OperacionUpdate, OperacionResponse
 from ..crud.operaciones_crud import update_operacion, update_operacion_inputs, get_operacion, get_operaciones, create_operacion, delete_operacion, create_operation_with_inputs, get_vineyard_operaciones, get_winery_operaciones 
+from ..models import Operacion as OperacionModel
 from typing import List, Dict, Any
 
 router = APIRouter()
@@ -39,7 +40,7 @@ async def read_operacion(operacion_id: int, db: AsyncSession = Depends(get_db)):
     if operacion_db is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Operacion not found")
 
-    return operacion_db  # ✅
+    return operacion_db
 
 @router.put("/{operacion_id}", status_code=status.HTTP_200_OK, response_model=Operacion)
 async def update_operacion_endpoint(
@@ -51,11 +52,12 @@ async def update_operacion_endpoint(
     if updated_operacion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Operacion not found")
 
-    # Cargar explícitamente la relación 'inputs'
+    # Cargar explícitamente la relación 'inputs' con unique() para evitar duplicados
     result = await db.execute(
-        select(Operacion).where(Operacion.id == operacion_id).options(joinedload(Operacion.inputs))
+        select(OperacionModel).where(OperacionModel.id == operacion_id).options(joinedload(OperacionModel.inputs))
     )
-    updated_operacion_with_inputs = result.scalar_one_or_none()
+    # ✅ Agregamos .unique() antes de scalar_one_or_none()
+    updated_operacion_with_inputs = result.unique().scalar_one_or_none()
 
     return updated_operacion_with_inputs
 
@@ -70,7 +72,7 @@ async def update_operacion_inputs_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Operacion not found")
 
     await update_operacion_inputs(db, operacion_id, inputs_update.inputs)
-    return {"message": "Inputs updated successfully"} # Puedes retornar algo más si lo deseas
+    return {"message": "Inputs updated successfully"}
 
 @router.delete("/{operacion_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_operacion_endpoint(operacion_id: int, db: AsyncSession = Depends(get_db)):

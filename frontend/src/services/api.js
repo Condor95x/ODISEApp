@@ -211,11 +211,34 @@ export const updateOperacion = async (id, data) => {
 };
 export const updateOperacionInputs = async (operacionId, inputsData) => {
   try {
-      const response = await axios.put(`${API}/operaciones/${operacionId}/inputs`, inputsData);
-      return response.data; // Puedes retornar la respuesta completa o solo los datos
+    console.log(`Updating inputs for operacion ${operacionId}:`, inputsData);
+    
+    // Verificar que operacionId sea válido
+    if (!operacionId || operacionId === 'undefined') {
+      throw new Error('ID de operación inválido');
+    }
+      console.log('Payload being sent:', inputsData);
+
+      const response = await API.put(`/operaciones/${operacionId}/inputs`, inputsData);
+    
+    console.log('Response received:', response.data);
+    return response.data;
+    
   } catch (error) {
-      console.error("Error al actualizar los insumos de la operación:", error);
-      throw error;
+    console.error('Error al actualizar los insumos de la operación:', error);
+    
+    // Log más detallado del error
+    if (error.response) {
+      console.error('Error response status:', error.response.status);
+      console.error('Error response data:', error.response.data);
+      console.error('Error response headers:', error.response.headers);
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+    
+    throw error;
   }
 };
 export const createOperacion = async (operacion) => {
@@ -344,31 +367,31 @@ export const getStocksWithDetails = async (params) => {
 //TASK INPUTS
 
 export const createTaskInput = async (taskInput) => {
-  const response = await API.post('/inventory/task_inputs/', taskInput);
+  const response = await API.post('/inventory/inventory/task_inputs/', taskInput);
   return response.data;
 };
 export const getTaskInput = async (taskInputId) => {
-  const response = await API.get(`/inventory/task_inputs/${taskInputId}`);
+  const response = await API.get(`/inventory/inventory/task_inputs/${taskInputId}`);
   return response.data;
 };
 export const getTaskInputs = async (params) => {
-  const response = await API.get('/inventory/task_inputs/', { params });
+  const response = await API.get('/inventory/inventory/task_inputs/', { params });
   return response.data;
 };
 export const getTaskInputsWithDetails = async (operationId) => {
-  const response = await API.get(`/inventory/task_inputs/details/${operationId}`);
+  const response = await API.get(`/inventory/inventory/task_inputs/details/${operationId}`);
   return response.data;
 };
 export const updateTaskInput = async (taskInputId, taskInput) => {
-  const response = await API.put(`/inventory/task_inputs/${taskInputId}`, taskInput);
+  const response = await API.put(`/inventory/inventory/task_inputs/${taskInputId}`, taskInput);
   return response.data;
 };
 export const deleteTaskInput = async (taskInputId) => {
-  const response = await API.delete(`/inventory/task_inputs/${taskInputId}`);
+  const response = await API.delete(`/inventory/inventory/task_inputs/${taskInputId}`);
   return response.data;
 };
 export const createInventoryMovement = async (movementData) => {
-  const response = await API.post('/inventory/movements/', movementData);
+  const response = await API.post('/inventory/inventory/movements/', movementData);
   return response.data;
 };
 

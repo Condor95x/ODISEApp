@@ -155,6 +155,10 @@ function TableOperaciones() {
 
     const handleSaveDetails = async () => {
         try {
+            console.log('=== SAVING DETAILS ===');
+            console.log('operacionDetails:', operacionDetails);
+            console.log('operacionDetails.inputs:', operacionDetails.inputs);
+            
             if (!operacionDetails.id) {
                 throw new Error("No se puede guardar: ID de operacion no encontrado.");
             }
@@ -176,19 +180,32 @@ function TableOperaciones() {
             // Actualizar los detalles básicos de la operación
             const updatedOperacion = await updateOperacion(operacionDetails.id, datosOperacion);
 
-            // Preparar los datos para actualizar los insumos
-            const inputsParaEnviar = operacionDetails.inputs.map(insumo => ({
-                input_id: insumo.input_id,
-                used_quantity: parseInt(insumo.used_quantity),
-            }));
+            // ✅ CORRECCIÓN: Verificar que inputs exista y sea un array antes de procesarlo
+            const inputsArray = operacionDetails.inputs || [];
+            
+            if (inputsArray.length > 0) {
+                // Preparar los datos para actualizar los insumos
+                const inputsParaEnviar = inputsArray.map(insumo => ({
+                    input_id: insumo.input_id,
+                    used_quantity: parseInt(insumo.used_quantity) || 0, // Manejar valores undefined/null
+                }));
 
-            console.log("Datos de insumos a enviar:", inputsParaEnviar);
+                console.log("Datos de insumos a enviar:", inputsParaEnviar);
 
-            // Llamar a la función para actualizar los insumos
-            await updateOperacionInputs(operacionDetails.id, { inputs: inputsParaEnviar });
+                // ✅ CORRECCIÓN: Enviar en el formato correcto que espera el backend
+                await updateOperacionInputs(operacionDetails.id, { inputs: inputsParaEnviar });
+            } else {
+                console.log("No hay insumos para actualizar");
+                // Enviar array vacío para limpiar los inputs si es necesario
+                await updateOperacionInputs(operacionDetails.id, { inputs: [] });
+            }
 
-            // Actualizar la lista de operaciones con la versión actualizada (opcional, depende de si el primer PUT retorna todos los datos)
-            setOperaciones(operaciones.map((p) => (p.id === updatedOperacion.id ? { ...updatedOperacion, inputs: operacionDetails.inputs } : p)));
+            // Actualizar la lista de operaciones
+            setOperaciones(operaciones.map((p) => 
+                p.id === updatedOperacion.id 
+                    ? { ...updatedOperacion, inputs: inputsArray } 
+                    : p
+            ));
 
             setIsEditingDetails(false);
             setShowOperacionModal(false);
@@ -199,7 +216,19 @@ function TableOperaciones() {
 
         } catch (error) {
             console.error("Error al guardar los detalles:", error);
-            setErrorMessage("Error al guardar los detalles: " + error.message);
+            
+            let errorMessage = "Error al guardar los detalles";
+            if (error.response) {
+                if (error.response.status === 404) {
+                    errorMessage = "Operación no encontrada (404)";
+                } else if (error.response.data && error.response.data.detail) {
+                    errorMessage = `Error: ${error.response.data.detail}`;
+                }
+            } else {
+                errorMessage += `: ${error.message}`;
+            }
+            
+            setErrorMessage(errorMessage);
             setShowErrorModal(true);
         }
     };
