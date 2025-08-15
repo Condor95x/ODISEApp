@@ -136,7 +136,6 @@ export const getManagement = async () => {
 // Obtener solo los conduction
 export const getConduction = async () => {
   try {
-    console.log("Base URL:", API.defaults.baseURL);
     const response = await API.get('/vineyard/vineyard/conduction');
     return response.data;
   } catch (error) {

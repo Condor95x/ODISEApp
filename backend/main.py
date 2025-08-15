@@ -28,11 +28,13 @@ def get_cors_origins():
     # Agregar dominio de Heroku en producción
     heroku_url = os.getenv("APP_URL")
     if heroku_url:
-        origins.extend([
-            heroku_url,
-            heroku_url.replace("http://", "https://")
-        ])
-    
+        # Permite el dominio principal y subdominios de Heroku
+        origins.append(f"https://{heroku_url}.herokuapp.com")
+        origins.append(f"https://{heroku_url}-*.herokuapp.com")
+        
+        # Para el caso específico que estás viendo
+        origins.append("https://odiseapp-bf4d8516bab4.herokuapp.com")
+
     return origins
 
 # 💡 Mueve el middleware de CORS aquí, antes de cualquier router
