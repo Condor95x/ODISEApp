@@ -28,9 +28,9 @@ def get_cors_origins():
     # Agregar dominio de Heroku en producción
     heroku_url = os.getenv("APP_URL")
     if heroku_url:
-        # Permite el dominio principal y subdominios de Heroku
-        origins.append(f"https://{heroku_url}.herokuapp.com")
-        origins.append(f"https://{heroku_url}-*.herokuapp.com")
+        # Agrega la URL de la app de Heroku y su variante con 'https'
+        origins.append(heroku_url)
+        origins.append(heroku_url.replace("http://", "https://"))
         
         # Para el caso específico que estás viendo
         origins.append("https://odiseapp-bf4d8516bab4.herokuapp.com")
