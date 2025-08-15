@@ -16,16 +16,29 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1",
-]
+# CORS dinámico para desarrollo y producción
+def get_cors_origins():
+    """Configurar CORS según el entorno"""
+    origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1",
+    ]
+    
+    # Agregar dominio de Heroku en producción
+    heroku_url = os.getenv("APP_URL")
+    if heroku_url:
+        origins.extend([
+            heroku_url,
+            heroku_url.replace("http://", "https://")
+        ])
+    
+    return origins
 
 # 💡 Mueve el middleware de CORS aquí, antes de cualquier router
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,17 +55,30 @@ app.include_router(router_grapevines.router, prefix="/grapevines", tags=["grapev
 app.include_router(router_vineyard.router, prefix="/vineyard", tags=["vineyard"])
 app.include_router(operaciones_router.router, prefix="/operaciones", tags=["operaciones"])
 
-# Tu código para servir el frontend
+
+# Servir frontend estático
 frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/build")
-app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
 
-@app.get("/app/{full_path:path}")
-async def serve_react_app(full_path: str):
-    """Servir aplicación React solo para rutas que empiecen con /app/"""
-    index_file = os.path.join(frontend_path, "index.html")
-    return FileResponse(index_file)
+# Solo montar archivos estáticos si el directorio existe (en producción)
+if os.path.exists(frontend_path):
+    app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
+    
+    @app.get("/app/{full_path:path}")
+    async def serve_react_app(full_path: str):
+        """Servir aplicación React solo para rutas que empiecen con /app/"""
+        index_file = os.path.join(frontend_path, "index.html")
+        return FileResponse(index_file)
 
-@app.get("/")
-def read_root():
-    # Opcionalmente, redirigir la raíz a la app React
-    return FileResponse(os.path.join(frontend_path, "index.html"))
+    @app.get("/")
+    def read_root():
+        return FileResponse(os.path.join(frontend_path, "index.html"))
+else:
+    # En desarrollo local, solo API
+    @app.get("/")
+    def read_root():
+        return {"message": "ODISEApp API - Desarrollo"}
+
+# Health check para Heroku
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
