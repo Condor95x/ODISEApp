@@ -1,6 +1,25 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+
 // Crear el contexto
 const AuthContext = createContext(null);
+
+// ✅ Configuración dinámica de la URL del API
+const getApiUrl = () => {
+  // Si existe variable de entorno, usarla (sin slash final)
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL.replace(/\/$/, '');
+  }
+  
+  // Si estamos en localhost, usar el backend local
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000';
+  }
+  
+  // En producción, usar la misma URL que el frontend (mismo dominio)
+  return window.location.origin;
+};
+
+const API_URL = getApiUrl();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -21,10 +40,15 @@ export const AuthProvider = ({ children }) => {
   // Función para iniciar sesión
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8000/auth/token', {
+      console.log('Attempting login to:', `${API_URL}/auth/token`); // Debug log
+      console.log('🔍 Starting login process...');
+      console.log('🔍 API_URL:', API_URL);
+      console.log('🔍 Attempting login to:', `${API_URL}/auth/token`);
+    
+      const response = await fetch(`${API_URL}/auth/token`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/x-www-form-urlencoded', // ✅ Corregido: era 'form-encoded'
         },
         body: new URLSearchParams({
           'username': email,
@@ -33,6 +57,8 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Login failed:', response.status, errorData);
         throw new Error('Credenciales incorrectas');
       }
 
@@ -42,13 +68,18 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.access_token);
       
       // Obtener datos del usuario
-      const userResponse = await fetch('http://localhost:8000/auth/users/me', {
+      console.log('Getting user data from:', `${API_URL}/users/users/me`); // Debug log
+      
+      const userResponse = await fetch(`${API_URL}/users/users/me`, {
         headers: {
-          'Authorization': `Bearer ${data.access_token}`
+          'Authorization': `Bearer ${data.access_token}`,
+          'Content-Type': 'application/json',
         },
       });
       
       if (!userResponse.ok) {
+        const errorData = await userResponse.text();
+        console.error('User data failed:', userResponse.status, errorData);
         throw new Error('Error al obtener datos del usuario');
       }
       
@@ -58,7 +89,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
+      console.log('Login successful for user:', userData.email || userData.username);
       return userData;
+      
     } catch (error) {
       console.error('Error en login:', error);
       throw error;
@@ -89,7 +122,7 @@ export const AuthProvider = ({ children }) => {
     
     // Si es administrador, tiene acceso a todo
     if (user.rol === 'administrador') return true;
-
+    
     switch (module) {
       case 'plots':
         return ['tecnico finca'].includes(user.rol);
@@ -101,7 +134,6 @@ export const AuthProvider = ({ children }) => {
         return ['tecnico bodega', 'obrero'].includes(user.rol);
       default:
         return false;
-
     }
   };
 

@@ -59,7 +59,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str):
     user = await get_user(db, email)
     if not user:
         return False
-    if not verify_password(password, user.password):
+    if not await verify_password(password, user.password):
         return False
     return user
 

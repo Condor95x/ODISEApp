@@ -48,7 +48,7 @@ async def register_user(user_data: UsuarioCreate, db: AsyncSession = Depends(get
         raise HTTPException(status_code=400, detail="Email ya registrado")
 
     # Crear nuevo usuario
-    hashed_password = get_password_hash(user_data.password)
+    hashed_password = await get_password_hash(user_data.password)
     db_user = Usuario(
         email=user_data.email,
         nombre=user_data.nombre,

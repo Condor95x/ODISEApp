@@ -42,15 +42,17 @@ app.include_router(router_grapevines.router, prefix="/grapevines", tags=["grapev
 app.include_router(router_vineyard.router, prefix="/vineyard", tags=["vineyard"])
 app.include_router(operaciones_router.router, prefix="/operaciones", tags=["operaciones"])
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
 # Tu código para servir el frontend
 frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/build")
 app.mount("/static", StaticFiles(directory=os.path.join(frontend_path, "static")), name="static")
 
-@app.get("/{full_path:path}")
+@app.get("/app/{full_path:path}")
 async def serve_react_app(full_path: str):
+    """Servir aplicación React solo para rutas que empiecen con /app/"""
     index_file = os.path.join(frontend_path, "index.html")
     return FileResponse(index_file)
+
+@app.get("/")
+def read_root():
+    # Opcionalmente, redirigir la raíz a la app React
+    return FileResponse(os.path.join(frontend_path, "index.html"))

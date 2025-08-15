@@ -298,23 +298,23 @@ export const deleteInput = async (inputId) => {
 //WAREHOUSE
 
 export const createWarehouse = async (warehouse) => {
-  const response = await API.post('/inventory/warehouses/', warehouse);
+  const response = await API.post('/inventory/inventory/warehouses/', warehouse);
   return response.data;
 };
 export const getWarehouse = async (warehouseId) => {
-  const response = await API.get(`/inventory/warehouses/${warehouseId}`);
+  const response = await API.get(`/inventory/inventory/warehouses/${warehouseId}`);
   return response.data;
 };
 export const getWarehouses = async (params) => {
-  const response = await API.get('/inventory/warehouses/', { params });
+  const response = await API.get('/inventory/inventory/warehouses/', { params });
   return response.data;
 };
 export const updateWarehouse = async (warehouseId, warehouse) => {
-  const response = await API.put(`/inventory/warehouses/${warehouseId}`, warehouse);
+  const response = await API.put(`/inventory/inventory/warehouses/${warehouseId}`, warehouse);
   return response.data;
 };
 export const deleteWarehouse = async (warehouseId) => {
-  const response = await API.delete(`/inventory/warehouses/${warehouseId}`);
+  const response = await API.delete(`/inventory/inventory/warehouses/${warehouseId}`);
   return response.data;
 };
 
@@ -375,23 +375,23 @@ export const createInventoryMovement = async (movementData) => {
 ///Winery
 
 export const getVesselActivities = async (skip = 0, limit = 100) => {
-  return API.get('/winery/vessel_activities/', { skip, limit });
+  return API.get('/winery/winery/vessel_activities/', { skip, limit });
 };
 export const createVesselActivity = async (activityData) => {
-  return API.post('/winery/vessel_activities/', activityData);
+  return API.post('/winery/winery/vessel_activities/', activityData);
 };
 export const updateVesselActivity = async (vessel_activity_id, activityData) => {
-  return API.put(`/winery/vessel_activities/${vessel_activity_id}`, activityData);
+  return API.put(`/winery/winery/vessel_activities/${vessel_activity_id}`, activityData);
 };
 export const deleteVesselActivity = async (vessel_activity_id) => {
-  return API.delete(`/winery/vessel_activities/${vessel_activity_id}`);
+  return API.delete(`/winery/winery/vessel_activities/${vessel_activity_id}`);
 };
 export const getVessels = async (skip = 0, limit = 100) => {
-  return API.get('/winery/vessels/', { skip, limit });
+  return API.get('/winery/winery/vessels/', { skip, limit });
 };
 export const getVessel = async (vessel_id) => {
   try {
-    const response = await API.get(`/winery/vessels/${vessel_id}`); // Asegurate que la ruta es correcta.
+    const response = await API.get(`/winery/winery/vessels/${vessel_id}`); // Asegurate que la ruta es correcta.
     return response; // Devuelve la respuesta completa.
   } catch (error) {
     console.error("Error al obtener las vasijas:", error);
@@ -399,28 +399,28 @@ export const getVessel = async (vessel_id) => {
   }
 };
 export const createVessel = async (vesselData) => {
-  return API.post('/winery/vessels/', vesselData);
+  return API.post('/winery/winery/vessels/', vesselData);
 };
 export const updateVessel = async (vessel_id, vesselData) => {
-  return API.put(`/winery/vessels/${vessel_id}`, vesselData);
+  return API.put(`/winery/winery/vessels/${vessel_id}`, vesselData);
 };
 export const deleteVessel = async (vessel_id) => {
-  return API.delete(`/winery/vessels/${vessel_id}`);
+  return API.delete(`/winery/winery/vessels/${vessel_id}`);
 };
 export const getBatches = async (skip = 0, limit = 100) => {
-  return API.get('/winery/batches/', { skip, limit });
+  return API.get('/winery/winery/batches/', { skip, limit });
 };
 export const getBatch = async (batch_id) => {
-  return API.get(`/winery/batches/${batch_id}`);
+  return API.get(`/winery/winery/batches/${batch_id}`);
 };
 export const createBatch = async (batchData) => {
-  return API.post('/winery/batches/', batchData);
+  return API.post('/winery/winery/batches/', batchData);
 };
 export const updateBatch = async (batch_id, batchData) => {
-  return API.put(`/winery/batches/${batch_id}`, batchData);
+  return API.put(`/winery/winery/batches/${batch_id}`, batchData);
 };
 export const deleteBatch = async (batch_id) => {
-  return API.delete(`/winery/batches/${batch_id}`);
+  return API.delete(`/winery/winery/batches/${batch_id}`);
 };
 
 
