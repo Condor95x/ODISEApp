@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -10,7 +10,8 @@ const Map = ({ geojson, onGeometryChange }) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
-    const zoomAdjustedRef = useRef(false); // Evitar zoom infinito
+    const zoomAdjustedRef = useRef(false);
+    const [currentGeometry, setCurrentGeometry] = useState(null); // Estado para mantener la geometría actual
 
     useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
@@ -38,7 +39,6 @@ const Map = ({ geojson, onGeometryChange }) => {
 
             const geocoderContainer = geocoder.getContainer();
             geocoderContainer.classList.add('my-geocoder-styles');
-            
 
             // Evento para centrar el mapa al seleccionar ubicación
             geocoder.on('markgeocode', (e) => {
@@ -49,24 +49,40 @@ const Map = ({ geojson, onGeometryChange }) => {
             mapInstanceRef.current.on(L.Draw.Event.CREATED, (e) => {
                 const layer = e.layer;
                 drawnItemsRef.current.addLayer(layer);
-                onGeometryChange(layer.toGeoJSON());
-                centerMapToLayer(layer); // Centrar el mapa al dibujar
+                const geoJSON = layer.toGeoJSON();
+                
+                // Guardar la geometría en el estado local
+                setCurrentGeometry(geoJSON);
+                
+                // Llamar al callback
+                onGeometryChange(geoJSON);
+                centerMapToLayer(layer);
             });
 
             mapInstanceRef.current.on(L.Draw.Event.EDITED, (e) => {
                 e.layers.eachLayer(layer => {
-                    onGeometryChange(layer.toGeoJSON());
-                    centerMapToLayer(layer); // Centrar el mapa después de editar
+                    const geoJSON = layer.toGeoJSON();
+                    setCurrentGeometry(geoJSON);
+                    onGeometryChange(geoJSON);
+                    centerMapToLayer(layer);
                 });
             });
 
-            mapInstanceRef.current.on(L.Draw.Event.DELETED, () => {
+            mapInstanceRef.current.on(L.Draw.Event.DELETED, (e) => {
+                setCurrentGeometry(null);
                 onGeometryChange(drawnItemsRef.current.toGeoJSON());
             });
+
+            // Restaurar geometría actual si existe al inicializar
+            if (currentGeometry) {
+                L.geoJSON(currentGeometry).eachLayer(layer => {
+                    drawnItemsRef.current.addLayer(layer);
+                });
+            }
         }
 
-        // Procesar GeoJSON
-        if (geojson && mapInstanceRef.current) {
+        // Procesar GeoJSON externo (cuando viene de props)
+        if (geojson && mapInstanceRef.current && JSON.stringify(geojson) !== JSON.stringify(currentGeometry)) {
             drawnItemsRef.current.clearLayers();
             let hasNewData = false;
 
@@ -75,43 +91,87 @@ const Map = ({ geojson, onGeometryChange }) => {
                 hasNewData = true;
             });
 
-            // Solo hacer fitBounds una vez
+            setCurrentGeometry(geojson);
+
             if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
                 const bounds = drawnItemsRef.current.getBounds();
                 if (bounds.isValid()) {
                     mapInstanceRef.current.fitBounds(bounds);
-                    zoomAdjustedRef.current = true; // Evitar zoom repetitivo
+                    zoomAdjustedRef.current = true;
                 }
             }
 
-            // Centrar el mapa sobre el centro de la geometría al visualizar
             if (hasNewData) {
                 const bounds = drawnItemsRef.current.getBounds();
                 if (bounds.isValid()) {
                     const center = bounds.getCenter();
-                    mapInstanceRef.current.setView(center, 15); // Ajustar el zoom y centrar
+                    mapInstanceRef.current.setView(center, 15);
                 }
             }
         }
 
-        return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
-            }
-        };
-    }, [geojson, onGeometryChange]);
+    }, [geojson, onGeometryChange, currentGeometry]);
 
-    // Función para centrar el mapa sobre la capa (parcela)
+    // Efecto para restaurar la geometría si el mapa se reinicializa
+    useEffect(() => {
+        if (mapInstanceRef.current && currentGeometry && drawnItemsRef.current.getLayers().length === 0) {
+            L.geoJSON(currentGeometry).eachLayer(layer => {
+                drawnItemsRef.current.addLayer(layer);
+            });
+        }
+    }, [currentGeometry]);
+
     const centerMapToLayer = (layer) => {
-        const bounds = layer.getBounds();
-        if (bounds.isValid()) { // Verificación para asegurar que los límites sean válidos
-            const center = bounds.getCenter();
-            mapInstanceRef.current.setView(center, 15); // Centrar el mapa sobre el centro de la geometría
+        if (layer.getBounds) {
+            const bounds = layer.getBounds();
+            if (bounds.isValid()) {
+                const center = bounds.getCenter();
+                mapInstanceRef.current.setView(center, 15);
+            }
+        } else if (layer.getLatLng) {
+            // Para markers u otros tipos de capas
+            mapInstanceRef.current.setView(layer.getLatLng(), 15);
         }
     };
 
-    return <div id="map" ref={mapRef} style={{ height: '400px', width: '100%' }}></div>;
+    // Función para limpiar el mapa manualmente (opcional)
+    const clearMap = () => {
+        if (drawnItemsRef.current) {
+            drawnItemsRef.current.clearLayers();
+            setCurrentGeometry(null);
+            onGeometryChange(null);
+        }
+    };
+
+    // Exponer método para obtener la geometría actual
+    React.useImperativeHandle(ref, () => ({
+        getCurrentGeometry: () => currentGeometry,
+        clearMap: clearMap
+    }));
+
+    return (
+        <div>
+            <div id="map" ref={mapRef} style={{ height: '400px', width: '100%' }}></div>
+            {/* Botón opcional para limpiar el mapa */}
+            {currentGeometry && (
+                <div style={{ marginTop: '10px' }}>
+                    <button 
+                        onClick={clearMap}
+                        style={{
+                            padding: '5px 10px',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Limpiar Parcela
+                    </button>
+                </div>
+            )}
+        </div>
+    );
 };
 
-export default Map;
+export default React.forwardRef(Map);
