@@ -11,7 +11,6 @@ const Map = ({ geojson, onGeometryChange }) => {
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
     const zoomAdjustedRef = useRef(false);
-    const tempLayerRef = useRef(null); // Para mantener referencia de la capa temporal
 
     useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
@@ -22,13 +21,20 @@ const Map = ({ geojson, onGeometryChange }) => {
                 maxZoom: 20
             }).addTo(mapInstanceRef.current);
 
+            // IMPORTANTE: Agregar drawnItems al mapa ANTES de crear el control de dibujo
             mapInstanceRef.current.addLayer(drawnItemsRef.current);
 
             // Agregar control de dibujo
             const drawControl = new L.Control.Draw({
-                edit: { featureGroup: drawnItemsRef.current },
+                edit: { 
+                    featureGroup: drawnItemsRef.current,
+                    remove: true // Permitir eliminar
+                },
                 draw: { 
-                    polygon: true, 
+                    polygon: {
+                        allowIntersection: false, // Evitar intersecciones
+                        showArea: true // Mostrar área
+                    }, 
                     polyline: false, 
                     rectangle: false, 
                     circle: false, 
@@ -52,130 +58,154 @@ const Map = ({ geojson, onGeometryChange }) => {
                 mapInstanceRef.current.setView(e.geocode.center, 15);
             });
 
-            // Eventos de dibujo mejorados
+            // Eventos de dibujo - CORREGIDOS
             mapInstanceRef.current.on(L.Draw.Event.CREATED, (e) => {
                 const layer = e.layer;
                 
-                // Limpiar cualquier capa temporal anterior
-                if (tempLayerRef.current) {
-                    drawnItemsRef.current.removeLayer(tempLayerRef.current);
+                // Agregar la capa al grupo de elementos dibujados
+                drawnItemsRef.current.addLayer(layer);
+                
+                // Asegurar que la capa sea visible
+                if (!mapInstanceRef.current.hasLayer(drawnItemsRef.current)) {
+                    mapInstanceRef.current.addLayer(drawnItemsRef.current);
                 }
                 
-                // Agregar la nueva capa y mantener referencia
-                drawnItemsRef.current.addLayer(layer);
-                tempLayerRef.current = layer;
+                // Llamar al callback con la geometría
+                if (onGeometryChange) {
+                    onGeometryChange(layer.toGeoJSON());
+                }
                 
-                // Notificar el cambio (esto debería manejar la lógica de "pendiente de confirmación")
-                onGeometryChange(layer.toGeoJSON());
+                // Centrar el mapa al dibujar
                 centerMapToLayer(layer);
+                
+                console.log('Parcela dibujada y agregada al mapa', layer.toGeoJSON());
             });
 
             mapInstanceRef.current.on(L.Draw.Event.EDITED, (e) => {
                 e.layers.eachLayer(layer => {
-                    onGeometryChange(layer.toGeoJSON());
+                    if (onGeometryChange) {
+                        onGeometryChange(layer.toGeoJSON());
+                    }
                     centerMapToLayer(layer);
                 });
+                console.log('Parcela editada');
             });
 
-            mapInstanceRef.current.on(L.Draw.Event.DELETED, () => {
-                tempLayerRef.current = null;
-                onGeometryChange(drawnItemsRef.current.toGeoJSON());
-            });
-
-            // Evento cuando se inicia el dibujo (opcional)
-            mapInstanceRef.current.on(L.Draw.Event.DRAWSTART, () => {
-                // Limpiar capa temporal si existe
-                if (tempLayerRef.current) {
-                    drawnItemsRef.current.removeLayer(tempLayerRef.current);
-                    tempLayerRef.current = null;
+            mapInstanceRef.current.on(L.Draw.Event.DELETED, (e) => {
+                // Obtener todas las geometrías restantes
+                const remainingGeometries = drawnItemsRef.current.toGeoJSON();
+                if (onGeometryChange) {
+                    onGeometryChange(remainingGeometries);
                 }
+                console.log('Parcela eliminada');
+            });
+
+            // Eventos adicionales para debug
+            mapInstanceRef.current.on(L.Draw.Event.DRAWSTART, () => {
+                console.log('Iniciando dibujo...');
+            });
+
+            mapInstanceRef.current.on(L.Draw.Event.DRAWSTOP, () => {
+                console.log('Dibujo finalizado');
             });
         }
 
-        // Procesar GeoJSON - Mejorado para evitar conflictos
+        // Procesar GeoJSON - MEJORADO
         if (geojson && mapInstanceRef.current) {
-            // Solo limpiar si no es una capa temporal
-            if (!tempLayerRef.current) {
-                drawnItemsRef.current.clearLayers();
-            }
-            
+            // Limpiar capas existentes
+            drawnItemsRef.current.clearLayers();
             let hasNewData = false;
 
-            // Verificar si el GeoJSON es diferente al temporal
-            const isTemporaryGeometry = tempLayerRef.current && 
-                JSON.stringify(tempLayerRef.current.toGeoJSON()) === JSON.stringify(geojson);
-
-            if (!isTemporaryGeometry) {
-                // Limpiar todo incluyendo temporales
-                drawnItemsRef.current.clearLayers();
-                tempLayerRef.current = null;
-
-                L.geoJSON(geojson).eachLayer(layer => {
+            try {
+                // Verificar si geojson tiene features
+                if (geojson.features && geojson.features.length > 0) {
+                    L.geoJSON(geojson, {
+                        style: {
+                            color: '#3388ff',
+                            weight: 3,
+                            opacity: 0.8,
+                            fillOpacity: 0.2
+                        }
+                    }).eachLayer(layer => {
+                        drawnItemsRef.current.addLayer(layer);
+                        hasNewData = true;
+                    });
+                } else if (geojson.type === 'Feature') {
+                    // Si es una sola feature
+                    const layer = L.geoJSON(geojson, {
+                        style: {
+                            color: '#3388ff',
+                            weight: 3,
+                            opacity: 0.8,
+                            fillOpacity: 0.2
+                        }
+                    });
                     drawnItemsRef.current.addLayer(layer);
                     hasNewData = true;
-                });
+                }
 
-                // Solo hacer fitBounds una vez para datos nuevos (no temporales)
+                // Asegurar que drawnItems esté en el mapa
+                if (!mapInstanceRef.current.hasLayer(drawnItemsRef.current)) {
+                    mapInstanceRef.current.addLayer(drawnItemsRef.current);
+                }
+
+                // Ajustar vista solo una vez
                 if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
                     const bounds = drawnItemsRef.current.getBounds();
                     if (bounds.isValid()) {
-                        mapInstanceRef.current.fitBounds(bounds);
+                        mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
                         zoomAdjustedRef.current = true;
                     }
                 }
-
-                // Centrar el mapa sobre el centro de la geometría al visualizar
-                if (hasNewData) {
-                    const bounds = drawnItemsRef.current.getBounds();
-                    if (bounds.isValid()) {
-                        const center = bounds.getCenter();
-                        mapInstanceRef.current.setView(center, 15);
-                    }
-                }
+            } catch (error) {
+                console.error('Error procesando GeoJSON:', error);
             }
         }
 
+        // Cleanup
         return () => {
             if (mapInstanceRef.current) {
                 mapInstanceRef.current.remove();
                 mapInstanceRef.current = null;
+                zoomAdjustedRef.current = false;
             }
         };
     }, [geojson, onGeometryChange]);
 
-    // Función para centrar el mapa sobre la capa (parcela)
+    // Función para centrar el mapa sobre la capa
     const centerMapToLayer = (layer) => {
-        const bounds = layer.getBounds();
-        if (bounds.isValid()) {
-            const center = bounds.getCenter();
-            mapInstanceRef.current.setView(center, 15);
+        try {
+            let bounds;
+            
+            if (layer.getBounds) {
+                bounds = layer.getBounds();
+            } else if (layer.getLatLng) {
+                // Para markers
+                const latLng = layer.getLatLng();
+                bounds = L.latLngBounds([latLng, latLng]);
+            }
+            
+            if (bounds && bounds.isValid()) {
+                const center = bounds.getCenter();
+                mapInstanceRef.current.setView(center, Math.max(mapInstanceRef.current.getZoom(), 15));
+            }
+        } catch (error) {
+            console.error('Error centrando el mapa:', error);
         }
     };
 
-    // Función para confirmar la geometría (llamar desde el componente padre)
-    const confirmGeometry = () => {
-        if (tempLayerRef.current) {
-            // La geometría ya está en el mapa, solo limpiar la referencia temporal
-            tempLayerRef.current = null;
-            zoomAdjustedRef.current = false; // Permitir ajuste de zoom para futuras geometrías
-        }
-    };
-
-    // Función para cancelar la geometría (llamar desde el componente padre)
-    const cancelGeometry = () => {
-        if (tempLayerRef.current) {
-            drawnItemsRef.current.removeLayer(tempLayerRef.current);
-            tempLayerRef.current = null;
-        }
-    };
-
-    // Exponer funciones al componente padre (opcional)
-    React.useImperativeHandle(mapRef, () => ({
-        confirmGeometry,
-        cancelGeometry
-    }));
-
-    return <div id="map" ref={mapRef} style={{ height: '400px', width: '100%' }}></div>;
+    return (
+        <div 
+            id="map" 
+            ref={mapRef} 
+            style={{ 
+                height: '400px', 
+                width: '100%',
+                position: 'relative',
+                zIndex: 1
+            }}
+        />
+    );
 };
 
 export default Map;
