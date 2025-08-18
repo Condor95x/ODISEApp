@@ -151,21 +151,38 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-  const handleDownloadCSV = () => {
-    const selectedData = plots.filter((p) => selectedPlots.includes(p.plot_id));    
-    const csv = Papa.unparse(selectedData);    
-    const blob = new Blob([csv], { type: "text/csv" });      
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-      const url = window.URL.createObjectURL(blob);     
-      link.setAttribute('href', url);    
-      link.setAttribute('download','plots.csv');
-      link.style.visibility = 'hidden';    
-      document.body.appendChild(link);    
-      link.click();    
-      document.body.removeChild(link);    
-    }
-  };
+const handleDownloadCSV = () => {
+  const selectedData = plots.filter((p) => selectedPlots.includes(p.plot_id));
+  
+  // Transformar los datos con nombres legibles y campos personalizados
+  const transformedData = selectedData.map(plot => ({
+    ID: plot.plot_id,
+    Nombre: plot.plot_name,
+    Variedad: varieties.find(v => v.gv_id === plot.plot_var)?.name || 'No especificada',
+    Portainjerto: rootstocks.find(r => r.gv_id === plot.plot_rootstock)?.name || 'No especificado',
+    'Año de Implantación': plot.plot_implant_year || 'No especificado',
+    'Año de Creación': plot.plot_creation_year || 'No especificado',
+    'Sistema de Conducción': conduction.find(c => c.value === plot.plot_conduction)?.value || 'No especificado',
+    'Tipo de Manejo': management.find(m => m.value === plot.plot_management)?.value || 'No especificado',
+    Descripción: plot.plot_description || '',
+    'Área (m²)': plot.plot_area || 'No calculada'
+    // Nota: excluimos plot_geom del CSV ya que no es legible en formato de texto
+  }));
+  
+  const csv = Papa.unparse(transformedData);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = window.URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `parcelas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+};
 
   const handleCreatePlot = async () => {  
     if (!newPlot.plot_name || !newPlot.plot_var) {
