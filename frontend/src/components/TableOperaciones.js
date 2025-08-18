@@ -250,36 +250,93 @@ function TableOperaciones() {
     }
     };
 
-    const downloadCSV = () => {
-        const selectedData = [];
-    
-        // Iterar sobre los grupos en selectedOperaciones
-        for (const group in selectedOperaciones) {
-            const selectedIdsInGroup = selectedOperaciones[group];
-            if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
-                const filteredOperaciones = operaciones.filter(operacion => selectedIdsInGroup.includes(operacion.id));
-                selectedData.push(...filteredOperaciones);
-            }
+const downloadCSV = () => {
+    const selectedData = [];
+
+    // Iterar sobre los grupos en selectedOperaciones
+    for (const group in selectedOperaciones) {
+        const selectedIdsInGroup = selectedOperaciones[group];
+        if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
+            const filteredOperaciones = operaciones.filter(operacion => selectedIdsInGroup.includes(operacion.id));
+            selectedData.push(...filteredOperaciones);
         }
-    
-        if (selectedData.length === 0) {
-            alert("No hay operaciones seleccionadas para descargar.");
-            return;
+    }
+
+    if (selectedData.length === 0) {
+        alert("No hay operaciones seleccionadas para descargar.");
+        return;
+    }
+
+    // Transformar los datos para reemplazar claves foráneas con valores legibles
+    const transformedData = selectedData.map(operacion => {
+        // Buscar información del responsable
+        const responsable = usuarios.find(usuario => usuario.id === operacion.responsable_id);
+        const responsableNombre = responsable ? `${responsable.nombre} ${responsable.apellido}` : 'No asignado';
+
+        // Buscar información de la parcela
+        const parcela = plotsData.find(plot => plot.plot_id === operacion.parcela_id);
+        const parcelaNombre = parcela ? parcela.plot_name : 'Parcela desconocida';
+
+        // Procesar los insumos para mostrarlos de forma legible
+        let insumosTexto = 'Sin insumos';
+        if (operacion.inputs && Array.isArray(operacion.inputs) && operacion.inputs.length > 0) {
+            const insumosInfo = operacion.inputs.map(insumo => {
+                const insumoData = insumos.find(i => i.id === insumo.input_id);
+                const nombreInsumo = insumoData ? insumoData.name : `Insumo ID: ${insumo.input_id}`;
+                return `${nombreInsumo} (${insumo.used_quantity || 0})`;
+            });
+            insumosTexto = insumosInfo.join('; ');
         }
+
+        // Retornar objeto con valores legibles
+        return {
+            'ID': operacion.id,
+            'Tipo de Operación': operacion.tipo_operacion || '',
+            'Parcela': parcelaNombre,
+            'Responsable': responsableNombre,
+            'Estado': operacion.estado || '',
+            'Fecha de Inicio': operacion.fecha_inicio || '',
+            'Fecha de Fin': operacion.fecha_fin || '',
+            'Nota': operacion.nota || '',
+            'Comentario': operacion.comentario || '',
+            'Insumos Utilizados': insumosTexto,
+            // Mantener IDs originales para referencia si es necesario
+            'ID Parcela (Referencia)': operacion.parcela_id,
+            'ID Responsable (Referencia)': operacion.responsable_id
+        };
+    });
+
+    // Generar CSV con los datos transformados
+    const csv = Papa.unparse(transformedData);
     
-        const csv = Papa.unparse(selectedData);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'operaciones_bodega.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }; 
+    // ✅ SOLUCIÓN: Agregar BOM UTF-8 para asegurar codificación correcta
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csv;
+    
+    // ✅ SOLUCIÓN: Especificar charset UTF-8 explícitamente
+    const blob = new Blob([csvWithBOM], { 
+        type: 'text/csv;charset=utf-8;' 
+    });
+    
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        
+        // Nombre de archivo más descriptivo con fecha
+        const fechaActual = new Date().toISOString().split('T')[0];
+        link.setAttribute('download', `operaciones_vineyard_${fechaActual}.csv`);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Liberar memoria
+        URL.revokeObjectURL(url);
+    }
+};
 
     const handleCreateOperacion = async () => {
         try {

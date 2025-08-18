@@ -269,17 +269,95 @@ const TableWineryTask = () => {
     };
 
     const downloadCSV = (selectedActivities) => {
-        const csv = Papa.unparse(selectedActivities);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'actividades_seleccionadas.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        try {
+            // Validar que hay actividades seleccionadas
+            if (!selectedActivities || selectedActivities.length === 0) {
+                alert('No hay actividades seleccionadas para descargar.');
+                return;
+            }
+
+            // Transformar los datos para mostrar valores legibles en lugar de IDs
+            const transformedData = selectedActivities.map(activity => ({
+                'ID': activity.id || 'N/A',
+                'Tarea': getTaskName(activity.task_id),
+                'Responsable': getResponsibleName(activity.responsible_id),
+                'Vasija de Origen': getVesselName(activity.origin_vessel_id),
+                'Vasija de Destino': getVesselName(activity.destination_vessel_id),
+                'Fecha de Inicio': activity.start_date || 'N/A',
+                'Fecha de Fin': activity.end_date || 'N/A',
+                'Estado': activity.status || 'N/A',
+                'Comentarios': activity.comments || 'N/A',
+                'Notas': activity.notes || 'N/A',
+                'Lote de Origen': activity.origin_batch_id || 'N/A',
+                'Lote de Destino': activity.destination_batch_id || 'N/A',
+                'Volumen': activity.volume || 'N/A'
+            }));
+
+            // Configuración de Papa Parse para manejar correctamente los caracteres especiales
+            const csv = Papa.unparse(transformedData, {
+                delimiter: ',',
+                header: true,
+                encoding: 'utf-8',
+                // Asegurar que los campos con comas, saltos de línea o comillas se escapen correctamente
+                quotes: true,
+                quoteChar: '"',
+                escapeChar: '"',
+                // Configuración adicional para manejar caracteres especiales
+                skipEmptyLines: false,
+                transform: {
+                    // Limpiar y normalizar los valores
+                    value: function(value, field) {
+                        if (value === null || value === undefined) {
+                            return 'N/A';
+                        }
+                        // Convertir a string y limpiar caracteres problemáticos
+                        return String(value).trim();
+                    }
+                }
+            });
+
+            // Agregar BOM (Byte Order Mark) para UTF-8 para mejor compatibilidad con Excel
+            const BOM = '\uFEFF';
+            const csvWithBOM = BOM + csv;
+
+            // Crear el blob con encoding UTF-8 explícito
+            const blob = new Blob([csvWithBOM], { 
+                type: 'text/csv;charset=utf-8;' 
+            });
+
+            // Crear el enlace de descarga
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                
+                // Generar nombre de archivo con timestamp para evitar conflictos
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `actividades_bodega_${timestamp}.csv`;
+                
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                
+                // Agregar al DOM, hacer click y remover
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Limpiar la URL del objeto para liberar memoria
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                }, 100);
+
+                console.log(`CSV descargado exitosamente: ${filename}`);
+                
+            } else {
+                // Fallback para navegadores muy antiguos
+                throw new Error('Su navegador no soporta la descarga de archivos.');
+            }
+        } catch (error) {
+            console.error('Error al generar el archivo CSV:', error);
+            alert('Ocurrió un error al generar el archivo CSV. Por favor, inténtelo de nuevo.');
         }
     };
 
