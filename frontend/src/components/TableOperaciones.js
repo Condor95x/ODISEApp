@@ -308,7 +308,16 @@ const downloadCSV = () => {
 
     // Generar CSV con los datos transformados
     const csv = Papa.unparse(transformedData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    
+    // ✅ SOLUCIÓN: Agregar BOM UTF-8 para asegurar codificación correcta
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csv;
+    
+    // ✅ SOLUCIÓN: Especificar charset UTF-8 explícitamente
+    const blob = new Blob([csvWithBOM], { 
+        type: 'text/csv;charset=utf-8;' 
+    });
+    
     const link = document.createElement('a');
     
     if (link.download !== undefined) {

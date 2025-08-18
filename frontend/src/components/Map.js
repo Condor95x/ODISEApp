@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -11,11 +11,31 @@ const Map = ({ geojson, onGeometryChange }) => {
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
     const zoomAdjustedRef = useRef(false);
+    const isInitializedRef = useRef(false);
+
+    // Función para forzar el re-renderizado del mapa
+    const forceMapUpdate = useCallback(() => {
+        if (mapInstanceRef.current) {
+            setTimeout(() => {
+                mapInstanceRef.current.invalidateSize();
+                // Forzar re-dibujado de las capas
+                if (drawnItemsRef.current) {
+                    mapInstanceRef.current.removeLayer(drawnItemsRef.current);
+                    mapInstanceRef.current.addLayer(drawnItemsRef.current);
+                }
+            }, 100);
+        }
+    }, []);
 
     useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
             // Inicializar el mapa
-            mapInstanceRef.current = L.map(mapRef.current).setView([-31.65394, -68.49125], 13);
+            mapInstanceRef.current = L.map(mapRef.current, {
+                preferCanvas: true, // Mejor rendimiento
+                zoomControl: true,
+                attributionControl: true
+            }).setView([-31.65394, -68.49125], 13);
+
             L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 attribution: '© <a href="https://www.google.com/maps">Google Maps</a>',
                 maxZoom: 20
@@ -24,16 +44,38 @@ const Map = ({ geojson, onGeometryChange }) => {
             // IMPORTANTE: Agregar drawnItems al mapa ANTES de crear el control de dibujo
             mapInstanceRef.current.addLayer(drawnItemsRef.current);
 
-            // Agregar control de dibujo
+            // Agregar control de dibujo con configuración mejorada
             const drawControl = new L.Control.Draw({
                 edit: { 
                     featureGroup: drawnItemsRef.current,
-                    remove: true // Permitir eliminar
+                    remove: true,
+                    edit: {
+                        selectedPathOptions: {
+                            maintainColor: true,
+                            opacity: 0.8,
+                            dashArray: '10, 10',
+                            fill: true,
+                            fillColor: '#fe57a1',
+                            fillOpacity: 0.1,
+                            weight: 3
+                        }
+                    }
                 },
                 draw: { 
                     polygon: {
-                        allowIntersection: false, // Evitar intersecciones
-                        showArea: true // Mostrar área
+                        allowIntersection: false,
+                        showArea: true,
+                        drawError: {
+                            color: '#e1e100',
+                            message: '<strong>Error:</strong> Las líneas no pueden cruzarse!'
+                        },
+                        shapeOptions: {
+                            color: '#3388ff',
+                            weight: 3,
+                            opacity: 0.8,
+                            fillOpacity: 0.3,
+                            fillColor: '#3388ff'
+                        }
                     }, 
                     polyline: false, 
                     rectangle: false, 
@@ -53,134 +95,214 @@ const Map = ({ geojson, onGeometryChange }) => {
             const geocoderContainer = geocoder.getContainer();
             geocoderContainer.classList.add('my-geocoder-styles');
 
-            // Evento para centrar el mapa al seleccionar ubicación
             geocoder.on('markgeocode', (e) => {
                 mapInstanceRef.current.setView(e.geocode.center, 15);
             });
 
-            // Eventos de dibujo - CORREGIDOS
+            // Eventos de dibujo - MEJORADOS con persistencia
             mapInstanceRef.current.on(L.Draw.Event.CREATED, (e) => {
                 const layer = e.layer;
                 
-                // Agregar la capa al grupo de elementos dibujados
+                console.log('Evento CREATED disparado', layer);
+                
+                // Configurar estilo persistente
+                if (layer.setStyle) {
+                    layer.setStyle({
+                        color: '#3388ff',
+                        weight: 3,
+                        opacity: 0.8,
+                        fillOpacity: 0.3,
+                        fillColor: '#3388ff'
+                    });
+                }
+                
+                // Agregar la capa al grupo ANTES de notificar
                 drawnItemsRef.current.addLayer(layer);
                 
-                // Asegurar que la capa sea visible
+                // Verificar que esté agregado correctamente
+                console.log('Capas en drawnItems después de agregar:', drawnItemsRef.current.getLayers().length);
+                
+                // Asegurar visibilidad
                 if (!mapInstanceRef.current.hasLayer(drawnItemsRef.current)) {
                     mapInstanceRef.current.addLayer(drawnItemsRef.current);
                 }
                 
+                // Forzar actualización visual
+                forceMapUpdate();
+                
                 // Llamar al callback con la geometría
                 if (onGeometryChange) {
-                    onGeometryChange(layer.toGeoJSON());
+                    const geoJson = layer.toGeoJSON();
+                    console.log('Enviando geometría al callback:', geoJson);
+                    onGeometryChange(geoJson);
                 }
                 
-                // Centrar el mapa al dibujar
+                // Centrar el mapa
                 centerMapToLayer(layer);
                 
-                console.log('Parcela dibujada y agregada al mapa', layer.toGeoJSON());
+                console.log('Parcela dibujada y procesada completamente');
             });
 
             mapInstanceRef.current.on(L.Draw.Event.EDITED, (e) => {
+                console.log('Evento EDITED disparado');
                 e.layers.eachLayer(layer => {
+                    // Mantener estilo después de edición
+                    if (layer.setStyle) {
+                        layer.setStyle({
+                            color: '#3388ff',
+                            weight: 3,
+                            opacity: 0.8,
+                            fillOpacity: 0.3,
+                            fillColor: '#3388ff'
+                        });
+                    }
+                    
                     if (onGeometryChange) {
                         onGeometryChange(layer.toGeoJSON());
                     }
                     centerMapToLayer(layer);
                 });
+                forceMapUpdate();
                 console.log('Parcela editada');
             });
 
             mapInstanceRef.current.on(L.Draw.Event.DELETED, (e) => {
-                // Obtener todas las geometrías restantes
+                console.log('Evento DELETED disparado');
                 const remainingGeometries = drawnItemsRef.current.toGeoJSON();
                 if (onGeometryChange) {
                     onGeometryChange(remainingGeometries);
                 }
+                forceMapUpdate();
                 console.log('Parcela eliminada');
             });
 
-            // Eventos adicionales para debug
+            // Eventos adicionales para debugging
             mapInstanceRef.current.on(L.Draw.Event.DRAWSTART, () => {
                 console.log('Iniciando dibujo...');
             });
 
             mapInstanceRef.current.on(L.Draw.Event.DRAWSTOP, () => {
                 console.log('Dibujo finalizado');
+                // Asegurar que las capas estén visibles después del dibujo
+                setTimeout(forceMapUpdate, 50);
             });
+
+            // Evento para detectar cambios de tamaño del modal
+            mapInstanceRef.current.on('resize', forceMapUpdate);
+
+            isInitializedRef.current = true;
+            
+            // Forzar actualización inicial
+            setTimeout(forceMapUpdate, 100);
         }
 
-        // Procesar GeoJSON - MEJORADO
-        if (geojson && mapInstanceRef.current) {
-            // Limpiar capas existentes
-            drawnItemsRef.current.clearLayers();
-            let hasNewData = false;
-
-            try {
-                // Verificar si geojson tiene features
-                if (geojson.features && geojson.features.length > 0) {
-                    L.geoJSON(geojson, {
-                        style: {
-                            color: '#3388ff',
-                            weight: 3,
-                            opacity: 0.8,
-                            fillOpacity: 0.2
-                        }
-                    }).eachLayer(layer => {
-                        drawnItemsRef.current.addLayer(layer);
-                        hasNewData = true;
-                    });
-                } else if (geojson.type === 'Feature') {
-                    // Si es una sola feature
-                    const layer = L.geoJSON(geojson, {
-                        style: {
-                            color: '#3388ff',
-                            weight: 3,
-                            opacity: 0.8,
-                            fillOpacity: 0.2
-                        }
-                    });
-                    drawnItemsRef.current.addLayer(layer);
-                    hasNewData = true;
-                }
-
-                // Asegurar que drawnItems esté en el mapa
-                if (!mapInstanceRef.current.hasLayer(drawnItemsRef.current)) {
-                    mapInstanceRef.current.addLayer(drawnItemsRef.current);
-                }
-
-                // Ajustar vista solo una vez
-                if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
-                    const bounds = drawnItemsRef.current.getBounds();
-                    if (bounds.isValid()) {
-                        mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
-                        zoomAdjustedRef.current = true;
+        // Procesar GeoJSON - MEJORADO con mejor manejo
+        if (geojson && mapInstanceRef.current && isInitializedRef.current) {
+            console.log('Procesando GeoJSON:', geojson);
+            
+            // Solo limpiar si hay nuevo GeoJSON diferente
+            const currentLayers = drawnItemsRef.current.getLayers();
+            let shouldUpdate = true;
+            
+            // Verificación básica para evitar limpiar innecesariamente
+            if (currentLayers.length === 1 && geojson.type === 'Feature') {
+                try {
+                    const existingGeoJson = currentLayers[0].toGeoJSON();
+                    if (JSON.stringify(existingGeoJson.geometry) === JSON.stringify(geojson.geometry)) {
+                        shouldUpdate = false;
                     }
+                } catch (error) {
+                    console.log('Error comparando geometrías, actualizando de todos modos');
                 }
-            } catch (error) {
-                console.error('Error procesando GeoJSON:', error);
+            }
+
+            if (shouldUpdate) {
+                drawnItemsRef.current.clearLayers();
+                let hasNewData = false;
+
+                try {
+                    if (geojson.features && geojson.features.length > 0) {
+                        L.geoJSON(geojson, {
+                            style: {
+                                color: '#3388ff',
+                                weight: 3,
+                                opacity: 0.8,
+                                fillOpacity: 0.3,
+                                fillColor: '#3388ff'
+                            }
+                        }).eachLayer(layer => {
+                            drawnItemsRef.current.addLayer(layer);
+                            hasNewData = true;
+                        });
+                    } else if (geojson.type === 'Feature' && geojson.geometry) {
+                        const layer = L.geoJSON(geojson, {
+                            style: {
+                                color: '#3388ff',
+                                weight: 3,
+                                opacity: 0.8,
+                                fillOpacity: 0.3,
+                                fillColor: '#3388ff'
+                            }
+                        });
+                        layer.eachLayer(subLayer => {
+                            drawnItemsRef.current.addLayer(subLayer);
+                        });
+                        hasNewData = true;
+                    }
+
+                    // Asegurar visibilidad
+                    if (!mapInstanceRef.current.hasLayer(drawnItemsRef.current)) {
+                        mapInstanceRef.current.addLayer(drawnItemsRef.current);
+                    }
+
+                    // Ajustar vista solo una vez por sesión
+                    if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
+                        const bounds = drawnItemsRef.current.getBounds();
+                        if (bounds.isValid()) {
+                            mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
+                            zoomAdjustedRef.current = true;
+                        }
+                    }
+
+                    // Forzar actualización visual
+                    forceMapUpdate();
+                    
+                    console.log('GeoJSON procesado exitosamente, capas actuales:', drawnItemsRef.current.getLayers().length);
+                } catch (error) {
+                    console.error('Error procesando GeoJSON:', error);
+                }
             }
         }
+    }, [geojson, onGeometryChange, forceMapUpdate]);
 
-        // Cleanup
-        return () => {
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
-                zoomAdjustedRef.current = false;
+    // Efecto para manejar cambios de visibilidad del modal
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && mapInstanceRef.current) {
+                forceMapUpdate();
             }
         };
-    }, [geojson, onGeometryChange]);
 
-    // Función para centrar el mapa sobre la capa
-    const centerMapToLayer = (layer) => {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // También escuchar eventos de resize del window
+        const handleResize = () => forceMapUpdate();
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [forceMapUpdate]);
+
+    // Función mejorada para centrar el mapa
+    const centerMapToLayer = useCallback((layer) => {
         try {
             let bounds;
             
-            if (layer.getBounds) {
+            if (layer.getBounds && typeof layer.getBounds === 'function') {
                 bounds = layer.getBounds();
-            } else if (layer.getLatLng) {
-                // Para markers
+            } else if (layer.getLatLng && typeof layer.getLatLng === 'function') {
                 const latLng = layer.getLatLng();
                 bounds = L.latLngBounds([latLng, latLng]);
             }
@@ -192,7 +314,25 @@ const Map = ({ geojson, onGeometryChange }) => {
         } catch (error) {
             console.error('Error centrando el mapa:', error);
         }
-    };
+    }, []);
+
+    // Cleanup mejorado
+    useEffect(() => {
+        return () => {
+            if (mapInstanceRef.current) {
+                try {
+                    mapInstanceRef.current.off(); // Remover todos los event listeners
+                    mapInstanceRef.current.remove();
+                } catch (error) {
+                    console.error('Error durante cleanup:', error);
+                } finally {
+                    mapInstanceRef.current = null;
+                    isInitializedRef.current = false;
+                    zoomAdjustedRef.current = false;
+                }
+            }
+        };
+    }, []);
 
     return (
         <div 
@@ -202,7 +342,8 @@ const Map = ({ geojson, onGeometryChange }) => {
                 height: '400px', 
                 width: '100%',
                 position: 'relative',
-                zIndex: 1
+                zIndex: 1,
+                backgroundColor: '#f0f0f0' // Fondo para debug visual
             }}
         />
     );
