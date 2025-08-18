@@ -10,7 +10,8 @@ const Map = ({ geojson, onGeometryChange }) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
-    const zoomAdjustedRef = useRef(false); // Evitar zoom infinito
+    const zoomAdjustedRef = useRef(false);
+    const tempLayerRef = useRef(null); // Para mantener referencia de la capa temporal
 
     useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
@@ -26,7 +27,14 @@ const Map = ({ geojson, onGeometryChange }) => {
             // Agregar control de dibujo
             const drawControl = new L.Control.Draw({
                 edit: { featureGroup: drawnItemsRef.current },
-                draw: { polygon: true, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false }
+                draw: { 
+                    polygon: true, 
+                    polyline: false, 
+                    rectangle: false, 
+                    circle: false, 
+                    marker: false, 
+                    circlemarker: false 
+                }
             });
             mapInstanceRef.current.addControl(drawControl);
 
@@ -38,58 +46,91 @@ const Map = ({ geojson, onGeometryChange }) => {
 
             const geocoderContainer = geocoder.getContainer();
             geocoderContainer.classList.add('my-geocoder-styles');
-            
 
             // Evento para centrar el mapa al seleccionar ubicación
             geocoder.on('markgeocode', (e) => {
                 mapInstanceRef.current.setView(e.geocode.center, 15);
             });
 
-            // Eventos de dibujo
+            // Eventos de dibujo mejorados
             mapInstanceRef.current.on(L.Draw.Event.CREATED, (e) => {
                 const layer = e.layer;
+                
+                // Limpiar cualquier capa temporal anterior
+                if (tempLayerRef.current) {
+                    drawnItemsRef.current.removeLayer(tempLayerRef.current);
+                }
+                
+                // Agregar la nueva capa y mantener referencia
                 drawnItemsRef.current.addLayer(layer);
+                tempLayerRef.current = layer;
+                
+                // Notificar el cambio (esto debería manejar la lógica de "pendiente de confirmación")
                 onGeometryChange(layer.toGeoJSON());
-                centerMapToLayer(layer); // Centrar el mapa al dibujar
+                centerMapToLayer(layer);
             });
 
             mapInstanceRef.current.on(L.Draw.Event.EDITED, (e) => {
                 e.layers.eachLayer(layer => {
                     onGeometryChange(layer.toGeoJSON());
-                    centerMapToLayer(layer); // Centrar el mapa después de editar
+                    centerMapToLayer(layer);
                 });
             });
 
             mapInstanceRef.current.on(L.Draw.Event.DELETED, () => {
+                tempLayerRef.current = null;
                 onGeometryChange(drawnItemsRef.current.toGeoJSON());
+            });
+
+            // Evento cuando se inicia el dibujo (opcional)
+            mapInstanceRef.current.on(L.Draw.Event.DRAWSTART, () => {
+                // Limpiar capa temporal si existe
+                if (tempLayerRef.current) {
+                    drawnItemsRef.current.removeLayer(tempLayerRef.current);
+                    tempLayerRef.current = null;
+                }
             });
         }
 
-        // Procesar GeoJSON
+        // Procesar GeoJSON - Mejorado para evitar conflictos
         if (geojson && mapInstanceRef.current) {
-            drawnItemsRef.current.clearLayers();
+            // Solo limpiar si no es una capa temporal
+            if (!tempLayerRef.current) {
+                drawnItemsRef.current.clearLayers();
+            }
+            
             let hasNewData = false;
 
-            L.geoJSON(geojson).eachLayer(layer => {
-                drawnItemsRef.current.addLayer(layer);
-                hasNewData = true;
-            });
+            // Verificar si el GeoJSON es diferente al temporal
+            const isTemporaryGeometry = tempLayerRef.current && 
+                JSON.stringify(tempLayerRef.current.toGeoJSON()) === JSON.stringify(geojson);
 
-            // Solo hacer fitBounds una vez
-            if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
-                const bounds = drawnItemsRef.current.getBounds();
-                if (bounds.isValid()) {
-                    mapInstanceRef.current.fitBounds(bounds);
-                    zoomAdjustedRef.current = true; // Evitar zoom repetitivo
+            if (!isTemporaryGeometry) {
+                // Limpiar todo incluyendo temporales
+                drawnItemsRef.current.clearLayers();
+                tempLayerRef.current = null;
+
+                L.geoJSON(geojson).eachLayer(layer => {
+                    drawnItemsRef.current.addLayer(layer);
+                    hasNewData = true;
+                });
+
+                // Solo hacer fitBounds una vez para datos nuevos (no temporales)
+                if (hasNewData && !zoomAdjustedRef.current && drawnItemsRef.current.getLayers().length > 0) {
+                    const bounds = drawnItemsRef.current.getBounds();
+                    if (bounds.isValid()) {
+                        mapInstanceRef.current.fitBounds(bounds);
+                        zoomAdjustedRef.current = true;
+                    }
                 }
-            }
 
-            // Centrar el mapa sobre el centro de la geometría al visualizar
-            if (hasNewData) {
-                const bounds = drawnItemsRef.current.getBounds();
-                if (bounds.isValid()) {
-                    const center = bounds.getCenter();
-                    mapInstanceRef.current.setView(center, 15); // Ajustar el zoom y centrar
+                // Centrar el mapa sobre el centro de la geometría al visualizar
+                if (hasNewData) {
+                    const bounds = drawnItemsRef.current.getBounds();
+                    if (bounds.isValid()) {
+                        const center = bounds.getCenter();
+                        mapInstanceRef.current.setView(center, 15);
+                    }
                 }
             }
         }
@@ -105,11 +146,34 @@ const Map = ({ geojson, onGeometryChange }) => {
     // Función para centrar el mapa sobre la capa (parcela)
     const centerMapToLayer = (layer) => {
         const bounds = layer.getBounds();
-        if (bounds.isValid()) { // Verificación para asegurar que los límites sean válidos
+        if (bounds.isValid()) {
             const center = bounds.getCenter();
-            mapInstanceRef.current.setView(center, 15); // Centrar el mapa sobre el centro de la geometría
+            mapInstanceRef.current.setView(center, 15);
         }
     };
+
+    // Función para confirmar la geometría (llamar desde el componente padre)
+    const confirmGeometry = () => {
+        if (tempLayerRef.current) {
+            // La geometría ya está en el mapa, solo limpiar la referencia temporal
+            tempLayerRef.current = null;
+            zoomAdjustedRef.current = false; // Permitir ajuste de zoom para futuras geometrías
+        }
+    };
+
+    // Función para cancelar la geometría (llamar desde el componente padre)
+    const cancelGeometry = () => {
+        if (tempLayerRef.current) {
+            drawnItemsRef.current.removeLayer(tempLayerRef.current);
+            tempLayerRef.current = null;
+        }
+    };
+
+    // Exponer funciones al componente padre (opcional)
+    React.useImperativeHandle(mapRef, () => ({
+        confirmGeometry,
+        cancelGeometry
+    }));
 
     return <div id="map" ref={mapRef} style={{ height: '400px', width: '100%' }}></div>;
 };
