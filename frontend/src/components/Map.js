@@ -174,4 +174,4 @@ const Map = ({ geojson, onGeometryChange }) => {
     );
 };
 
-export default React.forwardRef(Map);
+export default React.forwardRef((props, ref) => <Map {...props} ref={ref} />);

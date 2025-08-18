@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
 import Papa from "papaparse";
 import Modal from 'react-modal';
@@ -9,7 +9,6 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import Terraformer from 'terraformer-wkt-parser';
 import Select from 'react-select';
 
-
 Modal.setAppElement('#root');
 
 function wktToGeoJSON(wkt) {
@@ -18,14 +17,18 @@ function wktToGeoJSON(wkt) {
     const coordinatesString = wkt.substring(wkt.indexOf('(') + 1, wkt.lastIndexOf(')'));
     const coordinates = parseCoordinates(coordinatesString, type);
     return {
-      type: type === 'POINT' ? 'Point' : type === 'LINESTRING' ? 'LineString' : type === 'POLYGON' ? 'Polygon' : 'GeometryCollection',
-      coordinates: coordinates,
+      type: "Feature",
+      geometry: {
+        type: type === 'POINT' ? 'Point' : type === 'LINESTRING' ? 'LineString' : type === 'POLYGON' ? 'Polygon' : 'GeometryCollection',
+        coordinates: coordinates,
+      }
     };
   } catch (error) {
     console.error("Error parsing WKT:", error);
     return null;
   }
 }
+
 function parseCoordinates(coordinatesString, type) {
   if (type === 'POINT') {
     return coordinatesString.split(' ').map(Number);
@@ -64,7 +67,7 @@ const TablePlots = () => {
     plot_conduction: "",
     plot_management: "",
     plot_description: "",
-    plot_geom: { type: "Polygon", coordinates: [] }
+    plot_geom: null
   });
   const [sortConfig, setSortConfig] = useState({ key: "plot_id", direction: "asc" });
   const [filterField, setFilterField] = useState("plot_name");
@@ -75,7 +78,7 @@ const TablePlots = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [plotGeoJSON, setPlotGeoJSON] = useState(null);
+  const [plotGeoJSON, setPlotGeoJSON] = useState(null); // Estado para mantener la geometría
   const [plotDetails, setPlotDetails] = useState(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [varieties, setVarieties] = useState([]); 
@@ -84,6 +87,11 @@ const TablePlots = () => {
   const [management, setManagement] = useState([]);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [plotToArchive, setPlotToArchive] = useState(null);
+  
+  // Referencias para los mapas
+  const createMapRef = useRef(null);
+  const editMapRef = useRef(null);
+
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   useEffect(() => {
@@ -203,11 +211,11 @@ const filteredPlots = Array.isArray(plots)
         const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction)
         const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
 
-    let wktGeom = null;
-    if (plotGeoJSON && plotGeoJSON.geometry) {
-      wktGeom = Terraformer.convert(plotGeoJSON.geometry);
-      console.log("WKT enviado al backend:", wktGeom);
-    }
+        let wktGeom = null;
+        if (plotGeoJSON && plotGeoJSON.geometry) {
+          wktGeom = Terraformer.convert(plotGeoJSON.geometry);
+          console.log("WKT enviado al backend:", wktGeom);
+        }
         const implantYear = newPlot.plot_implant_year ? parseInt(newPlot.plot_implant_year) : null;
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
 
@@ -218,14 +226,16 @@ const filteredPlots = Array.isArray(plots)
             plot_conduction: selectedConduction ? selectedConduction.value : null,
             plot_management: selectedManagement ? selectedManagement.value : null, 
             plot_geom: wktGeom,
-            plot_implant_year: implantYear, // Usar los años convertidos
+            plot_implant_year: implantYear,
             plot_creation_year: creationYear,
         };
 
-        console.log("Datos para crear parcela:", plotToCreate); // Imprimir los datos antes de enviar
+        console.log("Datos para crear parcela:", plotToCreate);
 
         const response = await createPlot(plotToCreate);
         setPlots([...plots, response]);
+        
+        // Limpiar estado después del éxito
         setNewPlot({
             plot_name: "",
             plot_var: "",
@@ -314,14 +324,22 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-  const handleGeometryChange = (geojson) => {
-    console.log("Nueva geometría capturada:", geojson);
-    const wktGeometry = Terraformer.convert(geojson.geometry);
-    setPlotDetails((prevDetails) => ({
-      ...prevDetails,
-      plot_geom: wktGeometry,
-    }));
-    setPlotGeoJSON(geojson);
+  // Manejador para el mapa de creación
+  const handleCreateGeometryChange = (geojson) => {
+    console.log("Nueva geometría capturada (creación):", geojson);
+    setPlotGeoJSON(geojson); // Solo actualizar el estado
+  };
+
+  // Manejador para el mapa de edición
+  const handleEditGeometryChange = (geojson) => {
+    console.log("Nueva geometría capturada (edición):", geojson);
+    if (geojson && geojson.geometry) {
+      const wktGeometry = Terraformer.convert(geojson.geometry);
+      setPlotDetails((prevDetails) => ({
+        ...prevDetails,
+        plot_geom: wktGeometry,
+      }));
+    }
   };
 
   const handleEditDetails = () => {
@@ -367,6 +385,38 @@ const filteredPlots = Array.isArray(plots)
       setErrorMessage("Error al guardar los detalles: " + error.message);
       setShowErrorModal(true);
     }
+  };
+
+  // Función para limpiar el mapa de creación
+  const handleClearCreateMap = () => {
+    setPlotGeoJSON(null);
+    if (createMapRef.current?.clearMap) {
+      createMapRef.current.clearMap();
+    }
+  };
+
+  // Manejar cierre del modal de creación
+  const handleCloseCreateModal = () => {
+    setShowForm(false);
+    // No limpiar plotGeoJSON aquí para mantener la geometría
+  };
+
+  // Manejar cancelar en modal de creación
+  const handleCancelCreate = () => {
+    // Limpiar todo al cancelar
+    setPlotGeoJSON(null);
+    setNewPlot({
+      plot_name: "",
+      plot_var: "",
+      plot_rootstock: "",
+      plot_implant_year: "",
+      plot_creation_year: "",
+      plot_conduction: "",
+      plot_management: "",
+      plot_description: "",
+      plot_geom: null,
+    });
+    setShowForm(false);
   };
 
   return (
@@ -465,168 +515,7 @@ const filteredPlots = Array.isArray(plots)
       {/* Modal para crear parcela */}
       <Modal
         isOpen={showForm}
-        onRequestClose={() => setShowForm(false)}
-        className="modal-content"
-        overlayClassName="modal-overlay"
-        contentLabel="Crear Parcela"
-      >
-        <div className="modal-wrapper">
-          <div className="modal-content">
-            <h2 className="modal-title">Crear una Nueva Parcela</h2>
-            <div className="mb-4">
-              <label className="modal-form-label">Nombre:</label>
-              <input
-                type="text"
-                value={newPlot.plot_name}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_name: e.target.value })}
-                className="modal-form-input"
-              />
-              
-              <label className="modal-form-label">Variedad:</label>
-        <Select
-          value={{ value: newPlot.plot_var, label: newPlot.plot_var }}
-          onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_var: selectedOption.value })}
-          options={varieties.map((variety) => ({
-            value: variety.name,
-            label: variety.name,
-          }))}
-          isSearchable
-          placeholder="Seleccionar variedad..."
-          className="modal-form-input"
-        />
-
-        <label className="modal-form-label">Portainjerto:</label>
-        <Select
-          value={{ value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }}
-          onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_rootstock: selectedOption.value })}
-          options={rootstocks.map((rootstock) => ({
-            value: rootstock.name,
-            label: rootstock.name,
-          }))}
-          isSearchable
-          placeholder="Seleccionar portainjerto..."
-          className="modal-form-input"
-        />
-
-              <label className="modal-form-label">Año de implantación:</label>
-              <input
-                type="number"
-                value={newPlot.plot_implant_year}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_implant_year: e.target.value })}
-                className="modal-form-input"
-              />
-
-              <label className="modal-form-label">Año de creación:</label>
-              <input
-                type="number"
-                value={newPlot.plot_creation_year}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_creation_year: e.target.value })}
-                className="modal-form-input"
-              />
-
-              <label className="modal-form-label">Sistema de conducción:</label>
-              <Select
-                value={{ value: newPlot.plot_conduction, label: newPlot.plot_conduction }}
-                onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_conduction: selectedOption.value })}
-                options={conduction.map((conduction) => ({
-                  value: conduction.value,
-                  label: conduction.value,
-                }))}
-                isSearchable
-                placeholder="Seleccionar sistema de conduccion"
-                className="modal-form-input"
-              />
-
-              <label className="modal-form-label">Tipo de manejo:</label>
-              <Select
-                value={{ value: newPlot.plot_management, label: newPlot.plot_management }}
-                onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_management: selectedOption.value })}
-                options={management.map((management) => ({
-                  value: management.value,
-                  label: management.value,
-                }))}
-                isSearchable
-                placeholder="Seleccionar portainjerto..."
-                className="modal-form-input"
-              />
-
-              <label className="modal-form-label">Descripción:</label>
-              <textarea
-                value={newPlot.plot_description}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_description: e.target.value })}
-                className="modal-form-input h-24"
-              />
-
-              <div className="map-details-container">
-                <div className="leaflet-container">
-                  {!plotGeoJSON && <p>Dibuja la geometría en el mapa.</p>}
-                  <Map onGeometryChange={handleGeometryChange} geojson={newPlot.plot_geom} />
-                </div>
-              </div>
-
-              <div className="modal-buttons mt-4">
-                <button onClick={() => setShowForm(false)} className="btn btn-secondary">Cancelar</button>
-                <button onClick={handleCreatePlot} className="btn btn-primary">Crear</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal de éxito */}
-      <Modal
-        isOpen={showSuccessModal}
-        onRequestClose={() => setShowSuccessModal(false)}
-        className="modal-content"
-        overlayClassName="modal-overlay"
-        contentLabel="Éxito"
-      >
-        <div className="modal-overlay">
-          <div className="modal-wrapper">
-            <div className="modal-content">
-              <h2 className="modal-title">Éxito</h2>
-              <div className="modal-message">
-                <p>{successMessage}</p>
-              </div>
-              <div className="modal-buttons">
-                <button onClick={() => setShowSuccessModal(false)} className="btn btn-primary">OK</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal de error */}
-      <Modal
-        isOpen={showErrorModal}
-        onRequestClose={() => setShowErrorModal(false)}
-        className="modal-content"
-        overlayClassName="modal-overlay"
-        contentLabel="Error"
-      >
-        <div className="modal-overlay">
-          <div className="modal-wrapper">
-            <div className="modal-content">
-              <h2 className="modal-title">Error</h2>
-              <div className="modal-message">
-                <p>{errorMessage}</p>
-              </div>
-              <div className="modal-buttons">
-                <button onClick={() => setShowErrorModal(false)} className="btn btn-primary">Reintentar más tarde</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal para ver/editar la parcela */}
-      <Modal
-        isOpen={showMapModal}
-        onRequestClose={() => {
-          setShowMapModal(false);
-          setPlotDetails(null);
-          setIsEditingDetails(false);
-        }}
+        onRequestClose={handleCloseCreateModal}
         className="modal-content"
         overlayClassName="modal-overlay"
         contentLabel="Mapa de Parcela"
@@ -639,8 +528,9 @@ const filteredPlots = Array.isArray(plots)
                 <div className="leaflet-container">
                   {mapToDisplay && (
                     <Map 
+                      ref={editMapRef}
                       geojson={mapToDisplay} 
-                      onGeometryChange={handleGeometryChange}
+                      onGeometryChange={handleEditGeometryChange}
                       editable={isEditingDetails} 
                     />
                   )}
@@ -725,9 +615,9 @@ const filteredPlots = Array.isArray(plots)
                         : field.key === 'plot_rootstock'
                         ? rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
                         : field.key === 'plot_conduction'
-                        ? conduction.find(c => c.vy_id === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
+                        ? conduction.find(c => c.value === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
                         : field.key === 'plot_management'
-                        ? management.find(m => m.vy_id === plotDetails.plot_management)?.value || plotDetails.plot_management
+                        ? management.find(m => m.value === plotDetails.plot_management)?.value || plotDetails.plot_management
                         : plotDetails[field.key]?.name || plotDetails[field.key]}
                     </span>
                     )}
@@ -826,5 +716,3 @@ const filteredPlots = Array.isArray(plots)
     </div>
   );
 };
-
-export default TablePlots;
