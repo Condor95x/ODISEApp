@@ -88,7 +88,6 @@ const TablePlots = () => {
 
   const createMapRef = useRef(null);
   const viewEditMapRef = useRef(null);
-  const [createPlotGeoJSON, setCreatePlotGeoJSON] = useState(null);
 
   useEffect(() => {
     const fetchPlots = async () => {
@@ -383,8 +382,20 @@ const filteredPlots = Array.isArray(plots)
   };
 
   const handleCreateGeometryChange = (geojson) => {
-    console.log("Nueva geometría capturada (creación):", geojson);
-    setCreatePlotGeoJSON(geojson);
+      console.log("Nueva geometría capturada (creación):", geojson);
+      
+      // Actualizar ambos estados necesarios
+      setPlotGeoJSON(geojson);
+      
+      try {
+          const wktGeometry = Terraformer.convert(geojson.geometry);
+          setNewPlot((prevPlot) => ({
+              ...prevPlot,
+              plot_geom: wktGeometry
+          }));
+      } catch (error) {
+          console.error("Error converting geometry:", error);
+      }
   };
 
   const handleClearCreateMap = () => {
