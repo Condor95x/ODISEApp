@@ -2,11 +2,15 @@
   "name": "root",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
   "scripts": {
     "heroku-postbuild": "cd frontend && npm install && npm run build",
+    "start:dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "cd frontend && npm start",
-    "start:backend": "uvicorn backend.main:app --reload",
-    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+    "start:backend": "uvicorn backend.main:app --reload"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"
