@@ -303,7 +303,7 @@ const filteredPlots = Array.isArray(plots)
   const handleViewPlot = (plot) => {
     if (plot && plot.plot_geom && typeof plot.plot_geom === 'string') {
       try {
-        console.log("Datos para editar parcela:", plot);
+        console.log("Datos para visualizar parcela:", plot);
         const geojson = wktToGeoJSON(plot.plot_geom);
         if (geojson) {
           setMapToDisplay(geojson);
@@ -395,10 +395,12 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-  // Manejar cierre del modal de creación
-  const handleCloseCreateModal = () => {
-    setShowForm(false);
-    // No limpiar plotGeoJSON aquí para mantener la geometría
+  // Manejar cierre del modal de visualización
+  const handleCloseViewModal = () => {
+    setShowMapModal(false);
+    setMapToDisplay(null);
+    setPlotDetails(null);
+    setIsEditingDetails(false);
   };
 
   // Manejar cancelar en modal de creación
@@ -424,9 +426,9 @@ const filteredPlots = Array.isArray(plots)
       <div className="table-header">
         <button onClick={() => setShowForm(true)} className="btn btn-primary">Crear Nueva Parcela</button>
         <Spacer width={0.5} />
-        {Object.values(selectedPlots).flat().length > 0 && (
+        {selectedPlots.length > 0 && (
         <button
-          onClick={() => handleDownloadCSV(Object.values(selectedPlots).flat().map(id => selectedPlots.find(a => a.id === id)))}
+          onClick={handleDownloadCSV}
           className="btn btn-secondary"
         >
           Descargar CSV
@@ -515,14 +517,131 @@ const filteredPlots = Array.isArray(plots)
       {/* Modal para crear parcela */}
       <Modal
         isOpen={showForm}
-        onRequestClose={handleCloseCreateModal}
+        onRequestClose={handleCancelCreate}
         className="modal-content"
         overlayClassName="modal-overlay"
-        contentLabel="Mapa de Parcela"
+        contentLabel="Crear Nueva Parcela"
       >
         <div className="modal-wrapper">
           <div className="modal-content">
-            <h2 className="modal-title">Detalles de la Parcela</h2>
+            <h2 className="modal-title">Crear Nueva Parcela</h2>
+            <div className="mb-4">
+              <div className="map-details-container">
+                <div className="leaflet-container">
+                  <Map 
+                    ref={createMapRef}
+                    geojson={plotGeoJSON} 
+                    onGeometryChange={handleCreateGeometryChange}
+                    editable={true}
+                  />
+                </div>
+              </div>
+
+              <div className="form-details-container">
+                <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
+                <form className="space-y-4">
+                  {fieldConfig.map((field) => (
+                    field.key !== 'plot_id' && field.key !== 'plot_area' && (
+                      <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
+                        <label className="col-span-1 font-medium">{field.label}:</label>
+                        <div className="col-span-2">
+                          {field.type === 'select' ? (
+                            <Select
+                              value={
+                                field.key === 'plot_var' 
+                                  ? { value: newPlot.plot_var, label: newPlot.plot_var }
+                                  : field.key === 'plot_rootstock'
+                                  ? { value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }
+                                  : field.key === 'plot_conduction'
+                                  ? { value: newPlot.plot_conduction, label: newPlot.plot_conduction }
+                                  : field.key === 'plot_management'
+                                  ? { value: newPlot.plot_management, label: newPlot.plot_management }
+                                  : null
+                              }
+                              onChange={(selectedOption) => {
+                                setNewPlot({
+                                  ...newPlot,
+                                  [field.key]: selectedOption ? selectedOption.value : ''
+                                });
+                              }}
+                              options={
+                                field.options === 'varieties' 
+                                  ? varieties.map(option => ({ value: option.name, label: option.name }))
+                                  : field.options === 'rootstocks' 
+                                  ? rootstocks.map(option => ({ value: option.name, label: option.name }))
+                                  : field.options === 'conduction' 
+                                  ? conduction.map(option => ({ value: option.value, label: option.value }))
+                                  : field.options === 'management' 
+                                  ? management.map(option => ({ value: option.value, label: option.value }))
+                                  : []
+                              }
+                              isSearchable
+                              isClearable
+                              placeholder={`Seleccionar ${field.label}...`}
+                              className="w-full"
+                            />
+                          ) : field.type === 'textarea' ? (
+                            <textarea
+                              value={newPlot[field.key] || ''}
+                              onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
+                              className="w-full p-2 border rounded"
+                              placeholder={field.label}
+                            />
+                          ) : (
+                            <input
+                              type={field.type}
+                              value={newPlot[field.key] || ''}
+                              onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
+                              className="w-full p-2 border rounded"
+                              placeholder={field.label}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </form>
+                
+                {/* Botones de acción para creación */}
+                <div className="flex justify-end gap-4 mt-6 border-t pt-4">
+                  <button
+                    onClick={handleClearCreateMap}
+                    className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                  >
+                    Limpiar Mapa
+                  </button>
+                  <button
+                    onClick={handleCancelCreate}
+                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCreatePlot}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                  >
+                    Crear Parcela
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal para visualizar/editar parcela */}
+      <Modal
+        isOpen={showMapModal}
+        onRequestClose={handleCloseViewModal}
+        className="modal-content"
+        overlayClassName="modal-overlay"
+        contentLabel="Detalles de la Parcela"
+      >
+        <div className="modal-wrapper">
+          <div className="modal-content">
+            <h2 className="modal-title">
+              {isEditingDetails ? 'Editar Parcela' : 'Detalles de la Parcela'}
+            </h2>
             <div className="mb-4">
               <div className="map-details-container">
                 <div className="leaflet-container">
@@ -537,26 +656,26 @@ const filteredPlots = Array.isArray(plots)
                 </div>
               </div>
 
-        {plotDetails && (
-          <div className="map-details-container">
-            <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
-            <dl className="space-y-4">
-              {fieldConfig.map((field) => (
-                <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
-                  <dt className="col-span-1 font-medium">{field.label}:</dt>
-                  <dd className="col-span-2">
-                    {isEditingDetails ? (
-                      field.type === 'select' ? (
-                        <Select
-                          value={
-                            field.key === 'plot_var' 
-                              ? { 
-                                  value: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '', 
-                                  label: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '' 
-                                }
-                              : field.key === 'plot_rootstock'
-                              ? {
-                                  value: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || '',
+              {plotDetails && (
+                <div className="form-details-container">
+                  <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
+                  <dl className="space-y-4">
+                    {fieldConfig.map((field) => (
+                      <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
+                        <dt className="col-span-1 font-medium">{field.label}:</dt>
+                        <dd className="col-span-2">
+                          {isEditingDetails ? (
+                            field.type === 'select' ? (
+                              <Select
+                                value={
+                                  field.key === 'plot_var' 
+                                    ? { 
+                                        value: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '', 
+                                        label: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '' 
+                                      }
+                                    : field.key === 'plot_rootstock'
+                                    ? {
+                                        value: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || '',
                                   label: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || ''
                                 }
                               : field.key === 'plot_conduction'
