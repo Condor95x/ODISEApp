@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
 import Papa from "papaparse";
 import Modal from 'react-modal';
@@ -85,6 +85,9 @@ const TablePlots = () => {
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [plotToArchive, setPlotToArchive] = useState(null);
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
+
+  const createMapRef = useRef(null);
+  const viewEditMapRef = useRef(null);
 
   useEffect(() => {
     const fetchPlots = async () => {
@@ -203,44 +206,42 @@ const filteredPlots = Array.isArray(plots)
         const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction)
         const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
 
-    let wktGeom = null;
-    if (plotGeoJSON && plotGeoJSON.geometry) {
-      wktGeom = Terraformer.convert(plotGeoJSON.geometry);
-      console.log("WKT enviado al backend:", wktGeom);
-    }
+        let wktGeom = null;
+        if (plotGeoJSON && plotGeoJSON.geometry) {
+          try {
+            wktGeom = Terraformer.convert(plotGeoJSON.geometry);
+            console.log("WKT enviado al backend:", wktGeom);
+          } catch (error) {
+            console.error("Error converting to WKT:", error);
+            alert("Error al procesar la geometría del mapa.");
+            return;
+          }
+        }
+      
         const implantYear = newPlot.plot_implant_year ? parseInt(newPlot.plot_implant_year) : null;
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
 
         const plotToCreate = {
-            ...newPlot,
-            plot_var: selectedVariety ? selectedVariety.gv_id : null,
-            plot_rootstock: selectedRootstock ? selectedRootstock.gv_id : null,
-            plot_conduction: selectedConduction ? selectedConduction.value : null,
-            plot_management: selectedManagement ? selectedManagement.value : null, 
-            plot_geom: wktGeom,
-            plot_implant_year: implantYear, // Usar los años convertidos
-            plot_creation_year: creationYear,
+          ...newPlot,
+          plot_var: selectedVariety ? selectedVariety.gv_id : null,
+          plot_rootstock: selectedRootstock ? selectedRootstock.gv_id : null,
+          plot_conduction: selectedConduction ? selectedConduction.value : null,
+          plot_management: selectedManagement ? selectedManagement.value : null, 
+          plot_geom: newPlot.plot_geom, // ← Usar directamente del estado
+          plot_implant_year: implantYear,
+          plot_creation_year: creationYear,
         };
 
         console.log("Datos para crear parcela:", plotToCreate); // Imprimir los datos antes de enviar
 
         const response = await createPlot(plotToCreate);
         setPlots([...plots, response]);
-        setNewPlot({
-            plot_name: "",
-            plot_var: "",
-            plot_rootstock: "",
-            plot_implant_year: "",
-            plot_creation_year: "",
-            plot_conduction: "",
-            plot_management: "",
-            plot_description: "",
-            plot_geom: null,
-        });
-        setPlotGeoJSON(null);
-        setShowForm(false);
+
+        // Limpiar estado después del éxito
+        handleCancelCreate();
         setSuccessMessage("La parcela ha sido creada correctamente.");
         setShowSuccessModal(true);
+
     } catch (error) {
         console.error("Error al crear la parcela:", error);
         setErrorMessage("Error al crear la parcela: " + error.message);
@@ -317,10 +318,21 @@ const filteredPlots = Array.isArray(plots)
   const handleGeometryChange = (geojson) => {
     console.log("Nueva geometría capturada:", geojson);
     const wktGeometry = Terraformer.convert(geojson.geometry);
-    setPlotDetails((prevDetails) => ({
-      ...prevDetails,
-      plot_geom: wktGeometry,
-    }));
+    
+    if (isEditingDetails && plotDetails) {
+      // Modo edición
+      setPlotDetails((prevDetails) => ({
+        ...prevDetails,
+        plot_geom: wktGeometry,
+      }));
+    } else if (showForm) {
+      // Modo creación
+      setNewPlot((prevPlot) => ({
+        ...prevPlot,
+        plot_geom: wktGeometry
+      }));
+    }
+    
     setPlotGeoJSON(geojson);
   };
 
@@ -368,6 +380,50 @@ const filteredPlots = Array.isArray(plots)
       setShowErrorModal(true);
     }
   };
+
+  const handleCreateGeometryChange = (geojson) => {
+      console.log("Nueva geometría capturada (creación):", geojson);
+      
+      // Actualizar ambos estados necesarios
+      setPlotGeoJSON(geojson);
+      
+      try {
+          const wktGeometry = Terraformer.convert(geojson.geometry);
+          setNewPlot((prevPlot) => ({
+              ...prevPlot,
+              plot_geom: wktGeometry
+          }));
+      } catch (error) {
+          console.error("Error converting geometry:", error);
+      }
+  };
+
+  const handleClearCreateMap = () => {
+    setPlotGeoJSON(null);
+    setNewPlot((prevPlot) => ({
+      ...prevPlot,
+      plot_geom: null
+    }));
+    if (createMapRef.current?.clearMap) {
+      createMapRef.current.clearMap();
+    }
+  };
+
+  const handleCancelCreate = () => {
+    setNewPlot({
+      plot_name: "",
+      plot_var: "",
+      plot_rootstock: "",
+      plot_implant_year: "",
+      plot_creation_year: "",
+      plot_conduction: "",
+      plot_management: "",
+      plot_description: "",
+      plot_geom: { type: "Polygon", coordinates: [] },
+    });
+    setShowForm(false);
+  };
+
 
   return (
     <div className="container mx-auto p-4">
@@ -558,14 +614,26 @@ const filteredPlots = Array.isArray(plots)
               />
 
               <div className="map-details-container">
-                <div className="leaflet-container">
-                  {!plotGeoJSON && <p>Dibuja la geometría en el mapa.</p>}
-                  <Map onGeometryChange={handleGeometryChange} geojson={newPlot.plot_geom} />
+                <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
+                  <Map 
+                    ref={createMapRef}
+                    onGeometryChange={handleCreateGeometryChange}
+                    geojson={plotGeoJSON}
+                    editable={true}
+                  />
+                </div>
+                <div className="mb-4">
+                  <button
+                    onClick={handleClearCreateMap}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                  >
+                    Limpiar Mapa
+                  </button>
                 </div>
               </div>
 
               <div className="modal-buttons mt-4">
-                <button onClick={() => setShowForm(false)} className="btn btn-secondary">Cancelar</button>
+                <button onClick={handleCancelCreate} className="btn btn-secondary">Cancelar</button>
                 <button onClick={handleCreatePlot} className="btn btn-primary">Crear</button>
               </div>
             </div>
