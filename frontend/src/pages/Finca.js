@@ -1,5 +1,7 @@
 import React,{ useState }  from 'react';
 import TableOperaciones from '../components/TableOperaciones';
+import Cuervo from '../../public/odiseapp.png';
+
 
 const Finca = () => {
   const [showOperaciones, setShowOperaciones] = useState(true);
@@ -28,6 +30,10 @@ const Finca = () => {
         <TableOperaciones />
     </div>
     )}
+
+    <Spacer width={3} />
+
+    <img src={Cuervo} alt="Logo de Odisea" className="logo-app" /> 
     </div>
   );
 }
