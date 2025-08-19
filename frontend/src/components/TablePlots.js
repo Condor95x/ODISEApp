@@ -1,6 +1,6 @@
 //Tableplot0
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
 import Papa from "papaparse";
 import Modal from 'react-modal';
@@ -89,6 +89,7 @@ const TablePlots = () => {
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const createMapRef = useRef(null);
+  const viewEditMapRef = useRef(null);
   const [createPlotGeoJSON, setCreatePlotGeoJSON] = useState(null);
 
   useEffect(() => {
