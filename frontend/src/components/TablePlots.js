@@ -216,14 +216,14 @@ const filteredPlots = Array.isArray(plots)
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
 
         const plotToCreate = {
-            ...newPlot,
-            plot_var: selectedVariety ? selectedVariety.gv_id : null,
-            plot_rootstock: selectedRootstock ? selectedRootstock.gv_id : null,
-            plot_conduction: selectedConduction ? selectedConduction.value : null,
-            plot_management: selectedManagement ? selectedManagement.value : null, 
-            plot_geom: wktGeom,
-            plot_implant_year: implantYear, // Usar los años convertidos
-            plot_creation_year: creationYear,
+          ...newPlot,
+          plot_var: selectedVariety ? selectedVariety.gv_id : null,
+          plot_rootstock: selectedRootstock ? selectedRootstock.gv_id : null,
+          plot_conduction: selectedConduction ? selectedConduction.value : null,
+          plot_management: selectedManagement ? selectedManagement.value : null, 
+          plot_geom: newPlot.plot_geom, // ← Usar directamente del estado
+          plot_implant_year: implantYear,
+          plot_creation_year: creationYear,
         };
 
         console.log("Datos para crear parcela:", plotToCreate); // Imprimir los datos antes de enviar
@@ -312,10 +312,21 @@ const filteredPlots = Array.isArray(plots)
   const handleGeometryChange = (geojson) => {
     console.log("Nueva geometría capturada:", geojson);
     const wktGeometry = Terraformer.convert(geojson.geometry);
-    setPlotDetails((prevDetails) => ({
-      ...prevDetails,
-      plot_geom: wktGeometry,
-    }));
+    
+    if (isEditingDetails && plotDetails) {
+      // Modo edición
+      setPlotDetails((prevDetails) => ({
+        ...prevDetails,
+        plot_geom: wktGeometry,
+      }));
+    } else if (showForm) {
+      // Modo creación
+      setNewPlot((prevPlot) => ({
+        ...prevPlot,
+        plot_geom: wktGeometry
+      }));
+    }
+    
     setPlotGeoJSON(geojson);
   };
 
