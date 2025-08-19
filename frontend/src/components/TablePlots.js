@@ -208,10 +208,17 @@ const filteredPlots = Array.isArray(plots)
         const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
 
         let wktGeom = null;
-        if (createPlotGeoJSON && createPlotGeoJSON.geometry) {
-          wktGeom = Terraformer.convert(createPlotGeoJSON.geometry);
-          console.log("WKT enviado al backend:", wktGeom);
-    }
+        if (plotGeoJSON && plotGeoJSON.geometry) {
+          try {
+            wktGeom = Terraformer.convert(plotGeoJSON.geometry);
+            console.log("WKT enviado al backend:", wktGeom);
+          } catch (error) {
+            console.error("Error converting to WKT:", error);
+            alert("Error al procesar la geometría del mapa.");
+            return;
+          }
+        }
+      
         const implantYear = newPlot.plot_implant_year ? parseInt(newPlot.plot_implant_year) : null;
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
 
@@ -398,9 +405,10 @@ const filteredPlots = Array.isArray(plots)
       plot_conduction: "",
       plot_management: "",
       plot_description: "",
-      plot_geom: null,
+      plot_geom: { type: "Polygon", coordinates: [] },
     });
     setShowForm(false);
+    setPlotGeoJSON(null);
   };
 
 
@@ -597,7 +605,7 @@ const filteredPlots = Array.isArray(plots)
                   <Map 
                     ref={createMapRef}
                     onGeometryChange={handleCreateGeometryChange}
-                    geojson={newPlot.plot_geom}
+                    geojson={plotGeoJSON}
                     editable={true}
                   />
                 </div>
