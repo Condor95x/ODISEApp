@@ -1,5 +1,3 @@
-//Tableplot0
-
 import React, { useState, useEffect,useRef } from "react";
 import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
 import Papa from "papaparse";
@@ -587,8 +585,8 @@ const filteredPlots = Array.isArray(plots)
                 <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
                   <Map 
                     ref={createMapRef}
-                    geojson={createPlotGeoJSON} 
                     onGeometryChange={handleCreateGeometryChange}
+                    geojson={newPlot.plot_geom}
                     editable={true}
                   />
                 </div>
