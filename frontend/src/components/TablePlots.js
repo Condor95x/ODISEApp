@@ -399,7 +399,11 @@ const filteredPlots = Array.isArray(plots)
   };
 
   const handleClearCreateMap = () => {
-    setCreatePlotGeoJSON(null);
+    setPlotGeoJSON(null);
+    setNewPlot((prevPlot) => ({
+      ...prevPlot,
+      plot_geom: null
+    }));
     if (createMapRef.current?.clearMap) {
       createMapRef.current.clearMap();
     }
@@ -419,7 +423,6 @@ const filteredPlots = Array.isArray(plots)
       plot_geom: { type: "Polygon", coordinates: [] },
     });
     setShowForm(false);
-    setPlotGeoJSON(null);
   };
 
 
