@@ -716,3 +716,5 @@ const filteredPlots = Array.isArray(plots)
     </div>
   );
 };
+
+export default TablePlots;
