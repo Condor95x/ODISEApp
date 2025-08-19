@@ -654,26 +654,28 @@ const TablePlots = () => {
         </div>
       </Modal>
 
-      {/* Modal para visualizar/editar parcela */}
+      {/* Modal para Visualizar/Editar Parcela */}
       <Modal
-        isOpen={showMapModal}
+        isOpen={showViewModal}
         onRequestClose={handleCloseViewModal}
         className="modal-content"
         overlayClassName="modal-overlay"
-        contentLabel="Detalles de la Parcela"
+        contentLabel="Ver/Editar Parcela"
       >
         <div className="modal-wrapper">
           <div className="modal-content">
             <h2 className="modal-title">
               {isEditingDetails ? 'Editar Parcela' : 'Detalles de la Parcela'}
             </h2>
+            
+            {/* Contenedor del Mapa */}
             <div className="mb-4">
               <div className="map-details-container">
-                <div className="leaflet-container">
-                  {mapToDisplay && (
+                <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
+                  {plotGeoJSON && (
                     <Map 
-                      ref={editMapRef}
-                      geojson={mapToDisplay} 
+                      ref={viewEditMapRef}
+                      geojson={plotGeoJSON} 
                       onGeometryChange={handleEditGeometryChange}
                       editable={isEditingDetails} 
                     />
@@ -681,138 +683,163 @@ const TablePlots = () => {
                 </div>
               </div>
 
-              {plotDetails && (
-                <div className="form-details-container">
+              {/* Información de la Parcela */}
+              {currentPlot && (
+                <div className="map-details-container">
                   <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
                   <dl className="space-y-4">
                     {fieldConfig.map((field) => (
                       <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
                         <dt className="col-span-1 font-medium">{field.label}:</dt>
                         <dd className="col-span-2">
-                          {isEditingDetails ? (
+                          {isEditingDetails && !field.disabled ? (
                             field.type === 'select' ? (
                               <Select
                                 value={
                                   field.key === 'plot_var' 
-                                    ? { 
-                                        value: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '', 
-                                        label: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '' 
-                                      }
+                                    ? varieties.find(v => v.gv_id === currentPlot.plot_var)
+                                        ? { value: varieties.find(v => v.gv_id === currentPlot.plot_var)?.name, 
+                                            label: varieties.find(v => v.gv_id === currentPlot.plot_var)?.name }
+                                        : null
                                     : field.key === 'plot_rootstock'
-                                    ? {
-                                        value: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || '',
-                                  label: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || ''
+                                    ? rootstocks.find(r => r.gv_id === currentPlot.plot_rootstock)
+                                        ? { value: rootstocks.find(r => r.gv_id === currentPlot.plot_rootstock)?.name,
+                                            label: rootstocks.find(r => r.gv_id === currentPlot.plot_rootstock)?.name }
+                                        : null
+                                    : field.key === 'plot_conduction'
+                                    ? conduction.find(c => c.value === currentPlot.plot_conduction)
+                                        ? { value: conduction.find(c => c.value === currentPlot.plot_conduction)?.value,
+                                            label: conduction.find(c => c.value === currentPlot.plot_conduction)?.value }
+                                        : null
+                                    : field.key === 'plot_management'
+                                    ? management.find(m => m.value === currentPlot.plot_management)
+                                        ? { value: management.find(m => m.value === currentPlot.plot_management)?.value,
+                                            label: management.find(m => m.value === currentPlot.plot_management)?.value }
+                                        : null
+                                    : null
                                 }
-                              : field.key === 'plot_conduction'
-                              ? {
-                                  value: conduction.find(c => c.value === plotDetails.plot_conduction)?.value || '',
-                                  label: conduction.find(c => c.value === plotDetails.plot_conduction)?.value || ''
+                                onChange={(selectedOption) => {
+                                  if (field.key === 'plot_var') {
+                                    const selectedVariety = varieties.find(v => v.name === selectedOption.value);
+                                    setCurrentPlot({
+                                      ...currentPlot,
+                                      [field.key]: selectedVariety ? selectedVariety.gv_id : null
+                                    });
+                                  } else if (field.key === 'plot_rootstock') {
+                                    const selectedRootstock = rootstocks.find(r => r.name === selectedOption.value);
+                                    setCurrentPlot({
+                                      ...currentPlot,
+                                      [field.key]: selectedRootstock ? selectedRootstock.gv_id : null
+                                    });
+                                  } else {
+                                    setCurrentPlot({
+                                      ...currentPlot,
+                                      [field.key]: selectedOption.value
+                                    });
+                                  }
+                                }}
+                                options={
+                                  field.options === 'varieties' 
+                                    ? varieties.map(option => ({ value: option.name, label: option.name }))
+                                    : field.options === 'rootstocks' 
+                                    ? rootstocks.map(option => ({ value: option.name, label: option.name }))
+                                    : field.options === 'conduction' 
+                                    ? conduction.map(option => ({ value: option.value, label: option.value }))
+                                    : field.options === 'management' 
+                                    ? management.map(option => ({ value: option.value, label: option.value }))
+                                    : []
                                 }
-                              : field.key === 'plot_management'
-                              ? {
-                                  value: management.find(m => m.value === plotDetails.plot_management)?.value || '',
-                                  label: management.find(m => m.value === plotDetails.plot_management)?.value || ''
-                                }
-                              : null
-                          }
-                          onChange={(selectedOption) => {
-                            setPlotDetails({
-                              ...plotDetails,
-                              [field.key]: selectedOption.value
-                            });
-                          }}
-                          options={
-                            field.options === 'varieties' 
-                              ? varieties.map(option => ({ value: option.name, label: option.name }))
-                              : field.options === 'rootstocks' 
-                              ? rootstocks.map(option => ({ value: option.name, label: option.name }))
-                              : field.options === 'conduction' 
-                              ? conduction.map(option => ({ value: option.value, label: option.value }))
-                              : field.options === 'management' 
-                              ? management.map(option => ({ value: option.value, label: option.value }))
-                              : []
-                          }
-                          isSearchable
-                          placeholder={`Seleccionar ${field.label}...`}
-                          className="w-full"
-                        />
-                      ) : field.type === 'textarea' ? (
-                        <textarea
-                          value={plotDetails[field.key] || ''}
-                          onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                          className="w-full p-2 border rounded"
-                          disabled={field.disabled}
-                        />
-                      ) : (
-                        <input
-                          type={field.type}
-                          value={plotDetails[field.key] || ''}
-                          onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                          className="w-full p-2 border rounded"
-                          disabled={field.disabled}
-                        />
-                      )
-                    ) : (
-                      <span>
-                        {field.key === 'plot_var'
-                        ? varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var
-                        : field.key === 'plot_rootstock'
-                        ? rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
-                        : field.key === 'plot_conduction'
-                        ? conduction.find(c => c.value === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
-                        : field.key === 'plot_management'
-                        ? management.find(m => m.value === plotDetails.plot_management)?.value || plotDetails.plot_management
-                        : plotDetails[field.key]?.name || plotDetails[field.key]}
-                    </span>
-                    )}
-                  </dd>
+                                isSearchable
+                                isClearable
+                                placeholder={`Seleccionar ${field.label}...`}
+                                className="w-full"
+                              />
+                            ) : field.type === 'textarea' ? (
+                              <textarea
+                                value={currentPlot[field.key] || ''}
+                                onChange={(e) => setCurrentPlot({ ...currentPlot, [field.key]: e.target.value })}
+                                className="w-full p-2 border rounded"
+                                rows={3}
+                              />
+                            ) : (
+                              <input
+                                type={field.type}
+                                value={currentPlot[field.key] || ''}
+                                onChange={(e) => setCurrentPlot({ ...currentPlot, [field.key]: e.target.value })}
+                                className="w-full p-2 border rounded"
+                              />
+                            )
+                          ) : (
+                            <span>
+                              {field.key === 'plot_var'
+                                ? varieties.find(v => v.gv_id === currentPlot.plot_var)?.name || currentPlot.plot_var || 'No especificada'
+                                : field.key === 'plot_rootstock'
+                                ? rootstocks.find(r => r.gv_id === currentPlot.plot_rootstock)?.name || currentPlot.plot_rootstock || 'No especificado'
+                                : field.key === 'plot_conduction'
+                                ? conduction.find(c => c.value === currentPlot.plot_conduction)?.value || currentPlot.plot_conduction || 'No especificado'
+                                : field.key === 'plot_management'
+                                ? management.find(m => m.value === currentPlot.plot_management)?.value || currentPlot.plot_management || 'No especificado'
+                                : currentPlot[field.key] || 'No especificado'}
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
-              ))}
-            </dl>
-            {/* Botones de acción unificados */}
-            <div className="flex justify-end gap-4 mt-6 border-t pt-4">
-            {isEditingDetails ? (
-            <>
-              <button
-                onClick={handleSaveDetails}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                Guardar Cambios
-              </button>
-              <button
-                onClick={() => setIsEditingDetails(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cancelar
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={handleEditDetails}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Editar Parcela
-              </button>
-              <button
-                onClick={() => {
-                  setPlotToArchive(plotDetails);
-                  setShowArchiveModal(true);
-                }}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-              >
-                Archivar Parcela
-              </button>
-                </>
               )}
             </div>
-          </div>
-        )}
+
+            {/* Botones de Acción */}
+            <div className="flex justify-between items-center mt-6 border-t pt-4">
+              {/* Botón de cerrar a la izquierda */}
+              <button
+                onClick={handleCloseViewModal}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cerrar
+              </button>
+
+              {/* Botones de acción a la derecha */}
+              <div className="flex gap-4">
+                {isEditingDetails ? (
+                  <>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleSaveDetails}
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                      Guardar Cambios
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleEditDetails}
+                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                      Editar Parcela
+                    </button>
+                    <button
+                      onClick={handleShowArchiveModal}
+                      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                    >
+                      Archivar Parcela
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </Modal>
 
+      {/* Modal de Confirmación de Archivo */}
       <Modal
         isOpen={showArchiveModal}
         onRequestClose={() => {
