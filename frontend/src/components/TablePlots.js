@@ -410,7 +410,6 @@ const filteredPlots = Array.isArray(plots)
   };
 
   const handleCancelCreate = () => {
-    setCreatePlotGeoJSON(null);
     setNewPlot({
       plot_name: "",
       plot_var: "",
