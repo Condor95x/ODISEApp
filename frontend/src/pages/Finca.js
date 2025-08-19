@@ -31,9 +31,14 @@ const Finca = () => {
     </div>
     )}
 
-    <Spacer width={3} />
+    <Spacer width={30} />
 
-    <img src={Cuervo} alt="Logo de Odisea" className="logo-app" /> 
+    <img
+      src={Cuervo}
+      alt="Logo de Odisea"
+      className="logo-app"
+      style={{ width: '100px', height: 'auto' }} // Define el ancho, la altura se ajusta automáticamente
+    />
     </div>
   );
 }
