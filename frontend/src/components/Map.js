@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -6,7 +6,7 @@ import 'leaflet-draw';
 import 'leaflet-control-geocoder';
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
-const Map = ({ geojson, onGeometryChange }) => {
+const Map = forwardRef(({ geojson, onGeometryChange }, ref) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
@@ -144,7 +144,7 @@ const Map = ({ geojson, onGeometryChange }) => {
     };
 
     // Exponer método para obtener la geometría actual
-    React.useImperativeHandle(ref, () => ({
+    useImperativeHandle(ref, () => ({
         getCurrentGeometry: () => currentGeometry,
         clearMap: clearMap
     }));
@@ -172,6 +172,6 @@ const Map = ({ geojson, onGeometryChange }) => {
             )}
         </div>
     );
-};
+});
 
-export default React.forwardRef((props, ref) => <Map {...props} ref={ref} />);
+export default Map;
