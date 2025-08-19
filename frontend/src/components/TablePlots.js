@@ -88,6 +88,9 @@ const TablePlots = () => {
   const [plotToArchive, setPlotToArchive] = useState(null);
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
+  const createMapRef = useRef(null);
+  const [createPlotGeoJSON, setCreatePlotGeoJSON] = useState(null);
+
   useEffect(() => {
     const fetchPlots = async () => {
       const data = await getPlots();
@@ -205,10 +208,10 @@ const filteredPlots = Array.isArray(plots)
         const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction)
         const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
 
-    let wktGeom = null;
-    if (plotGeoJSON && plotGeoJSON.geometry) {
-      wktGeom = Terraformer.convert(plotGeoJSON.geometry);
-      console.log("WKT enviado al backend:", wktGeom);
+        let wktGeom = null;
+        if (createPlotGeoJSON && createPlotGeoJSON.geometry) {
+          wktGeom = Terraformer.convert(createPlotGeoJSON.geometry);
+          console.log("WKT enviado al backend:", wktGeom);
     }
         const implantYear = newPlot.plot_implant_year ? parseInt(newPlot.plot_implant_year) : null;
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
@@ -228,21 +231,12 @@ const filteredPlots = Array.isArray(plots)
 
         const response = await createPlot(plotToCreate);
         setPlots([...plots, response]);
-        setNewPlot({
-            plot_name: "",
-            plot_var: "",
-            plot_rootstock: "",
-            plot_implant_year: "",
-            plot_creation_year: "",
-            plot_conduction: "",
-            plot_management: "",
-            plot_description: "",
-            plot_geom: null,
-        });
-        setPlotGeoJSON(null);
-        setShowForm(false);
+
+        // Limpiar estado después del éxito
+        handleCancelCreate();
         setSuccessMessage("La parcela ha sido creada correctamente.");
         setShowSuccessModal(true);
+
     } catch (error) {
         console.error("Error al crear la parcela:", error);
         setErrorMessage("Error al crear la parcela: " + error.message);
@@ -370,6 +364,35 @@ const filteredPlots = Array.isArray(plots)
       setShowErrorModal(true);
     }
   };
+
+  const handleCreateGeometryChange = (geojson) => {
+    console.log("Nueva geometría capturada (creación):", geojson);
+    setCreatePlotGeoJSON(geojson);
+  };
+
+  const handleClearCreateMap = () => {
+    setCreatePlotGeoJSON(null);
+    if (createMapRef.current?.clearMap) {
+      createMapRef.current.clearMap();
+    }
+  };
+
+  const handleCancelCreate = () => {
+    setCreatePlotGeoJSON(null);
+    setNewPlot({
+      plot_name: "",
+      plot_var: "",
+      plot_rootstock: "",
+      plot_implant_year: "",
+      plot_creation_year: "",
+      plot_conduction: "",
+      plot_management: "",
+      plot_description: "",
+      plot_geom: null,
+    });
+    setShowForm(false);
+  };
+
 
   return (
     <div className="container mx-auto p-4">
@@ -579,7 +602,7 @@ const filteredPlots = Array.isArray(plots)
               </div>
 
               <div className="modal-buttons mt-4">
-                <button onClick={() => setShowForm(false)} className="btn btn-secondary">Cancelar</button>
+                <button onClick={handleCancelCreate} className="btn btn-secondary">Cancelar</button>
                 <button onClick={handleCreatePlot} className="btn btn-primary">Crear</button>
               </div>
             </div>
