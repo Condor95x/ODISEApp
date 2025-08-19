@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
+import { getPlots, createPlot, updatePlot, deletePlot, archivePlot, getRootstocks, getVarieties, getConduction, getManagement } from "../services/api";
 import Papa from "papaparse";
 import Modal from 'react-modal';
 import 'leaflet/dist/leaflet.css';
@@ -72,25 +72,35 @@ const TablePlots = () => {
   const [sortConfig, setSortConfig] = useState({ key: "plot_id", direction: "asc" });
   const [filterField, setFilterField] = useState("plot_name");
   const [filterValue, setFilterValue] = useState("");
-  const [mapToDisplay, setMapToDisplay] = useState(null);
-  const [showMapModal, setShowMapModal] = useState(false);
+  
+  // Estados específicos para el modal de visualización/edición
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [currentPlot, setCurrentPlot] = useState(null);
+  const [plotGeoJSON, setPlotGeoJSON] = useState(null);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  
+  // Estados para mensajes
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [plotGeoJSON, setPlotGeoJSON] = useState(null); // Estado para mantener la geometría
-  const [plotDetails, setPlotDetails] = useState(null);
-  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  
+  // Estados para datos de referencia
   const [varieties, setVarieties] = useState([]); 
   const [rootstocks, setRootstocks] = useState([]);
   const [conduction, setConduction] = useState([]);
   const [management, setManagement] = useState([]);
+  
+  // Estados para modal de archivo
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [plotToArchive, setPlotToArchive] = useState(null);
   
   // Referencias para los mapas
   const createMapRef = useRef(null);
-  const editMapRef = useRef(null);
+  const viewEditMapRef = useRef(null);
+  
+  // Estados específicos para el modal de creación
+  const [createPlotGeoJSON, setCreatePlotGeoJSON] = useState(null);
 
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
@@ -99,23 +109,23 @@ const TablePlots = () => {
       const data = await getPlots();
       setPlots(data);
     };
-    /* obtener noombre de variedades */
+    
     const fetchVarieties = async () => { 
       const data = await getVarieties();
       setVarieties(data);
     };
-    /* obtener noombre de portainjertos */
+    
     const fetchRootstocks = async () => {
       const data = await getRootstocks();
       setRootstocks(data);
     };
 
-    const fetchmanagement= async () => {
+    const fetchmanagement = async () => {
       const data = await getManagement();
       setManagement(data);
     };
     
-    const fetchconduction= async () => {
+    const fetchconduction = async () => {
       const data = await getConduction();
       setConduction(data);
     };
@@ -127,13 +137,13 @@ const TablePlots = () => {
     fetchRootstocks();
   }, []);
 
-const filteredPlots = Array.isArray(plots)
-  ? plots.filter((p) => {
-      if (!filterValue) return true;
-      const value = String(p[filterField] || "").toLowerCase();
-      return value.includes(filterValue.toLowerCase());
-    })
-  : [];
+  const filteredPlots = Array.isArray(plots)
+    ? plots.filter((p) => {
+        if (!filterValue) return true;
+        const value = String(p[filterField] || "").toLowerCase();
+        return value.includes(filterValue.toLowerCase());
+      })
+    : [];
 
   const sortedPlots = [...filteredPlots].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -177,7 +187,6 @@ const filteredPlots = Array.isArray(plots)
 
     const csv = Papa.unparse(transformedData);
     
-    // Agregar BOM UTF-8 al inicio del archivo
     const bom = '\uFEFF';
     const csvWithBom = bom + csv;
     
@@ -196,24 +205,117 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
+  // Función para visualizar una parcela
+  const handleViewPlot = (plot) => {
+    if (plot && plot.plot_geom && typeof plot.plot_geom === 'string') {
+      try {
+        console.log("Datos de parcela a visualizar:", plot);
+        const geojson = wktToGeoJSON(plot.plot_geom);
+        if (geojson) {
+          setCurrentPlot(plot);
+          setPlotGeoJSON(geojson);
+          setIsEditingDetails(false);
+          setShowViewModal(true);
+        } else {
+          console.error("Error al convertir a GeoJSON: WKT inválido", plot.plot_geom);
+          alert("Error al visualizar la parcela: WKT inválido.");
+        }
+      } catch (error) {
+        console.error("Error al procesar la geometría:", error);
+        alert("Error al visualizar la parcela.");
+      }
+    } else {
+      console.error("Parcela no encontrada o sin geometría válida:", plot ? plot.plot_geom : "No encontrada");
+      alert("Parcela no encontrada o sin geometría.");
+    }
+  };
+
+  // Función para habilitar edición
+  const handleEditDetails = () => {
+    setIsEditingDetails(true);
+  };
+
+  // Función para cancelar edición
+  const handleCancelEdit = () => {
+    setIsEditingDetails(false);
+    // Restaurar datos originales si es necesario
+    if (currentPlot) {
+      const geojson = wktToGeoJSON(currentPlot.plot_geom);
+      setPlotGeoJSON(geojson);
+    }
+  };
+
+  // Función para guardar cambios
+  const handleSaveDetails = async () => {
+    try {
+      const updatedPlotDetails = { ...currentPlot };
+      
+      // Verificar si los valores de select son objetos y extraer los IDs
+      if (typeof updatedPlotDetails.plot_var === 'object' && updatedPlotDetails.plot_var !== null) {
+        updatedPlotDetails.plot_var = updatedPlotDetails.plot_var.gv_id || updatedPlotDetails.plot_var.value;
+      }
+      
+      if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
+        updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id || updatedPlotDetails.plot_rootstock.value;
+      }
+
+      if (typeof updatedPlotDetails.plot_conduction === 'object' && updatedPlotDetails.plot_conduction !== null) {
+        updatedPlotDetails.plot_conduction = updatedPlotDetails.plot_conduction.value;
+      }
+
+      if (typeof updatedPlotDetails.plot_management === 'object' && updatedPlotDetails.plot_management !== null) {
+        updatedPlotDetails.plot_management = updatedPlotDetails.plot_management.value;
+      }
+
+      console.log("Enviando datos actualizados:", updatedPlotDetails);
+      
+      const updatedPlot = await updatePlot(updatedPlotDetails.plot_id, updatedPlotDetails);
+      setPlots(plots.map((p) => (p.plot_id === updatedPlot.plot_id ? updatedPlot : p)));
+      setIsEditingDetails(false);
+      setShowViewModal(false);
+      setCurrentPlot(null);
+      setPlotGeoJSON(null);
+      setSuccessMessage("Los detalles de la parcela han sido actualizados.");
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error al guardar los detalles:", error);
+      setErrorMessage("Error al guardar los detalles: " + error.message);
+      setShowErrorModal(true);
+    }
+  };
+
+  // Función para manejar cambios en la geometría durante edición
+  const handleEditGeometryChange = (geojson) => {
+    console.log("Nueva geometría capturada (edición):", geojson);
+    if (geojson && geojson.geometry) {
+      const wktGeometry = Terraformer.convert(geojson.geometry);
+      setCurrentPlot((prevPlot) => ({
+        ...prevPlot,
+        plot_geom: wktGeometry,
+      }));
+      setPlotGeoJSON(geojson);
+    }
+  };
+
+  // Función para crear una nueva parcela
   const handleCreatePlot = async () => {  
     if (!newPlot.plot_name || !newPlot.plot_var) {
         alert("Por favor, completa los campos obligatorios: Nombre y Variedad.");
         return;
     }
-    if (!plotGeoJSON) {
+    if (!createPlotGeoJSON) {
         alert("Por favor, dibuja la parcela en el mapa.");
         return;
     }
     try {
         const selectedVariety = varieties.find((v) => v.name === newPlot.plot_var);
         const selectedRootstock = rootstocks.find((r) => r.name === newPlot.plot_rootstock);
-        const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction)
-        const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
+        const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction);
+        const selectedManagement = management.find((m) => m.value === newPlot.plot_management);
 
         let wktGeom = null;
-        if (plotGeoJSON && plotGeoJSON.geometry) {
-          wktGeom = Terraformer.convert(plotGeoJSON.geometry);
+        if (createPlotGeoJSON && createPlotGeoJSON.geometry) {
+          wktGeom = Terraformer.convert(createPlotGeoJSON.geometry);
           console.log("WKT enviado al backend:", wktGeom);
         }
         const implantYear = newPlot.plot_implant_year ? parseInt(newPlot.plot_implant_year) : null;
@@ -236,19 +338,7 @@ const filteredPlots = Array.isArray(plots)
         setPlots([...plots, response]);
         
         // Limpiar estado después del éxito
-        setNewPlot({
-            plot_name: "",
-            plot_var: "",
-            plot_rootstock: "",
-            plot_implant_year: "",
-            plot_creation_year: "",
-            plot_conduction: "",
-            plot_management: "",
-            plot_description: "",
-            plot_geom: null,
-        });
-        setPlotGeoJSON(null);
-        setShowForm(false);
+        handleCancelCreate();
         setSuccessMessage("La parcela ha sido creada correctamente.");
         setShowSuccessModal(true);
     } catch (error) {
@@ -256,6 +346,49 @@ const filteredPlots = Array.isArray(plots)
         setErrorMessage("Error al crear la parcela: " + error.message);
         setShowErrorModal(true);
     }
+  };
+
+  // Función para manejar cambios en la geometría durante creación
+  const handleCreateGeometryChange = (geojson) => {
+    console.log("Nueva geometría capturada (creación):", geojson);
+    setCreatePlotGeoJSON(geojson);
+  };
+
+  // Función para limpiar el mapa de creación
+  const handleClearCreateMap = () => {
+    setCreatePlotGeoJSON(null);
+    if (createMapRef.current?.clearMap) {
+      createMapRef.current.clearMap();
+    }
+  };
+
+  // Función para cancelar creación y limpiar todo
+  const handleCancelCreate = () => {
+    setCreatePlotGeoJSON(null);
+    setNewPlot({
+      plot_name: "",
+      plot_var: "",
+      plot_rootstock: "",
+      plot_implant_year: "",
+      plot_creation_year: "",
+      plot_conduction: "",
+      plot_management: "",
+      plot_description: "",
+      plot_geom: null,
+    });
+    setShowForm(false);
+  };
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setCurrentPlot(null);
+    setPlotGeoJSON(null);
+    setIsEditingDetails(false);
+  };
+
+  // Funciones para archivar/eliminar
+  const handleShowArchiveModal = () => {
+    setPlotToArchive(currentPlot);
+    setShowArchiveModal(true);
   };
 
   const handleDeletePlot = async (plotId) => {
@@ -268,9 +401,9 @@ const filteredPlots = Array.isArray(plots)
         await deletePlot(plotId);
         const data = await getPlots();
         setPlots(data);
-        setShowMapModal(false);
+        setShowViewModal(false);
         setShowArchiveModal(false);
-        setPlotDetails(null);
+        setCurrentPlot(null);
         setPlotToArchive(null);
         setSuccessMessage("La parcela fue eliminada correctamente.");
         setShowSuccessModal(true);
@@ -287,9 +420,9 @@ const filteredPlots = Array.isArray(plots)
       await archivePlot(plotId);
       const data = await getPlots();
       setPlots(data);
-      setShowMapModal(false);
+      setShowViewModal(false);
       setShowArchiveModal(false);
-      setPlotDetails(null);
+      setCurrentPlot(null);
       setPlotToArchive(null);
       setSuccessMessage("La parcela fue archivada correctamente.");
       setShowSuccessModal(true);
@@ -300,139 +433,20 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-  const handleViewPlot = (plot) => {
-    if (plot && plot.plot_geom && typeof plot.plot_geom === 'string') {
-      try {
-        console.log("Datos para visualizar parcela:", plot);
-        const geojson = wktToGeoJSON(plot.plot_geom);
-        if (geojson) {
-          setMapToDisplay(geojson);
-          setShowMapModal(true);
-          setIsEditingDetails(false);
-          setPlotDetails(plot);
-        } else {
-          console.error("Error al convertir a GeoJSON: WKT inválido", plot.plot_geom);
-          alert("Error al visualizar la parcela: WKT inválido.");
-        }
-      } catch (error) {
-        console.error("Error al procesar la geometría:", error);
-        alert("Error al visualizar la parcela.");
-      }
-    } else {
-      console.error("Parcela no encontrada o sin geometría válida:", plot ? plot.plot_geom : "No encontrada");
-      alert("Parcela no encontrada o sin geometría.");
-    }
-  };
-
-  // Manejador para el mapa de creación
-  const handleCreateGeometryChange = (geojson) => {
-    console.log("Nueva geometría capturada (creación):", geojson);
-    setPlotGeoJSON(geojson); // Solo actualizar el estado
-  };
-
-  // Manejador para el mapa de edición
-  const handleEditGeometryChange = (geojson) => {
-    console.log("Nueva geometría capturada (edición):", geojson);
-    if (geojson && geojson.geometry) {
-      const wktGeometry = Terraformer.convert(geojson.geometry);
-      setPlotDetails((prevDetails) => ({
-        ...prevDetails,
-        plot_geom: wktGeometry,
-      }));
-    }
-  };
-
-  const handleEditDetails = () => {
-    setIsEditingDetails(true);
-  };
-
-  const handleSaveDetails = async () => {
-    try {
-      // Create a copy of plotDetails for updating
-      const updatedPlotDetails = { ...plotDetails };
-      
-      // Check if plot_var is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_var === 'object' && updatedPlotDetails.plot_var !== null) {
-        updatedPlotDetails.plot_var = updatedPlotDetails.plot_var.gv_id;
-      }
-      
-      // Check if plot_rootstock is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
-        updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id;
-      }
-
-      // Check if plot_conduction is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_conduction === 'object' && updatedPlotDetails.plot_conduction !== null) {
-        updatedPlotDetails.plot_conduction = updatedPlotDetails.plot_conduction.gv_id;
-      }
-
-      // Check if management is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_management === 'object' && updatedPlotDetails.plot_management !== null) {
-        updatedPlotDetails.plot_management = updatedPlotDetails.plot_management.gv_id;
-      }      
-
-      console.log("Sending updated plot details:", updatedPlotDetails);
-      
-      const updatedPlot = await updatePlot(updatedPlotDetails.plot_id, updatedPlotDetails);
-      setPlots(plots.map((p) => (p.plot_id === updatedPlot.plot_id ? updatedPlot : p)));
-      setIsEditingDetails(false);
-      setShowMapModal(false);
-      setPlotDetails(null);
-      setSuccessMessage("Los detalles de la parcela han sido actualizados.");
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error("Error al guardar los detalles:", error);
-      setErrorMessage("Error al guardar los detalles: " + error.message);
-      setShowErrorModal(true);
-    }
-  };
-
-  // Función para limpiar el mapa de creación
-  const handleClearCreateMap = () => {
-    setPlotGeoJSON(null);
-    if (createMapRef.current?.clearMap) {
-      createMapRef.current.clearMap();
-    }
-  };
-
-  // Manejar cierre del modal de visualización
-  const handleCloseViewModal = () => {
-    setShowMapModal(false);
-    setMapToDisplay(null);
-    setPlotDetails(null);
-    setIsEditingDetails(false);
-  };
-
-  // Manejar cancelar en modal de creación
-  const handleCancelCreate = () => {
-    // Limpiar todo al cancelar
-    setPlotGeoJSON(null);
-    setNewPlot({
-      plot_name: "",
-      plot_var: "",
-      plot_rootstock: "",
-      plot_implant_year: "",
-      plot_creation_year: "",
-      plot_conduction: "",
-      plot_management: "",
-      plot_description: "",
-      plot_geom: null,
-    });
-    setShowForm(false);
-  };
-
   return (
     <div className="container mx-auto p-4">
       <div className="table-header">
-        <button onClick={() => setShowForm(true)} className="btn btn-primary">Crear Nueva Parcela</button>
+        <button onClick={() => setShowForm(true)} className="btn btn-primary">
+          Crear Nueva Parcela
+        </button>
         <Spacer width={0.5} />
         {selectedPlots.length > 0 && (
-        <button
-          onClick={handleDownloadCSV}
-          className="btn btn-secondary"
-        >
-          Descargar CSV
-        </button>
+          <button
+            onClick={handleDownloadCSV}
+            className="btn btn-secondary"
+          >
+            Descargar CSV
+          </button>
         )}
       </div>
 
@@ -440,7 +454,8 @@ const filteredPlots = Array.isArray(plots)
         <select
           value={filterField}
           onChange={(e) => setFilterField(e.target.value)}
-          className="border p-2 rounded">
+          className="border p-2 rounded"
+        >
           <option value="plot_id">ID</option>
           <option value="plot_name">Nombre</option>
           <option value="plot_var">Variedad</option>
@@ -492,7 +507,9 @@ const filteredPlots = Array.isArray(plots)
                 </td>
                 <td className="border border-gray-300 p-2 text-center">{plot.plot_id}</td>
                 <td className="border border-gray-300 p-2">{plot.plot_name}</td>
-                <td className="border border-gray-300 p-2">{varieties.find(v => v.gv_id === plot.plot_var)?.name || plot.plot_var}</td>
+                <td className="border border-gray-300 p-2">
+                  {varieties.find(v => v.gv_id === plot.plot_var)?.name || plot.plot_var}
+                </td>
                 <td className="border border-gray-300 p-2 text-right">{plot.plot_area}</td>
                 <td className="border border-gray-300 p-2 text-center">
                   <button
@@ -514,10 +531,10 @@ const filteredPlots = Array.isArray(plots)
         </tbody>
       </table>
 
-      {/* Modal para crear parcela */}
+      {/* Modal para Crear Nueva Parcela */}
       <Modal
         isOpen={showForm}
-        onRequestClose={handleCancelCreate}
+        onRequestClose={() => setShowForm(false)}
         className="modal-content"
         overlayClassName="modal-overlay"
         contentLabel="Crear Nueva Parcela"
@@ -525,105 +542,113 @@ const filteredPlots = Array.isArray(plots)
         <div className="modal-wrapper">
           <div className="modal-content">
             <h2 className="modal-title">Crear Nueva Parcela</h2>
+            
+            {/* Contenedor del Mapa para Creación */}
             <div className="mb-4">
               <div className="map-details-container">
-                <div className="leaflet-container">
+                <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
                   <Map 
                     ref={createMapRef}
-                    geojson={plotGeoJSON} 
+                    geojson={createPlotGeoJSON} 
                     onGeometryChange={handleCreateGeometryChange}
                     editable={true}
                   />
                 </div>
-              </div>
-
-              <div className="form-details-container">
-                <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
-                <form className="space-y-4">
-                  {fieldConfig.map((field) => (
-                    field.key !== 'plot_id' && field.key !== 'plot_area' && (
-                      <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
-                        <label className="col-span-1 font-medium">{field.label}:</label>
-                        <div className="col-span-2">
-                          {field.type === 'select' ? (
-                            <Select
-                              value={
-                                field.key === 'plot_var' 
-                                  ? { value: newPlot.plot_var, label: newPlot.plot_var }
-                                  : field.key === 'plot_rootstock'
-                                  ? { value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }
-                                  : field.key === 'plot_conduction'
-                                  ? { value: newPlot.plot_conduction, label: newPlot.plot_conduction }
-                                  : field.key === 'plot_management'
-                                  ? { value: newPlot.plot_management, label: newPlot.plot_management }
-                                  : null
-                              }
-                              onChange={(selectedOption) => {
-                                setNewPlot({
-                                  ...newPlot,
-                                  [field.key]: selectedOption ? selectedOption.value : ''
-                                });
-                              }}
-                              options={
-                                field.options === 'varieties' 
-                                  ? varieties.map(option => ({ value: option.name, label: option.name }))
-                                  : field.options === 'rootstocks' 
-                                  ? rootstocks.map(option => ({ value: option.name, label: option.name }))
-                                  : field.options === 'conduction' 
-                                  ? conduction.map(option => ({ value: option.value, label: option.value }))
-                                  : field.options === 'management' 
-                                  ? management.map(option => ({ value: option.value, label: option.value }))
-                                  : []
-                              }
-                              isSearchable
-                              isClearable
-                              placeholder={`Seleccionar ${field.label}...`}
-                              className="w-full"
-                            />
-                          ) : field.type === 'textarea' ? (
-                            <textarea
-                              value={newPlot[field.key] || ''}
-                              onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
-                              className="w-full p-2 border rounded"
-                              placeholder={field.label}
-                            />
-                          ) : (
-                            <input
-                              type={field.type}
-                              value={newPlot[field.key] || ''}
-                              onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
-                              className="w-full p-2 border rounded"
-                              placeholder={field.label}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    )
-                  ))}
-                </form>
-                
-                {/* Botones de acción para creación */}
-                <div className="flex justify-end gap-4 mt-6 border-t pt-4">
+                <div className="mb-4">
                   <button
                     onClick={handleClearCreateMap}
-                    className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
                   >
                     Limpiar Mapa
                   </button>
-                  <button
-                    onClick={handleCancelCreate}
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleCreatePlot}
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  >
-                    Crear Parcela
-                  </button>
                 </div>
               </div>
+
+              {/* Formulario de Creación */}
+              <div className="map-details-container">
+                <h3 className="text-xl font-semibold mb-4">Información de la Nueva Parcela:</h3>
+                <dl className="space-y-4">
+                  {fieldConfig
+                    .filter(field => field.key !== 'plot_id' && field.key !== 'plot_area') // Excluir campos no editables
+                    .map((field) => (
+                    <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
+                      <dt className="col-span-1 font-medium">
+                        {field.label}
+                        {(field.key === 'plot_name' || field.key === 'plot_var') && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}:
+                      </dt>
+                      <dd className="col-span-2">
+                        {field.type === 'select' ? (
+                          <Select
+                            value={
+                              newPlot[field.key] 
+                                ? { value: newPlot[field.key], label: newPlot[field.key] }
+                                : null
+                            }
+                            onChange={(selectedOption) => {
+                              setNewPlot({
+                                ...newPlot,
+                                [field.key]: selectedOption ? selectedOption.value : ''
+                              });
+                            }}
+                            options={
+                              field.options === 'varieties' 
+                                ? varieties.map(option => ({ value: option.name, label: option.name }))
+                                : field.options === 'rootstocks' 
+                                ? rootstocks.map(option => ({ value: option.name, label: option.name }))
+                                : field.options === 'conduction' 
+                                ? conduction.map(option => ({ value: option.value, label: option.value }))
+                                : field.options === 'management' 
+                                ? management.map(option => ({ value: option.value, label: option.value }))
+                                : []
+                            }
+                            isSearchable
+                            isClearable
+                            placeholder={`Seleccionar ${field.label}...`}
+                            className="w-full"
+                          />
+                        ) : field.type === 'textarea' ? (
+                          <textarea
+                            value={newPlot[field.key] || ''}
+                            onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
+                            className="w-full p-2 border rounded"
+                            rows={3}
+                            placeholder={`Ingrese ${field.label.toLowerCase()}...`}
+                          />
+                        ) : (
+                          <input
+                            type={field.type}
+                            value={newPlot[field.key] || ''}
+                            onChange={(e) => setNewPlot({ ...newPlot, [field.key]: e.target.value })}
+                            className="w-full p-2 border rounded"
+                            placeholder={`Ingrese ${field.label.toLowerCase()}...`}
+                          />
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex justify-between items-center mt-6 border-t pt-4">
+              {/* Botón de cancelar a la izquierda */}
+              <button
+                onClick={handleCancelCreate}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+
+              {/* Botón de crear a la derecha */}
+              <button
+                onClick={handleCreatePlot}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                Crear Parcela
+              </button>
             </div>
           </div>
         </div>
