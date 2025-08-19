@@ -1,6 +1,6 @@
 import React,{ useState }  from 'react';
 import TableOperaciones from '../components/TableOperaciones';
-import Cuervo from '../../public/odiseapp.png';
+import Cuervo from '../../public/Cuervo.png';
 
 
 const Finca = () => {
