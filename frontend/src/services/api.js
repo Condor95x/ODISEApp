@@ -40,7 +40,7 @@ export const getPlot = async (plotId) => {
 // Crear una nueva parcela
 export const createPlot = async (plotData) => {
   try {
-      const response = await API.post('/plots', plotData);
+      const response = await API.post('/plots/', plotData);
       return response.data;
   } catch (error) {
       if (error.response) {
