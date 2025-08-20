@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TableWineryTask from '../components/TableTaskWinery';
 import VesselManagement from '../components/VesselManagement';
 import BatchManagement from '../components/BatchManagement';
+import Cuervo from '../../public/Cuervo.png';
 
 function Bodega() {
   const [showVessels, setShowVessels] = useState(false);

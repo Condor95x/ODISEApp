@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TablePlots from '../components/TablePlots';
 import ArchivedPlotsTable from '../components/TableArchivedPlots';
+import Cuervo from '../../public/Cuervo.png';
 
 const Plots = () => {
   const [showArchivedPlots, setShowArchivedPlots] = useState(false);

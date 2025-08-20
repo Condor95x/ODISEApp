@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import StockManagement from '../components/StockManagement';
 import InputManagement from '../components/InputManagement';
+import Cuervo from '../../public/Cuervo.png';
 
 const Inventory = () => {
   const [showInputs, setShowInputs] = useState(false);

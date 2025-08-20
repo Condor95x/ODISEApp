@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TablePlotAnalysis from '../components/TablePlotAnalysis';
 import TableWineBatchAnalysis from '../components/TableWineBatchAnalysis';
+import Cuervo from '../../public/Cuervo.png';
 
 function Analisis() {
   const [showPlotAnalysis, setShowPlotAnalysis] = useState(true);
