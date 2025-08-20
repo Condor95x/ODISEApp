@@ -36,6 +36,7 @@ class InputBase(BaseModel):
 
 class InputCreate(InputBase):
     name: str
+    category_id: int
     brand: str
     description: str
     unit_of_measure: str
