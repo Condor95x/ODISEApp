@@ -78,17 +78,18 @@ const Menu = () => {
       )}
       </ul>
 
-     
-      <div className="user-info">
-        {user && (
-          <>
-            <span className="user-name">{user.nombre} ({user.rol})</span>
-            <button className="logout-button" onClick={handleLogout}>
-              Cerrar Sesión
-            </button>
-          </>
-        )}
-      </div>
+      {isMenuOpen && (
+        <div className="user-info">
+          {user && (
+            <>
+              <span className="user-name">{user.nombre} ({user.rol})</span>
+              <button className="logout-button" onClick={handleLogout}>
+                Cerrar Sesión
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

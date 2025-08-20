@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-
+import odiseaLogo from '../../public/ODISEAppLOGOTIPO.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,7 +11,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -39,8 +39,10 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="titulo-seccion">
-        <h1>Iniciar Sesión</h1>
-        
+
+        <img src={odiseaLogo} alt="Logo de Odisea" className="logo-app" /> 
+        <Spacer width={3} />
+        <h1>Iniciar Sesión</h1>     
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import StockManagement from '../components/StockManagement';
 import InputManagement from '../components/InputManagement';
+import Cuervo from '../../public/Cuervo.png';
 
 const Inventory = () => {
   const [showInputs, setShowInputs] = useState(false);
@@ -42,6 +43,15 @@ const Inventory = () => {
           <InputManagement />
         </div>
       )}
+      <Spacer width={30} />
+      <div class="contenedor-imagen">
+        <img
+          src={Cuervo}
+          alt="Logo de Odisea"
+          className="logo-app"
+          style={{ width: '100px', height: 'auto' }}
+        />
+      </div>
     </div>
   );
 };

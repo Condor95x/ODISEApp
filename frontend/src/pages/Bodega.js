@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TableWineryTask from '../components/TableTaskWinery';
 import VesselManagement from '../components/VesselManagement';
 import BatchManagement from '../components/BatchManagement';
+import Cuervo from '../../public/Cuervo.png';
 
 function Bodega() {
   const [showVessels, setShowVessels] = useState(false);
@@ -70,6 +71,15 @@ function Bodega() {
           <BatchManagement />
         </div>
       )}
+      <Spacer width={30} />
+      <div class="contenedor-imagen">
+        <img
+          src={Cuervo}
+          alt="Logo de Odisea"
+          className="logo-app"
+          style={{ width: '100px', height: 'auto' }}
+        />
+      </div>
     </div>
   );
 }

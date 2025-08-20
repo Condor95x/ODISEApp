@@ -242,10 +242,19 @@ export const updateOperacionInputs = async (operacionId, inputsData) => {
 };
 export const createOperacion = async (operacion) => {
   try {
-    // Usamos API.post para que utilice el baseURL configurado
-    const response = await API.post("/operaciones", operacion);
+    console.log('Datos enviados al backend:', operacion); // Debug
+    console.log('URL completa:', `${API.defaults.baseURL}/operaciones`); // Debug
+    
+    // ✅ IMPORTANTE: Asegurar que usamos la ruta correcta
+    const response = await API.post("/operaciones/", operacion); // Agregar / al final
+    
+    console.log('Respuesta del backend:', response.data); // Debug
     return response.data;
   } catch (error) {
+    console.error("Error completo:", error); // Debug más detallado
+    console.error("URL del error:", error.config?.url); // Debug URL
+    console.error("Método del error:", error.config?.method); // Debug método
+    console.error("Datos enviados:", error.config?.data); // Debug datos enviados
     console.error("Error en la solicitud:", error.response?.data || error.message);
     throw error;
   }

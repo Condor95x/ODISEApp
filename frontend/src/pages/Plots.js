@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TablePlots from '../components/TablePlots';
 import ArchivedPlotsTable from '../components/TableArchivedPlots';
+import Cuervo from '../../public/Cuervo.png';
 
 const Plots = () => {
   const [showArchivedPlots, setShowArchivedPlots] = useState(false);
@@ -59,6 +60,15 @@ const Plots = () => {
           <ArchivedPlotsTable  onPlotActivated={handlePlotActivatedFromArchive}  />
         </div>
       )}
+      <Spacer width={30} />
+      <div class="contenedor-imagen">
+        <img
+          src={Cuervo}
+          alt="Logo de Odisea"
+          className="logo-app"
+          style={{ width: '100px', height: 'auto' }}
+        />
+      </div>
     </div>
   );
 };
