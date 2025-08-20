@@ -51,6 +51,15 @@ function Analisis() {
           <TableWineBatchAnalysis />
         </div>
       )}
+      <Spacer width={30} />
+      <div class="contenedor-imagen">
+        <img
+          src={Cuervo}
+          alt="Logo de Odisea"
+          className="logo-app"
+          style={{ width: '50px', height: 'auto' }}
+        />
+      </div>
     </div>
   );
 }

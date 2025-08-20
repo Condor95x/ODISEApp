@@ -470,7 +470,6 @@ const filteredPlots = Array.isArray(plots)
                 checked={selectedPlots.length === plots.length && plots.length > 0}
               />
             </th>
-            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_id")}>ID</th>
             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_name")}>Nombre</th>
             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_var")}>Variedad</th>
             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_area")}>Área</th>
@@ -494,7 +493,6 @@ const filteredPlots = Array.isArray(plots)
                     }
                   />
                 </td>
-                <td className="border border-gray-300 p-2 text-center">{plot.plot_id}</td>
                 <td className="border border-gray-300 p-2">{plot.plot_name}</td>
                 <td className="border border-gray-300 p-2">{varieties.find(v => v.gv_id === plot.plot_var)?.name || plot.plot_var}</td>
                 <td className="border border-gray-300 p-2 text-right">{plot.plot_area}</td>

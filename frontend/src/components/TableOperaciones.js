@@ -528,7 +528,6 @@ function TableOperaciones() {
                             <th className="border border-gray-300 p-2">
                             <input type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
                                 </th>
-                                <th className="border border-gray-300 p-2 cursor-pointer" onClick={()=>handleSort("id")}>ID</th>
                                 <th className="border border-gray-300 p-2 cursor-pointer" onClick={()=>handleSort("tipo_operacion")}>Operacion</th>
                                 <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("parcela")}>Parcela</th>
                             </tr>
@@ -543,7 +542,6 @@ function TableOperaciones() {
                                             onChange={(e) => handleSelectOperacion(e, operacion, group)}
                                             />
                                     </td>
-                                    <td>{operacion.id}</td>
                                     <td>{operacion.tipo_operacion}</td>
                                     <td>{operacion.parcela?.plot_name || "Desconocida"}</td>
                                     <td className="border border-gray-300 p-2 text-center"> {/* Celda de acciones */}
@@ -560,7 +558,7 @@ function TableOperaciones() {
                     </table>
                 </div>
             ))}
-            
+
             {/* Modal para crear Operacion */}
             <Modal
                 isOpen={showForm}
