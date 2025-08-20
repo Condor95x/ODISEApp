@@ -37,15 +37,14 @@ class InputBase(BaseModel):
 class InputCreate(InputBase):
     name: str
     category_id: int
-    brand: str
-    description: str
+    brand: Optional[str] = ""
+    description: Optional[str] = ""
     unit_of_measure: str
-    unit_price: Decimal
+    unit_price: float  # Cambio de Decimal a float
     minimum_stock: int
-    is_active: bool
-    warehouse_id: Optional[int] = None  # ID del almacén seleccionado
-    initial_quantity: Optional[int] = 0  # Cantidad inicial (por defecto 0)
-    pass
+    is_active: bool = True
+    warehouse_id: Optional[int] = None
+    initial_quantity: Optional[int] = 0
 
 class InputUpdate(BaseModel):
     name: Optional[str] = None
