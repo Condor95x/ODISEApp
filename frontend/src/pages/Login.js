@@ -11,7 +11,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
   const handleSubmit = async (e) => {
     e.preventDefault();
     
