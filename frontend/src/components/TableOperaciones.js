@@ -398,20 +398,51 @@ function TableOperaciones() {
 
     const handleCreateOperacion = async () => {
         try {
+            console.log('=== INICIO CREACIÓN OPERACIÓN ==='); // Debug
+            console.log('Datos originales newOperacion:', newOperacion); // Debug
+
+            // ✅ Validar que los campos obligatorios estén presentes
+            if (!newOperacion.tipo_operacion) {
+                throw new Error('Tipo de operación es obligatorio');
+            }
+            if (!newOperacion.parcela_id) {
+                throw new Error('Parcela es obligatoria');
+            }
+
+            // Preparar inputs para el backend
             const inputsBackend = newOperacion.inputs.map(insumo => ({
-                input_id: insumo.insumo_id, // Cambiado a input_id
-                used_quantity: insumo.cantidad, // Cambiado a used_quantity
-                warehouse_id: 7, // Asegúrate de tener el warehouse_id correcto o un valor predeterminado
-                status: "used", // O "planned", según corresponda
-                operation_id: null
+                input_id: parseInt(insumo.insumo_id), // Asegurar que es número
+                used_quantity: parseInt(insumo.cantidad) || 0, // Asegurar que es número
+                warehouse_id: 7, // Valor fijo o configurable
+                status: "planned", // Estado inicial
+                operation_id: null // Se asignará automáticamente
             }));
+
+            console.log('Inputs procesados para backend:', inputsBackend); // Debug
+
+            // Preparar operación completa
             const operacionToCreate = { 
-                ...newOperacion, 
-                parcela_id: parseInt(newOperacion.parcela_id), // Asegurar que es un entero 
+                tipo_operacion: newOperacion.tipo_operacion,
+                fecha_inicio: newOperacion.fecha_inicio || null,
+                fecha_fin: newOperacion.fecha_fin || null,
+                estado: newOperacion.estado || 'planned', // Estado por defecto
+                responsable_id: newOperacion.responsable_id ? parseInt(newOperacion.responsable_id) : null,
+                nota: newOperacion.nota || '',
+                comentario: newOperacion.comentario || '',
+                parcela_id: parseInt(newOperacion.parcela_id), // Asegurar que es entero
                 inputs: inputsBackend,
             };
+
+            console.log('Operación completa a enviar:', operacionToCreate); // Debug
+
+            // Enviar al backend
             const response = await createOperacion(operacionToCreate);
+            console.log('Respuesta recibida:', response); // Debug
+
+            // Actualizar el estado local
             setOperaciones([...operaciones, response]);
+            
+            // Limpiar el formulario
             setNewOperacion({
                 id: '',
                 parcela_id: '',
@@ -423,22 +454,50 @@ function TableOperaciones() {
                 nota: '',
                 comentario: '',
                 inputs: []
-                });
+            });
+            
             setShowForm(false);
             setSuccessMessage("Su operacion ha sido creada correctamente.");
             setShowSuccessModal(true);
+
+            console.log('=== OPERACIÓN CREADA EXITOSAMENTE ==='); // Debug
+            
         } catch (error) {
-            console.error("Error al crear la operacion:", error);
-            if (error.response && error.response.data) {
-                console.log("Detalles de la respuesta del backend:", error.response.data); // Loguea toda la respuesta
-                if (error.response.data.detail) {
-                    console.error("Detalles del error del backend:", error.response.data.detail); // Loguea solo el detalle
+            console.error("=== ERROR EN CREACIÓN ==="); // Debug
+            console.error("Error completo:", error); // Debug
+            
+            let errorMessage = "Error al crear la operacion";
+            
+            if (error.response) {
+                console.error("Status:", error.response.status); // Debug
+                console.error("Data:", error.response.data); // Debug
+                console.error("Headers:", error.response.headers); // Debug
+                
+                if (error.response.status === 405) {
+                    errorMessage = "Error 405: Método no permitido. Verifica la URL del endpoint.";
+                } else if (error.response.status === 422) {
+                    errorMessage = "Error de validación: Verifica que todos los datos sean correctos.";
+                    if (error.response.data?.detail) {
+                        if (Array.isArray(error.response.data.detail)) {
+                            const validationErrors = error.response.data.detail
+                                .map(err => `${err.loc?.join('.')}: ${err.msg}`)
+                                .join(', ');
+                            errorMessage += ` (${validationErrors})`;
+                        } else {
+                            errorMessage += ` (${error.response.data.detail})`;
+                        }
+                    }
+                } else if (error.response.data?.detail) {
+                    errorMessage += `: ${error.response.data.detail}`;
                 }
+            } else {
+                errorMessage += `: ${error.message}`;
             }
-            alert("Error al crear la operacion: " + error.message);
+            
+            console.error("Mensaje de error final:", errorMessage); // Debug
+            alert("Error al crear la operacion: " + errorMessage);
         }
-        };
-    
+    };
 
     const options = tasks.map((task) => ({
         value: task.task_name,
