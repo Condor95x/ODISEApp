@@ -77,7 +77,7 @@ function Bodega() {
           src={Cuervo}
           alt="Logo de Odisea"
           className="logo-app"
-          style={{ width: '50px', height: 'auto' }}
+          style={{ width: '100px', height: 'auto' }}
         />
       </div>
     </div>
