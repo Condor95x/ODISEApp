@@ -13,7 +13,7 @@ function InputManagement({ onInputCreated }) {
   const [editingInput, setEditingInput] = useState(null);
   const [newInput, setNewInput] = useState({
     name: '',
-    category_id: '',
+    category_id: null,
     brand: '',
     description: '',
     unit_of_measure: '',
@@ -84,10 +84,14 @@ function InputManagement({ onInputCreated }) {
         alert('La categoría es requerida');
         return;
       }
-
+      const categoryId = parseInt(newInput.category_id);
+        if (isNaN(categoryId)) {
+          alert('La categoría es requerida y debe ser un número válido.');
+          return;
+      }
       const inputData = {
         name: newInput.name.trim(),
-        category_id: parseInt(newInput.category_id),
+        category_id: parseInt(newInput.categoryId),
         brand: newInput.brand?.trim() || "",
         description: newInput.description?.trim() || "",
         unit_of_measure: newInput.unit_of_measure?.trim() || "",
