@@ -393,3 +393,7 @@
   background-color: #f0ad4e; /* Ejemplo: color naranja */
   color: #fff;
 }
+.contenedor-imagen {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+}

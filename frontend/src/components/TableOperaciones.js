@@ -154,55 +154,97 @@ function TableOperaciones() {
 
     const handleSaveDetails = async () => {
         try {
-           
             if (!operacionDetails.id) {
                 throw new Error("No se puede guardar: ID de operacion no encontrado.");
             }
 
             // Preparar los datos para actualizar los detalles básicos de la operación
-            const datosOperacion = {
-                tipo_operacion: operacionDetails.tipo_operacion,
-                fecha_inicio: operacionDetails.fecha_inicio,
-                fecha_fin: operacionDetails.fecha_fin,
-                estado: operacionDetails.estado,
-                responsable_id: operacionDetails.responsable_id,
-                nota: operacionDetails.nota,
-                comentario: operacionDetails.comentario,
-                parcela_id: parseInt(operacionDetails.parcela_id),
-            };
+            // ✅ IMPORTANTE: Enviar solo los campos que no son null/undefined
+            const datosOperacion = {};
+            
+            if (operacionDetails.tipo_operacion) {
+                datosOperacion.tipo_operacion = operacionDetails.tipo_operacion;
+            }
+            if (operacionDetails.fecha_inicio) {
+                datosOperacion.fecha_inicio = operacionDetails.fecha_inicio;
+            }
+            if (operacionDetails.fecha_fin) {
+                datosOperacion.fecha_fin = operacionDetails.fecha_fin;
+            }
+            if (operacionDetails.estado) {
+                datosOperacion.estado = operacionDetails.estado;
+            }
+            if (operacionDetails.responsable_id) {
+                datosOperacion.responsable_id = parseInt(operacionDetails.responsable_id);
+            }
+            if (operacionDetails.nota !== undefined) { // Permitir strings vacíos
+                datosOperacion.nota = operacionDetails.nota;
+            }
+            if (operacionDetails.comentario !== undefined) { // Permitir strings vacíos
+                datosOperacion.comentario = operacionDetails.comentario;
+            }
+            if (operacionDetails.parcela_id) {
+                datosOperacion.parcela_id = parseInt(operacionDetails.parcela_id);
+            }
+
+            console.log("Datos de operación a enviar:", datosOperacion); // Debug
+            console.log("ID de operación:", operacionDetails.id); // Debug
 
             // Actualizar los detalles básicos de la operación
             const updatedOperacion = await updateOperacion(operacionDetails.id, datosOperacion);
+            
+            console.log("Operación actualizada desde backend:", updatedOperacion); // Debug
 
-            // ✅ CORRECCIÓN: Verificar que inputs exista y sea un array antes de procesarlo
+            // Verificar que inputs exista y sea un array antes de procesarlo
             const inputsArray = operacionDetails.inputs || [];
             
             if (inputsArray.length > 0) {
                 // Preparar los datos para actualizar los insumos
                 const inputsParaEnviar = inputsArray.map(insumo => ({
-                    input_id: insumo.input_id,
-                    used_quantity: parseInt(insumo.used_quantity) || 0, // Manejar valores undefined/null
+                    input_id: parseInt(insumo.input_id), // Asegurar que sea número
+                    used_quantity: parseInt(insumo.used_quantity) || 0,
                 }));
 
-                // ✅ CORRECCIÓN: Enviar en el formato correcto que espera el backend
+                console.log("Inputs a enviar:", { inputs: inputsParaEnviar }); // Debug
+                
+                // Enviar inputs por separado
                 await updateOperacionInputs(operacionDetails.id, { inputs: inputsParaEnviar });
             } else {
                 // Enviar array vacío para limpiar los inputs si es necesario
+                console.log("Enviando inputs vacíos");
                 await updateOperacionInputs(operacionDetails.id, { inputs: [] });
             }
 
-            // Actualizar la lista de operaciones
-            setOperaciones(operaciones.map((p) => 
-                p.id === updatedOperacion.id 
-                    ? { ...updatedOperacion, inputs: inputsArray } 
-                    : p
-            ));
+            // ✅ OBTENER LOS DATOS ACTUALIZADOS DESDE EL BACKEND
+            // El backend debería retornar la operación completa con inputs
+            const operacionActualizadaCompleta = updatedOperacion.inputs 
+                ? updatedOperacion 
+                : { ...updatedOperacion, inputs: inputsArray };
+
+            // Actualizar la lista de operaciones con los datos del backend
+            const operacionesActualizadas = operaciones.map((op) => 
+                op.id === operacionActualizadaCompleta.id 
+                    ? { 
+                        ...operacionActualizadaCompleta,
+                        // Mantener la información de parcela enriquecida desde el frontend
+                        parcela: op.parcela 
+                    } 
+                    : op
+            );
+            
+            setOperaciones(operacionesActualizadas);
+
+            // Actualizar también el estado de operacionDetails con los datos frescos del backend
+            setOperacionDetails({
+                ...operacionActualizadaCompleta,
+                parcela: operacionDetails.parcela // Mantener la información de parcela
+            });
 
             setIsEditingDetails(false);
             setShowOperacionModal(false);
             setOperacionDetails(null);
 
-            setSuccessMessage("Los detalles de la Operacion han sido actualizados.");
+            setSuccessMessage("Los detalles de la Operacion han sido actualizados correctamente.");
             setShowSuccessModal(true);
 
         } catch (error) {
@@ -210,8 +252,24 @@ function TableOperaciones() {
             
             let errorMessage = "Error al guardar los detalles";
             if (error.response) {
+                console.error("Error response status:", error.response.status);
+                console.error("Error response data:", error.response.data);
+                
                 if (error.response.status === 404) {
                     errorMessage = "Operación no encontrada (404)";
+                } else if (error.response.status === 422) {
+                    errorMessage = "Datos inválidos. Verifica los campos obligatorios.";
+                    if (error.response.data && error.response.data.detail) {
+                        // Si hay errores de validación específicos
+                        if (Array.isArray(error.response.data.detail)) {
+                            const validationErrors = error.response.data.detail
+                                .map(err => `${err.loc?.join('.')}: ${err.msg}`)
+                                .join(', ');
+                            errorMessage += ` (${validationErrors})`;
+                        } else {
+                            errorMessage = `Error: ${error.response.data.detail}`;
+                        }
+                    }
                 } else if (error.response.data && error.response.data.detail) {
                     errorMessage = `Error: ${error.response.data.detail}`;
                 }
@@ -250,93 +308,93 @@ function TableOperaciones() {
     }
     };
 
-const downloadCSV = () => {
-    const selectedData = [];
+    const downloadCSV = () => {
+        const selectedData = [];
 
-    // Iterar sobre los grupos en selectedOperaciones
-    for (const group in selectedOperaciones) {
-        const selectedIdsInGroup = selectedOperaciones[group];
-        if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
-            const filteredOperaciones = operaciones.filter(operacion => selectedIdsInGroup.includes(operacion.id));
-            selectedData.push(...filteredOperaciones);
-        }
-    }
-
-    if (selectedData.length === 0) {
-        alert("No hay operaciones seleccionadas para descargar.");
-        return;
-    }
-
-    // Transformar los datos para reemplazar claves foráneas con valores legibles
-    const transformedData = selectedData.map(operacion => {
-        // Buscar información del responsable
-        const responsable = usuarios.find(usuario => usuario.id === operacion.responsable_id);
-        const responsableNombre = responsable ? `${responsable.nombre} ${responsable.apellido}` : 'No asignado';
-
-        // Buscar información de la parcela
-        const parcela = plotsData.find(plot => plot.plot_id === operacion.parcela_id);
-        const parcelaNombre = parcela ? parcela.plot_name : 'Parcela desconocida';
-
-        // Procesar los insumos para mostrarlos de forma legible
-        let insumosTexto = 'Sin insumos';
-        if (operacion.inputs && Array.isArray(operacion.inputs) && operacion.inputs.length > 0) {
-            const insumosInfo = operacion.inputs.map(insumo => {
-                const insumoData = insumos.find(i => i.id === insumo.input_id);
-                const nombreInsumo = insumoData ? insumoData.name : `Insumo ID: ${insumo.input_id}`;
-                return `${nombreInsumo} (${insumo.used_quantity || 0})`;
-            });
-            insumosTexto = insumosInfo.join('; ');
+        // Iterar sobre los grupos en selectedOperaciones
+        for (const group in selectedOperaciones) {
+            const selectedIdsInGroup = selectedOperaciones[group];
+            if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
+                const filteredOperaciones = operaciones.filter(operacion => selectedIdsInGroup.includes(operacion.id));
+                selectedData.push(...filteredOperaciones);
+            }
         }
 
-        // Retornar objeto con valores legibles
-        return {
-            'ID': operacion.id,
-            'Tipo de Operación': operacion.tipo_operacion || '',
-            'Parcela': parcelaNombre,
-            'Responsable': responsableNombre,
-            'Estado': operacion.estado || '',
-            'Fecha de Inicio': operacion.fecha_inicio || '',
-            'Fecha de Fin': operacion.fecha_fin || '',
-            'Nota': operacion.nota || '',
-            'Comentario': operacion.comentario || '',
-            'Insumos Utilizados': insumosTexto,
-            // Mantener IDs originales para referencia si es necesario
-            'ID Parcela (Referencia)': operacion.parcela_id,
-            'ID Responsable (Referencia)': operacion.responsable_id
-        };
-    });
+        if (selectedData.length === 0) {
+            alert("No hay operaciones seleccionadas para descargar.");
+            return;
+        }
 
-    // Generar CSV con los datos transformados
-    const csv = Papa.unparse(transformedData);
-    
-    // ✅ SOLUCIÓN: Agregar BOM UTF-8 para asegurar codificación correcta
-    const BOM = '\uFEFF';
-    const csvWithBOM = BOM + csv;
-    
-    // ✅ SOLUCIÓN: Especificar charset UTF-8 explícitamente
-    const blob = new Blob([csvWithBOM], { 
-        type: 'text/csv;charset=utf-8;' 
-    });
-    
-    const link = document.createElement('a');
-    
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
+        // Transformar los datos para reemplazar claves foráneas con valores legibles
+        const transformedData = selectedData.map(operacion => {
+            // Buscar información del responsable
+            const responsable = usuarios.find(usuario => usuario.id === operacion.responsable_id);
+            const responsableNombre = responsable ? `${responsable.nombre} ${responsable.apellido}` : 'No asignado';
+
+            // Buscar información de la parcela
+            const parcela = plotsData.find(plot => plot.plot_id === operacion.parcela_id);
+            const parcelaNombre = parcela ? parcela.plot_name : 'Parcela desconocida';
+
+            // Procesar los insumos para mostrarlos de forma legible
+            let insumosTexto = 'Sin insumos';
+            if (operacion.inputs && Array.isArray(operacion.inputs) && operacion.inputs.length > 0) {
+                const insumosInfo = operacion.inputs.map(insumo => {
+                    const insumoData = insumos.find(i => i.id === insumo.input_id);
+                    const nombreInsumo = insumoData ? insumoData.name : `Insumo ID: ${insumo.input_id}`;
+                    return `${nombreInsumo} (${insumo.used_quantity || 0})`;
+                });
+                insumosTexto = insumosInfo.join('; ');
+            }
+
+            // Retornar objeto con valores legibles
+            return {
+                'ID': operacion.id,
+                'Tipo de Operación': operacion.tipo_operacion || '',
+                'Parcela': parcelaNombre,
+                'Responsable': responsableNombre,
+                'Estado': operacion.estado || '',
+                'Fecha de Inicio': operacion.fecha_inicio || '',
+                'Fecha de Fin': operacion.fecha_fin || '',
+                'Nota': operacion.nota || '',
+                'Comentario': operacion.comentario || '',
+                'Insumos Utilizados': insumosTexto,
+                // Mantener IDs originales para referencia si es necesario
+                'ID Parcela (Referencia)': operacion.parcela_id,
+                'ID Responsable (Referencia)': operacion.responsable_id
+            };
+        });
+
+        // Generar CSV con los datos transformados
+        const csv = Papa.unparse(transformedData);
         
-        // Nombre de archivo más descriptivo con fecha
-        const fechaActual = new Date().toISOString().split('T')[0];
-        link.setAttribute('download', `operaciones_vineyard_${fechaActual}.csv`);
+        // ✅ SOLUCIÓN: Agregar BOM UTF-8 para asegurar codificación correcta
+        const BOM = '\uFEFF';
+        const csvWithBOM = BOM + csv;
         
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // ✅ SOLUCIÓN: Especificar charset UTF-8 explícitamente
+        const blob = new Blob([csvWithBOM], { 
+            type: 'text/csv;charset=utf-8;' 
+        });
         
-        // Liberar memoria
-        URL.revokeObjectURL(url);
-    }
-};
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            
+            // Nombre de archivo más descriptivo con fecha
+            const fechaActual = new Date().toISOString().split('T')[0];
+            link.setAttribute('download', `operaciones_vineyard_${fechaActual}.csv`);
+            
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Liberar memoria
+            URL.revokeObjectURL(url);
+        }
+    };
 
     const handleCreateOperacion = async () => {
         try {
@@ -400,8 +458,12 @@ const downloadCSV = () => {
             }),
         };
 
-    const handleChange = (selectedOption) => {
-        setNewOperacion({ ...newOperacion, tipo_operacion: selectedOption.value });
+    const handleDetailChange = (field, value) => {
+        setOperacionDetails({ ...operacionDetails, [field]: value });
+    };
+
+    const handleDetailSelectChange = (field, selectedOption) => {
+        setOperacionDetails({ ...operacionDetails, [field]: selectedOption.value });
     };
     
     return (
@@ -664,7 +726,7 @@ const downloadCSV = () => {
                                         {isEditingDetails ? (
                                             <Select
                                                 options={options}
-                                                onChange={handleChange}
+                                                onChange={(selectedOption) => handleDetailSelectChange('tipo_operacion', selectedOption)}
                                                 value={options.find((option) => option.value === operacionDetails.tipo_operacion)}
                                                 placeholder="Selecciona una tarea"
                                                 isSearchable
@@ -679,7 +741,7 @@ const downloadCSV = () => {
                                         {isEditingDetails ? (
                                             <Select
                                                 options={responsableOptions}
-                                                onChange={handleChange}
+                                                onChange={(selectedOption) => handleDetailSelectChange('responsable_id', selectedOption)}
                                                 value={responsableOptions.find((option) => option.value === operacionDetails.responsable_id)}
                                                 placeholder="Selecciona un responsable"
                                                 isSearchable
@@ -695,7 +757,7 @@ const downloadCSV = () => {
                                             <input
                                                 type="date"
                                                 value={operacionDetails.fecha_inicio}
-                                                onChange={(e) => setOperacionDetails({ ...operacionDetails, fecha_inicio: e.target.value })}
+                                                onChange={(e) => handleDetailChange('fecha_inicio', e.target.value)}
                                                 className="modal-form-input"
                                             />
                                         ) : (
@@ -708,7 +770,7 @@ const downloadCSV = () => {
                                             <input
                                                 type="text"
                                                 value={operacionDetails.nota}
-                                                onChange={(e) => setOperacionDetails({ ...operacionDetails, nota: e.target.value })}
+                                                onChange={(e) => handleDetailChange('nota', e.target.value)}
                                                 className="modal-form-input"
                                             />
                                         ) : (
@@ -729,7 +791,7 @@ const downloadCSV = () => {
                                                         const insumoExistente = operacionDetails.inputs ? operacionDetails.inputs.find(insumo => insumo.input_id === id) : null;
                                                         return insumoExistente ? { ...insumoExistente, input_id: id } : { input_id: id, used_quantity: 0 };
                                                     });
-                                                    setOperacionDetails({ ...operacionDetails, inputs: nuevosInsumos });
+                                                    handleDetailChange('inputs', nuevosInsumos);
                                                 }}
                                                 className="modal-form-input"
                                             >
@@ -761,15 +823,16 @@ const downloadCSV = () => {
                                         <label className="modal-form-label">Parcela:</label>
                                         {isEditingDetails ? (
                                             <Select
-                                            options={parcelaOptions}
-                                            onChange={handleChange}
-                                            value={parcelaOptions.find((option) => option.value === operacionDetails.parcela_id)}
-                                            placeholder="Selecciona una parcela"
-                                            isSearchable
-                                            styles={customStyles}
-                                        />
+                                                options={parcelaOptions}
+                                                onChange={(selectedOption) => handleDetailSelectChange('parcela_id', selectedOption)}
+                                                value={parcelaOptions.find((option) => option.value === operacionDetails.parcela_id)}
+                                                placeholder="Selecciona una parcela"
+                                                isSearchable
+                                                styles={customStyles}
+                                            />
                                         ) : (
-                                        <span>{plotsData.find((parcela) => parcela.plot_id === operacionDetails.parcela_id)?.plot_name || "No Seleccionado"}</span>                                        )}
+                                            <span>{plotsData.find((parcela) => parcela.plot_id === operacionDetails.parcela_id)?.plot_name || "No Seleccionado"}</span>
+                                        )}
                                     </div>
                                     <div className="mb-4">
                                         <label className="modal-form-label">Estado:</label>
@@ -777,7 +840,7 @@ const downloadCSV = () => {
                                             <input
                                                 type="text"
                                                 value={operacionDetails.estado}
-                                                onChange={(e) => setOperacionDetails({ ...operacionDetails, estado: e.target.value })}
+                                                onChange={(e) => handleDetailChange('estado', e.target.value)}
                                                 className="modal-form-input"
                                             />
                                         ) : (
@@ -790,7 +853,7 @@ const downloadCSV = () => {
                                             <input
                                                 type="date"
                                                 value={operacionDetails.fecha_fin}
-                                                onChange={(e) => setOperacionDetails({ ...operacionDetails, fecha_fin: e.target.value })}
+                                                onChange={(e) => handleDetailChange('fecha_fin', e.target.value)}
                                                 className="modal-form-input"
                                             />
                                         ) : (
@@ -803,7 +866,7 @@ const downloadCSV = () => {
                                             <input
                                                 type="text"
                                                 value={operacionDetails.comentario}
-                                                onChange={(e) => setOperacionDetails({ ...operacionDetails, comentario: e.target.value })}
+                                                onChange={(e) => handleDetailChange('comentario', e.target.value)}
                                                 className="modal-form-input"
                                             />
                                         ) : (
@@ -823,7 +886,7 @@ const downloadCSV = () => {
                                                             const index = updatedInsumos.findIndex(i => i.input_id === insumo.input_id);
                                                             if (index !== -1) {
                                                                 updatedInsumos[index].used_quantity = parseInt(e.target.value);
-                                                                setOperacionDetails({ ...operacionDetails, inputs: updatedInsumos });
+                                                                handleDetailChange('inputs', updatedInsumos);
                                                             }
                                                         }}
                                                         className="modal-form-input"
