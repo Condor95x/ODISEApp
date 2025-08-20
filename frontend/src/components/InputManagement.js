@@ -363,7 +363,7 @@ function InputManagement({ onInputCreated }) {
                     <label className="modal-form-label">Categoría:</label>
                     <select
                       value={newInput.category_id || ''} // Usar category_id como valor
-                      onChange={(e) => setNewInput({ ...newInput, category_id: e.target.value })} // Asignar category_id
+                      onChange={(e) => setNewInput({ ...newInput, category_id: parseInt(e.target.value) || null })} // Asignar category_id
                       className="modal-form-input"
                     >
                       <option value="">Seleccionar Categoría</option>
