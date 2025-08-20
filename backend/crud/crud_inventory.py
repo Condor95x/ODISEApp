@@ -104,7 +104,7 @@ async def create_input(db: AsyncSession, input_item: InputCreate) -> InputModel:
 
         print(f"Categoría encontrada: {category}")
         # Crear el input con el ID de la categoría
-        db_input = InputSchema(
+        db_input = InputModel(
             name=input_item.name,
             category_id=category.id,
             brand=input_item.brand,
