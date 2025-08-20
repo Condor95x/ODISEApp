@@ -78,23 +78,11 @@ async def delete_category(category_id: int, db: AsyncSession = Depends(get_db)):
 async def create_input_endpoint(input_item: InputCreate, db: AsyncSession = Depends(get_db)):
     """
     Crear un nuevo input en el inventario.
-    Si se especifica warehouse_id e initial_quantity > 0, también se creará el stock inicial.
     """
     print(f"Received input_item: {input_item.dict()}")
     try:
-        # ✅ Ahora usa el alias correcto
+        # ✅ Llamar a la función CRUD correcta
         new_input = await crud_create_input(db, input_item)
-        
-        # Si se especifica un almacén y cantidad inicial, crear el stock
-        if hasattr(input_item, 'warehouse_id') and hasattr(input_item, 'initial_quantity'):
-            if input_item.warehouse_id and input_item.initial_quantity > 0:
-                stock_data = InputStockCreate(
-                    input_id=new_input.id,
-                    warehouse_id=input_item.warehouse_id,
-                    quantity=input_item.initial_quantity
-                )
-                await create_input_stock(db, stock_data)
-        
         return new_input
         
     except ValueError as e:

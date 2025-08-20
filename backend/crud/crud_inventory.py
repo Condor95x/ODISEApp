@@ -11,44 +11,48 @@ from ..schemas.schemas_inventory import TaskInputUpdate,TaskInputCreate,Purchase
 from ..schemas.schemas_inventory import Input as InputSchema
 from fastapi import HTTPException
 # ==================== Input Categories CRUD ====================
-'''
-async def create_input(db: AsyncSession, input_item: InputCreate) -> Input:
-    # Buscar la categoría por nombre
-    category = await db.execute(select(InputCategory).where(InputCategory.name == input_item.category_name))
-    category = category.scalars().first()
 
-    if not category:
-        raise ValueError(f"Categoría '{input_item.category_name}' no encontrada")
-
-    # Crear el input con el ID de la categoría
-    db_input = Input(
-        name=input_item.name,
-        category_id=category.id,  # Usar el ID de la categoría
-        brand=input_item.brand,
-        description=input_item.description,
-        unit_of_measure=input_item.unit_of_measure,
-        unit_price=input_item.unit_price,
-        minimum_stock=input_item.minimum_stock,
-        is_active=input_item.is_active,
-    )
-    db.add(db_input)
-    await db.flush()
-
-    if input_item.warehouse_id:
-        warehouse = await db.execute(select(Warehouse).where(Warehouse.id == input_item.warehouse_id))
-        warehouse = warehouse.scalars().first()
-        if warehouse:
-            db_stock = InputStock(
+async def create_input(db: AsyncSession, input_data: InputCreate):
+    """
+    Crear un nuevo input en la base de datos.
+    """
+    try:
+        # Crear el objeto del modelo (NO el schema)
+        db_input = InputModel(
+            name=input_data.name,
+            category_id=input_data.category_id,
+            brand=input_data.brand or "",
+            description=input_data.description or "",
+            unit_of_measure=input_data.unit_of_measure,
+            unit_price=float(input_data.unit_price),
+            minimum_stock=input_data.minimum_stock,
+            is_active=input_data.is_active
+        )
+        
+        db.add(db_input)
+        await db.commit()
+        await db.refresh(db_input)
+        
+        # Crear stock inicial si se especifica
+        if input_data.warehouse_id and input_data.initial_quantity > 0:
+            from ..models import InputStock as InputStockModel
+            
+            db_stock = InputStockModel(
                 input_id=db_input.id,
-                warehouse_id=warehouse.id,
-                available_quantity=input_item.initial_quantity,
+                warehouse_id=input_data.warehouse_id,
+                quantity=input_data.initial_quantity
             )
+            
             db.add(db_stock)
-
-    await db.commit()
-    await db.refresh(db_input)
-    return db_input
-'''
+            await db.commit()
+            await db.refresh(db_stock)
+        
+        return db_input
+        
+    except Exception as e:
+        await db.rollback()
+        print(f"Error creating input: {e}")
+        raise ValueError(f"Error creating input: {str(e)}")
 
 async def get_input_category(db: AsyncSession, category_id: int) -> Optional[InputCategory]:
     result = await db.execute(select(InputCategory).where(InputCategory.id == category_id))
