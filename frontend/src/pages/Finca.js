@@ -32,7 +32,7 @@ const Finca = () => {
     )}
 
     <Spacer width={30} />
-      <div class="contenedor-imagen">
+      <div className="contenedor-imagen">
         <img
           src={Cuervo}
           alt="Logo de Odisea"
