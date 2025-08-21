@@ -9,23 +9,23 @@ from ..schemas.schemas_inventory import TaskInputCreate, InventoryMovementCreate
 from ..crud.crud_inventory import create_inventory_movement
 
 
-async def create_vessel(db: AsyncSession, vessel: VesselCreate) -> Vessel:
+async def create_vessel_CRUD(db: AsyncSession, vessel: VesselCreate) -> Vessel:
     db_vessel = Vessel(**vessel.dict())
     db.add(db_vessel)
     await db.commit()
     await db.refresh(db_vessel)
     return db_vessel
 
-async def get_vessel(db: AsyncSession, vessel_id: int) -> Vessel:
+async def get_vessel_CRUD(db: AsyncSession, vessel_id: int) -> Vessel:
     result = await db.execute(select(Vessel).filter(Vessel.id == vessel_id))
     return result.scalar_one_or_none()
 
-async def get_vessels(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[Vessel]:
+async def get_vessels_CRUD(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[Vessel]:
     result = await db.execute(select(Vessel).offset(skip).limit(limit))
     return result.scalars().all()
 
-async def update_vessel(db: AsyncSession, vessel_id: int, vessel: VesselUpdate) -> Vessel:
-    db_vessel = await get_vessel(db, vessel_id)
+async def update_vessel_CRUD(db: AsyncSession, vessel_id: int, vessel: VesselUpdate) -> Vessel:
+    db_vessel = await get_vessel_CRUD(db, vessel_id)
     if db_vessel:
         for key, value in vessel.dict(exclude_unset=True).items():
             setattr(db_vessel, key, value)
@@ -33,30 +33,30 @@ async def update_vessel(db: AsyncSession, vessel_id: int, vessel: VesselUpdate) 
         await db.refresh(db_vessel)
     return db_vessel
 
-async def delete_vessel(db: AsyncSession, vessel_id: int) -> Vessel:
-    db_vessel = await get_vessel(db, vessel_id)
+async def delete_vessel_CRUD(db: AsyncSession, vessel_id: int) -> Vessel:
+    db_vessel = await get_vessel_CRUD(db, vessel_id)
     if db_vessel:
         await db.delete(db_vessel)
         await db.commit()
     return db_vessel
 
-async def create_batch(db: AsyncSession, batch: BatchCreate) -> Batch:
+async def create_batch_CRUD(db: AsyncSession, batch: BatchCreate) -> Batch:
     db_batch = Batch(**batch.dict())
     db.add(db_batch)
     await db.commit()
     await db.refresh(db_batch)
     return db_batch
 
-async def get_batch(db: AsyncSession, batch_id: int) -> Batch:
+async def get_batch_CRUD(db: AsyncSession, batch_id: int) -> Batch:
     result = await db.execute(select(Batch).filter(Batch.id == batch_id))
     return result.scalar_one_or_none()
 
-async def get_batches(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[Batch]:
+async def get_batches_CRUD(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[Batch]:
     result = await db.execute(select(Batch).offset(skip).limit(limit))
     return result.scalars().all()
 
-async def update_batch(db: AsyncSession, batch_id: int, batch: BatchUpdate) -> Batch:
-    db_batch = await get_batch(db, batch_id)
+async def update_batch_CRUD(db: AsyncSession, batch_id: int, batch: BatchUpdate) -> Batch:
+    db_batch = await get_batch_CRUD(db, batch_id)
     if db_batch:
         for key, value in batch.dict(exclude_unset=True).items():
             setattr(db_batch, key, value)
@@ -64,14 +64,14 @@ async def update_batch(db: AsyncSession, batch_id: int, batch: BatchUpdate) -> B
         await db.refresh(db_batch)
     return db_batch
 
-async def delete_batch(db: AsyncSession, batch_id: int) -> Batch:
-    db_batch = await get_batch(db, batch_id)
+async def delete_batch_CRUD(db: AsyncSession, batch_id: int) -> Batch:
+    db_batch = await get_batch_CRUD(db, batch_id)
     if db_batch:
         await db.delete(db_batch)
         await db.commit()
     return db_batch
 
-async def create_vessel_activity(db: AsyncSession, vessel_activity: VesselActivityCreate) -> VesselActivity:
+async def create_vessel_activity_CRUD(db: AsyncSession, vessel_activity: VesselActivityCreate) -> VesselActivity:
     vessel_activity_data = vessel_activity.dict()
     vessel_activity_data.pop("inputs", None)
     db_vessel_activity = VesselActivity(**vessel_activity_data)
@@ -79,16 +79,16 @@ async def create_vessel_activity(db: AsyncSession, vessel_activity: VesselActivi
     await db.refresh(db_vessel_activity)
     return db_vessel_activity
 
-async def get_vessel_activity(db: AsyncSession, vessel_activity_id: int) -> VesselActivity:
+async def get_vessel_activity_CRUD(db: AsyncSession, vessel_activity_id: int) -> VesselActivity:
     result = await db.execute(select(VesselActivity).filter(VesselActivity.id == vessel_activity_id))
     return result.scalar_one_or_none()
 
-async def get_vessel_activities(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[VesselActivity]:
+async def get_vessel_activities_CRUD(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[VesselActivity]:
     result = await db.execute(select(VesselActivity).offset(skip).limit(limit))
     return result.scalars().all()
 
-async def update_vessel_activity(db: AsyncSession, vessel_activity_id: int, vessel_activity: VesselActivityUpdate) -> VesselActivity:
-    db_vessel_activity = await get_vessel_activity(db, vessel_activity_id)
+async def update_vessel_activity_CRUD(db: AsyncSession, vessel_activity_id: int, vessel_activity: VesselActivityUpdate) -> VesselActivity:
+    db_vessel_activity = await get_vessel_activity_CRUD(db, vessel_activity_id)
     if db_vessel_activity:
         for key, value in vessel_activity.dict(exclude_unset=True).items():
             setattr(db_vessel_activity, key, value)
@@ -96,14 +96,14 @@ async def update_vessel_activity(db: AsyncSession, vessel_activity_id: int, vess
         await db.refresh(db_vessel_activity)
     return db_vessel_activity
 
-async def delete_vessel_activity(db: AsyncSession, vessel_activity_id: int) -> VesselActivity:
-    db_vessel_activity = await get_vessel_activity(db, vessel_activity_id)
+async def delete_vessel_activity_CRUD(db: AsyncSession, vessel_activity_id: int) -> VesselActivity:
+    db_vessel_activity = await get_vessel_activity_CRUD(db, vessel_activity_id)
     if db_vessel_activity:
         await db.delete(db_vessel_activity)
         await db.commit()
     return db_vessel_activity
 
-async def create_vessel_activity_with_inputs(
+async def create_vessel_activity_with_inputs_CRUD(
     db: AsyncSession,
     vessel_activity: VesselActivityCreate,
     inputs: list[TaskInputCreate]

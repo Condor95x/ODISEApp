@@ -1,0 +1,37 @@
+NOTEBOOK ODISEA
+---------------------------------------------------------------------------------
+Parcelas
+*edicion de geometrias
+Bodega
+*crear actividades con inputs
+
+---------------------------------------------------------------------------------
+USUARIOS
+--------
+juan.perez@example.com		|  juan20      |	operario finca	 
+maria.gomez@example.com		|  maria20     |	obrero	bodega	 
+carlos.lopez@example.com	|  charly20    |	tecnico bodega   
+ana.rodriguez@example.com	|  testana20   |	tecnico finca    
+sofia.martinez@example.com	|  testsofi20  |	administrador    
+andreselcrack@odisea.com	|  C0nDor!25   |        administrador
+---------------------------------------------------------------------------------
+para hacer el batch de la database
+heroku run python C:\Users\andre\Documentos\ODISEA\ODISEApp\scripts\seed_db.py --app odiseapp
+---------------------------------------------------------------------------------
+HEROKU CLI
+C:\Users\andre>heroku logs --tail --app odiseapp	
+C:\Users\andre>heroku pg:psql -a odiseapp
+odiseapp::DATABASE=> UPDATE usuarios SET password = '$2b$12$bZAwqL2QVYjq03yi8AI65O4lcEKD61gX/PR6LfMSMnJWCyZU9x1Eu' WHERE id = 5;
+---------------------------------------------------------------------------------
+SERVER HEROKU
+server: c38j9kbm97l2pa.cluster-czz5s0kz4scl.eu-west-1.rds.amazonaws.com
+database: dblpl0hgue9sdq
+user: ubetkquq7cqq6h
+pw: p09d02eb004a96a0ceece8a8275ea950a4708659a916a40e0c424a6be8491e164
+---------------------------------------------------------------------------------
+PBI
+mail vale:
+-user: vsanchez@sanchezgarcia.com.ar
+-pwd: Urquiza1338
+pbi: ^5ub$8*3$ypGM6g
+-------------------------------------------------------------------------------------------

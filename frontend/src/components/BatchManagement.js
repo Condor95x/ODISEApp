@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
+import Papa from 'papaparse';
 
 Modal.setAppElement('#root');
 
@@ -186,35 +187,85 @@ function BatchManagement({ onBatchCreated }) {
     };
 
     const generateCSV = () => {
-        const selectedData = [];
-        for (const group in selectedBatches) {
-            const selectedIdsInGroup = selectedBatches[group];
-            if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
-                const filteredBatches = batches.filter((batch) => selectedIdsInGroup.includes(batch.id));
-                selectedData.push(...filteredBatches);
+        try {
+            // Obtener datos seleccionados
+            const selectedData = [];
+            for (const group in selectedBatches) {
+                const selectedIdsInGroup = selectedBatches[group];
+                if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
+                    const filteredBatches = batches.filter((batch) => selectedIdsInGroup.includes(batch.id));
+                    selectedData.push(...filteredBatches);
+                }
             }
+
+            // Validar que hay datos para descargar
+            if (selectedData.length === 0) {
+                alert('No hay lotes seleccionados para descargar.');
+                return;
+            }
+
+            // Transformar datos para CSV con nombres de columnas amigables
+            const transformedData = selectedData.map(batch => ({
+                'ID': batch.id || 'N/A',
+                'Nombre': batch.name || 'N/A',
+                'Descripción': batch.description || 'N/A',
+                'Variedad': getVarName(batch.variety),
+                'Fecha de Inicio': batch.entry_date || 'N/A',
+                'Fecha de Fin': batch.exit_date || 'N/A',
+                'Volumen Inicial': batch.initial_volume || 'N/A'
+            }));
+
+            // Generar CSV usando Papa Parse
+            const csv = Papa.unparse(transformedData, {
+                delimiter: ',',
+                header: true,
+                encoding: 'utf-8',
+                quotes: true,
+                quoteChar: '"',
+                escapeChar: '"',
+                skipEmptyLines: false,
+            });
+
+            // Agregar BOM para compatibilidad con Excel en español
+            const BOM = '\uFEFF';
+            const csvWithBOM = BOM + csv;
+
+            // Crear y descargar archivo
+            const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                
+                // Generar nombre de archivo con timestamp
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `lotes_${timestamp}.csv`;
+                
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Limpiar URL después de un tiempo
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                }, 100);
+
+                console.log(`CSV descargado exitosamente: ${filename}`);
+            } else {
+                throw new Error('Su navegador no soporta la descarga de archivos.');
+            }
+        } catch (error) {
+            console.error('Error al generar el archivo CSV:', error);
+            alert('Ocurrió un error al generar el archivo CSV. Por favor, inténtelo de nuevo.');
         }
-        if (selectedData.length === 0) {
-            alert("No hay lotes seleccionados para descargar.");
-            return;
-        }
-        const csvRows = [];
-        const header = Object.keys(selectedData[0]).join(",");
-        csvRows.push(header);
-        selectedData.forEach((item) => {
-            const values = Object.values(item).map((value) => `"${value}"`).join(",");
-            csvRows.push(values);
-        });
-        const csvContent = csvRows.join("\r\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute("download", "Lotes.csv");
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    };
+
+    const getSelectedCount = () => {
+        return Object.values(selectedBatches).flat().length;
     };
 
     if (loading) return <p>Cargando...</p>;
@@ -224,9 +275,10 @@ function BatchManagement({ onBatchCreated }) {
         <div className="container mx-auto p-4">
             <div className="table-header">
                 <button onClick={() => handleOpenBatchForm()} className="btn btn-primary">Crear Lote</button>
-                <Spacer width={0.5} />
-                {Object.values(selectedBatches).flat().length > 0 && (
-                    <button className="btn btn-secondary" onClick={generateCSV}>Descargar CSV</button>
+                {getSelectedCount() > 0 && (
+                    <button className="btn btn-secondary" onClick={generateCSV}>
+                        Descargar CSV ({getSelectedCount()})
+                    </button>
                 )}
             </div>
             <div className="flex gap-2 mb-4">
@@ -319,7 +371,7 @@ function BatchManagement({ onBatchCreated }) {
                                         value={{ value: newBatch.variety, label: newBatch.variety}}
                                         onChange={(selectedOption) => setNewBatch({ ...newBatch, variety: selectedOption.value })}
                                         options={grapevines.map((grapevines) => ({
-                                            value: grapevines.name,
+                                            value: grapevines.gv_id,
                                             label: grapevines.name,
                                         }))}
                                         isSearchable
