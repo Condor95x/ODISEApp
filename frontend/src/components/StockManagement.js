@@ -145,6 +145,8 @@ function StockManagement() {
 
   const generateCSV = () => {
     const selectedData = [];
+    
+    // Recolectar datos seleccionados
     for (const group in selectedStocks) {
       const selectedIdsInGroup = selectedStocks[group];
       if (selectedIdsInGroup && selectedIdsInGroup.length > 0) {
@@ -152,27 +154,76 @@ function StockManagement() {
         selectedData.push(...filteredStocks);
       }
     }
+    
     if (selectedData.length === 0) {
       alert("No hay stocks seleccionados para descargar.");
       return;
     }
+
+    // Aplanar los datos para el CSV
+    const flattenedData = selectedData.map(stock => ({
+      'ID Stock': stock.id,
+      'Insumo': stock.input?.name || 'N/A',
+      'Categoría': stock.input?.category?.name || 'N/A',
+      'Marca': stock.input?.brand || 'N/A',
+      'Unidad de Medida': stock.input?.unit_of_measure || 'N/A',
+      'Precio Unitario': stock.input?.unit_price || 0,
+      'Stock Mínimo': stock.input?.minimum_stock || 0,
+      'Almacén': stock.warehouse?.name || 'N/A',
+      'Tipo de Almacén': stock.warehouse?.warehouse_type || 'N/A',
+      'Ubicación': stock.warehouse?.location || 'N/A',
+      'Cantidad Disponible': stock.available_quantity || 0,
+      'Cantidad Total': stock.total_quantity || 0,
+      'Cantidad Reservada': stock.reserved_quantity || 0,
+      'Estado': stock.input?.is_active ? 'Activo' : 'Inactivo',
+      'Fecha de Actualización': stock.updated_at ? new Date(stock.updated_at).toLocaleDateString('es-ES') : 'N/A'
+    }));
+
+    // Crear el CSV
     const csvRows = [];
-    const header = Object.keys(selectedData[0]).join(",");
-    csvRows.push(header);
-    selectedData.forEach((item) => {
-      const values = Object.values(item).map((value) => `"${value}"`).join(",");
-      csvRows.push(values);
+    
+    // Header
+    const headers = Object.keys(flattenedData[0]);
+    csvRows.push(headers.join(','));
+    
+    // Datos
+    flattenedData.forEach(item => {
+      const values = headers.map(header => {
+        const value = item[header];
+        // Escapar comillas y envolver en comillas si contiene comas, comillas o saltos de línea
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      });
+      csvRows.push(values.join(','));
     });
-    const csvContent = csvRows.join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
+
+    // Crear y descargar el archivo
+    const csvContent = csvRows.join('\n');
+    const BOM = '\uFEFF'; // BOM para caracteres especiales
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.href = url;
-    link.setAttribute("download", "stocks.csv");
-    link.style.visibility = "hidden";
+    
+    // Nombre de archivo con fecha y hora
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+    link.setAttribute('download', `stocks_${timestamp}.csv`);
+    
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Limpiar la URL
+    URL.revokeObjectURL(url);
+    
+    // Mostrar confirmación
+    alert(`CSV descargado exitosamente con ${selectedData.length} registros.`);
   };
 
   return (

@@ -13,7 +13,7 @@ function InputManagement({ onInputCreated }) {
   const [editingInput, setEditingInput] = useState(null);
   const [newInput, setNewInput] = useState({
     name: '',
-    category_id: '',
+    category_id: null,
     brand: '',
     description: '',
     unit_of_measure: '',
@@ -68,6 +68,88 @@ function InputManagement({ onInputCreated }) {
     fetchInputs();
   }, []);
 
+  const handleCloseInputForm = () => {
+    setShowInputForm(false);
+    setEditingInput(null);
+  };
+
+  const handleCreateOrUpdateInput = async () => {
+    try {
+      // Validaciones básicas antes de enviar
+      if (!newInput.name.trim()) {
+        alert('El nombre es requerido');
+        return;
+      }
+      if (!newInput.category_id) {
+        alert('La categoría es requerida');
+        return;
+      }
+      
+      const categoryId = parseInt(newInput.category_id);
+      if (isNaN(categoryId)) {
+        alert('La categoría es requerida y debe ser un número válido.');
+        return;
+      }
+
+      const inputData = {
+        name: newInput.name.trim(),
+        category_id: parseInt(newInput.category_id), // ✅ Corregido: category_id en lugar de categoryId
+        brand: newInput.brand?.trim() || "",
+        description: newInput.description?.trim() || "",
+        unit_of_measure: newInput.unit_of_measure?.trim() || "",
+        unit_price: parseFloat(newInput.unit_price) || 0,
+        minimum_stock: parseInt(newInput.minimum_stock) || 0,
+        is_active: newInput.is_active,
+      };
+
+      // Solo agregar warehouse_id y initial_quantity si warehouse_id existe
+      if (newInput.warehouse_id && newInput.warehouse_id !== '') {
+        inputData.warehouse_id = parseInt(newInput.warehouse_id);
+        inputData.initial_quantity = parseInt(newInput.initial_quantity) || 0;
+      }
+
+      // Log completo para debugging
+      console.log('=== DEBUGGING DATA ===');
+      console.log('newInput original:', newInput);
+      console.log('inputData procesado:', inputData);
+      console.log('Tipos de datos:');
+      Object.entries(inputData).forEach(([key, value]) => {
+        console.log(`${key}: ${value} (${typeof value})`);
+      });
+      console.log('======================');
+
+      if (editingInput) {
+        await updateInput(editingInput.id, inputData);
+      } else {
+        await createInput(inputData);
+      }
+
+      const data = await getInputs();
+      setInputs(data);
+      handleCloseInputForm();
+    } catch (err) {
+      console.error('=== ERROR COMPLETO ===');
+      console.error('Error:', err);
+      console.error('Response status:', err.response?.status);
+      console.error('Response data:', err.response?.data);
+      console.error('Response headers:', err.response?.headers);
+      console.error('=====================');
+      
+      // Mostrar error más específico al usuario
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          const errors = err.response.data.detail.map(e => `${e.loc?.join('.')}: ${e.msg}`).join('\n');
+          alert(`Errores de validación:\n${errors}`);
+        } else {
+          alert(`Error: ${err.response.data.detail}`);
+        }
+      } else {
+        alert(`Error: ${err.message || 'Error desconocido'}`);
+      }
+      setError(err);
+    }
+  };
+
   const handleOpenInputForm = (input = null) => {
     setEditingInput(input);
     if (input) {
@@ -79,48 +161,14 @@ function InputManagement({ onInputCreated }) {
         brand: '',
         description: '',
         unit_of_measure: '',
-        unit_price: '',
-        minimum_stock: '',
+        unit_price: 0,
+        minimum_stock: 0,
         is_active: true,
-        warehouse_id: null,
+        warehouse_id: '',
         initial_quantity: 0,
       });
     }
     setShowInputForm(true);
-  };
-
-  const handleCloseInputForm = () => {
-    setShowInputForm(false);
-    setEditingInput(null);
-  };
-
-  const handleCreateOrUpdateInput = async () => {
-    try {
-      const inputData = {
-        name: newInput.name,
-        category_id: parseInt(newInput.category_id),
-        brand: newInput.brand,
-        description: newInput.description,
-        unit_of_measure: newInput.unit_of_measure,
-        unit_price: parseFloat(newInput.unit_price), // Convertir a float
-        minimum_stock: parseInt(newInput.minimum_stock), // Convertir a entero
-        is_active: newInput.is_active,
-        warehouse_id:  newInput.warehouse_id !== null ? parseInt(newInput.warehouse_id) : null, // Convertir a entero
-        initial_quantity: parseInt(newInput.initial_quantity), // Convertir a entero
-      };
-  
-      if (editingInput) {
-        await updateInput(editingInput.id, inputData);
-      } else {
-        await createInput(inputData);
-      }
-  
-      const data = await getInputs();
-      setInputs(data);
-      handleCloseInputForm();
-    } catch (err) {
-      setError(err);
-    }
   };
 
   const handleDeleteInput = async (id) => {
@@ -316,7 +364,13 @@ function InputManagement({ onInputCreated }) {
                     <label className="modal-form-label">Categoría:</label>
                     <select
                       value={newInput.category_id || ''} // Usar category_id como valor
-                      onChange={(e) => setNewInput({ ...newInput, category_id: e.target.value })} // Asignar category_id
+                      onChange={(e) => {
+                          const value = e.target.value;
+                          setNewInput({ 
+                              ...newInput, 
+                              category_id: value ? parseInt(value) : null 
+                          });
+                      }}
                       className="modal-form-input"
                     >
                       <option value="">Seleccionar Categoría</option>
