@@ -84,14 +84,16 @@ function InputManagement({ onInputCreated }) {
         alert('La categoría es requerida');
         return;
       }
+      
       const categoryId = parseInt(newInput.category_id);
-        if (isNaN(categoryId)) {
-          alert('La categoría es requerida y debe ser un número válido.');
-          return;
+      if (isNaN(categoryId)) {
+        alert('La categoría es requerida y debe ser un número válido.');
+        return;
       }
+
       const inputData = {
         name: newInput.name.trim(),
-        category_id: parseInt(newInput.categoryId),
+        category_id: parseInt(newInput.category_id), // ✅ Corregido: category_id en lugar de categoryId
         brand: newInput.brand?.trim() || "",
         description: newInput.description?.trim() || "",
         unit_of_measure: newInput.unit_of_measure?.trim() || "",
@@ -147,7 +149,6 @@ function InputManagement({ onInputCreated }) {
       setError(err);
     }
   };
-
 
   const handleOpenInputForm = (input = null) => {
     setEditingInput(input);
