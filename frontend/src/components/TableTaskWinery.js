@@ -298,9 +298,7 @@ const TableWineryTask = () => {
                 vessel_activity: vesselActivityData,
                 inputs: inputsBackend,
             };
-    
-            console.log("Datos enviados al backend:", actividadToCreate);
-    
+
             const response = await createVesselActivity(actividadToCreate);
     
             // Actualizar la lista de actividades
@@ -517,7 +515,6 @@ const TableWineryTask = () => {
                     URL.revokeObjectURL(url);
                 }, 100);
 
-                console.log(`CSV descargado exitosamente: ${filename}`);
             } else {
                 throw new Error('Su navegador no soporta la descarga de archivos.');
             }

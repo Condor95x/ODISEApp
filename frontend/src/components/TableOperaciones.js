@@ -187,13 +187,8 @@ function TableOperaciones() {
                 datosOperacion.parcela_id = parseInt(operacionDetails.parcela_id);
             }
 
-            console.log("Datos de operación a enviar:", datosOperacion); // Debug
-            console.log("ID de operación:", operacionDetails.id); // Debug
-
             // Actualizar los detalles básicos de la operación
             const updatedOperacion = await updateOperacion(operacionDetails.id, datosOperacion);
-            
-            console.log("Operación actualizada desde backend:", updatedOperacion); // Debug
 
             // Verificar que inputs exista y sea un array antes de procesarlo
             const inputsArray = operacionDetails.inputs || [];
@@ -204,14 +199,11 @@ function TableOperaciones() {
                     input_id: parseInt(insumo.input_id), // Asegurar que sea número
                     used_quantity: parseInt(insumo.used_quantity) || 0,
                 }));
-
-                console.log("Inputs a enviar:", { inputs: inputsParaEnviar }); // Debug
-                
+              
                 // Enviar inputs por separado
                 await updateOperacionInputs(operacionDetails.id, { inputs: inputsParaEnviar });
             } else {
                 // Enviar array vacío para limpiar los inputs si es necesario
-                console.log("Enviando inputs vacíos");
                 await updateOperacionInputs(operacionDetails.id, { inputs: [] });
             }
 
@@ -398,9 +390,6 @@ function TableOperaciones() {
 
     const handleCreateOperacion = async () => {
         try {
-            console.log('=== INICIO CREACIÓN OPERACIÓN ==='); // Debug
-            console.log('Datos originales newOperacion:', newOperacion); // Debug
-
             // ✅ Validar que los campos obligatorios estén presentes
             if (!newOperacion.tipo_operacion) {
                 throw new Error('Tipo de operación es obligatorio');
@@ -418,8 +407,6 @@ function TableOperaciones() {
                 operation_id: null // Se asignará automáticamente
             }));
 
-            console.log('Inputs procesados para backend:', inputsBackend); // Debug
-
             // Preparar operación completa
             const operacionToCreate = { 
                 tipo_operacion: newOperacion.tipo_operacion,
@@ -434,11 +421,8 @@ function TableOperaciones() {
                 vessel_activity_id: null,
             };
 
-            console.log('Operación completa a enviar:', operacionToCreate); // Debug
-
             // Enviar al backend
             const response = await createOperacion(operacionToCreate);
-            console.log('Respuesta recibida:', response); // Debug
 
             // Actualizar el estado local
             setOperaciones([...operaciones, response]);
@@ -462,11 +446,8 @@ function TableOperaciones() {
             setSuccessMessage("Su operacion ha sido creada correctamente.");
             setShowSuccessModal(true);
 
-            console.log('=== OPERACIÓN CREADA EXITOSAMENTE ==='); // Debug
-            
         } catch (error) {
-            console.error("=== ERROR EN CREACIÓN ==="); // Debug
-            console.error("Error completo:", error); // Debug
+
             
             let errorMessage = "Error al crear la operacion";
             
@@ -496,7 +477,6 @@ function TableOperaciones() {
                 errorMessage += `: ${error.message}`;
             }
             
-            console.error("Mensaje de error final:", errorMessage); // Debug
             alert("Error al crear la operacion: " + errorMessage);
         }
     };
