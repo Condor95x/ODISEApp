@@ -298,7 +298,11 @@ function VesselsManagement() {
         <button onClick={() => handleOpenVesselForm()} className="btn btn-primary">Crear Vasija</button>
         <Spacer width={0.5} />
         {Object.values(selectedVessels).flat().length > 0 && (
-          <button className="btn btn-secondary" onClick={generateCSV}>Descargar CSV</button>
+          <button
+            className="btn btn-secondary"
+            onClick={generateCSV}>
+            Descargar CSV ({Object.values(selectedVessels).flat().length})
+          </button>
         )}
       </div>
       <div className="flex gap-2 mb-4">

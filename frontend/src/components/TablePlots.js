@@ -432,10 +432,10 @@ const filteredPlots = Array.isArray(plots)
         <Spacer width={0.5} />
         {Object.values(selectedPlots).flat().length > 0 && (
         <button
-          onClick={() => handleDownloadCSV(Object.values(selectedPlots).flat().map(id => selectedPlots.find(a => a.id === id)))}
+          onClick={() => handleDownloadCSV(Object.values(selectedPlots).flat().map(id => selectedPlots.find(a => a.id === id).filter(Boolean)))}
           className="btn btn-secondary"
         >
-          Descargar CSV
+          Descargar CSV ({Object.values(selectedPlots).flat().length})
         </button>
         )}
       </div>

@@ -518,11 +518,17 @@ function TableOperaciones() {
     return (
         <div className="container mx-auto p-4">
             <div className="table-header">
-                <button onClick={() => setShowForm(true)} className="btn btn-primary">Crear Nueva Operacion</button>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="btn btn-primary">Crear Nueva Operacion
+                </button>
                 <Spacer width={0.5} />
                 {Object.values(selectedOperaciones).flat().length > 0 && (
-                <button onClick={downloadCSV} className="btn btn-secondary">
-                    Descargar CSV</button>
+                <button
+                    onClick={() => downloadCSV(Object.values(selectedOperaciones).flat().map(id => operaciones.find(a => a.id === id)).filter(Boolean))}
+                    className="btn btn-secondary">
+                    Descargar CSV ({Object.values(selectedOperaciones).flat().length})
+                </button>
                 )}
             </div>
             <div className="flex gap-2 mb-4">

@@ -1,10 +1,11 @@
 NOTEBOOK ODISEA
 ---------------------------------------------------------------------------------
+ISSUES
+Estilos
+*homogeneizar modales
+*menu cuando ventana no es 100 auiero que sea vertical
 Parcelas
 *edicion de geometrias
-Bodega
-*crear actividades con inputs
-
 ---------------------------------------------------------------------------------
 USUARIOS
 --------
@@ -19,8 +20,8 @@ para hacer el batch de la database
 heroku run python C:\Users\andre\Documentos\ODISEA\ODISEApp\scripts\seed_db.py --app odiseapp
 ---------------------------------------------------------------------------------
 HEROKU CLI
-C:\Users\andre>heroku logs --tail --app odiseapp	
-C:\Users\andre>heroku pg:psql -a odiseapp
+heroku logs --tail --app odiseapp	
+heroku pg:psql -a odiseapp
 odiseapp::DATABASE=> UPDATE usuarios SET password = '$2b$12$bZAwqL2QVYjq03yi8AI65O4lcEKD61gX/PR6LfMSMnJWCyZU9x1Eu' WHERE id = 5;
 ---------------------------------------------------------------------------------
 SERVER HEROKU
