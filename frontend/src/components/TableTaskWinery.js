@@ -275,6 +275,7 @@ const TableWineryTask = () => {
                 used_quantity: insumo.cantidad,
                 warehouse_id: 8,
                 status: "used",
+                vessel_activity_id: null,
                 operation_id: null
             }));
     

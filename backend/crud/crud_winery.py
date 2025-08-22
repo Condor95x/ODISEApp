@@ -111,12 +111,9 @@ async def create_vessel_activity_with_inputs_CRUD(
     try:
         logging.info(f"Datos recibidos: {vessel_activity}, {inputs}")
         logging.info("Iniciando create_vessel_activity_with_inputs")
-        logging.info(f"Vessel Activity: {vessel_activity}")
-        logging.info(f"Inputs: {inputs}")
 
         # Crear la actividad de la vasija
         db_vesselact = VesselActivity(
-            #id=vessel_activity.id,
             origin_vessel_id=vessel_activity.origin_vessel_id,
             destination_vessel_id=vessel_activity.destination_vessel_id,
             task_id=vessel_activity.task_id,
@@ -132,9 +129,8 @@ async def create_vessel_activity_with_inputs_CRUD(
         )
 
         db.add(db_vesselact)
-        await db.commit()
-        await db.refresh(db_vesselact)
-
+        await db.flush()  # Cambiar commit por flush para obtener el ID sin hacer commit final
+        
         # Crear y consumir los insumos
         inputs_response = []
         for input_data in inputs:
@@ -146,8 +142,9 @@ async def create_vessel_activity_with_inputs_CRUD(
                 quantity=input_data.used_quantity,
                 movement_type="exit",
                 movement_date=datetime.now(),
-                operation_id=db_vesselact.id,
-                description=f"Consumo de insumo para operación {db_vesselact.id}"
+                vessel_activity_id=db_vesselact.id,  # ✅ CAMBIO: usar vessel_activity_id
+                operation_id=None,  # ✅ CAMBIO: operation_id debe ser None
+                description=f"Consumo de insumo para vessel activity {db_vesselact.id}"
             )
             logging.info(f"Creando movimiento de inventario: {movement}")
             await create_inventory_movement(db, movement)
@@ -158,16 +155,13 @@ async def create_vessel_activity_with_inputs_CRUD(
                 used_quantity=input_data.used_quantity,
                 warehouse_id=input_data.warehouse_id,
                 status=input_data.status,
-                operation_id=db_vesselact.id
+                operation_id=None  # ✅ CAMBIO: cambiar por vessel_activity_id si tu modelo lo soporta
             )
 
-            logging.info(f"Creando input_response: {input_response}")
             inputs_response.append(input_response)
 
-        await db.commit()
-
-        logging.info(f"inputs_response: {inputs_response}")
-        logging.info(f"db_operation: {db_vesselact.__dict__}")
+        await db.commit()  # Hacer commit final de todo
+        await db.refresh(db_vesselact)
 
         return VesselActivityResponse(
             id=db_vesselact.id,
@@ -193,5 +187,3 @@ async def create_vessel_activity_with_inputs_CRUD(
         logging.exception("Error al crear la actividad y consumir insumos")
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al crear la actividad y consumir insumos: {str(e)}")
-    
-

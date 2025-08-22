@@ -288,6 +288,21 @@ class TaskInputUpdate(BaseModel):
             raise ValueError('Status must be "planned" or "used"')
         return v
 
+class InventoryMovementCreate(BaseModel):
+    movement_date: Optional[datetime] = None
+    input_id: int
+    warehouse_id: int
+    movement_type: str
+    quantity: float
+    unit_price: Optional[float] = None
+    operation_id: Optional[int] = None
+    vessel_activity_id: Optional[int] = None  # ✅ AGREGAR este campo
+    user_id: Optional[int] = None
+    comments: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class TaskInput(TaskInputBase):
     id: int
     created_at: Optional[datetime] = None
@@ -302,17 +317,6 @@ class TaskInputWithDetails(TaskInput):
     
     class Config:
         orm_mode = True
-
-class InventoryMovementCreate(BaseModel):
-    movement_date: Optional[datetime] = None
-    input_id: int
-    warehouse_id: int
-    movement_type: str
-    quantity: float
-    unit_price: Optional[float] = None
-    operation_id: Optional[int] = None
-    user_id: Optional[int] = None
-    comments: Optional[str] = None
 
 class InventoryMovement(BaseModel):
     id: int

@@ -431,6 +431,7 @@ function TableOperaciones() {
                 comentario: newOperacion.comentario || '',
                 parcela_id: parseInt(newOperacion.parcela_id), // Asegurar que es entero
                 inputs: inputsBackend,
+                vessel_activity_id: null,
             };
 
             console.log('Operación completa a enviar:', operacionToCreate); // Debug
@@ -453,6 +454,7 @@ function TableOperaciones() {
                 responsable_id: '',
                 nota: '',
                 comentario: '',
+                vessel_activity_id: null,
                 inputs: []
             });
             
