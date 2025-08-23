@@ -19,8 +19,7 @@ const Plots = () => {
   const handlePlotActivatedFromArchive = () => {
     // Esta función no necesita hacer nada por ahora,
     // pero asegura que la prop onPlotActivated sea una función.
-    console.log("Parcela activada (sin acción específica en Plots)");
-  };
+    };
 
   return (
     <div className="Contenedor">

@@ -47,8 +47,7 @@ function VesselsManagement() {
       setLoading(true);
       try {
         const response = await getVessels();
-        console.log("Respuesta de la API:", response);
-        console.log("Datos de la API:", response.data);
+
         if (response && Array.isArray(response.data)) {
           setVessels(response.data);
         } else {

@@ -201,16 +201,15 @@ const filteredPlots = Array.isArray(plots)
         return;
     }
     try {
-        const selectedVariety = varieties.find((v) => v.name === newPlot.plot_var);
-        const selectedRootstock = rootstocks.find((r) => r.name === newPlot.plot_rootstock);
-        const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction)
-        const selectedManagement = management.find((m) => m.value === newPlot.plot_management)
+      const selectedVariety = varieties.find((v) => v.name === newPlot.plot_var);
+      const selectedRootstock = rootstocks.find((r) => r.name === newPlot.plot_rootstock);
+      const selectedConduction = conduction.find((c) => c.value === newPlot.plot_conduction);
+      const selectedManagement = management.find((m) => m.value === newPlot.plot_management);
 
         let wktGeom = null;
         if (plotGeoJSON && plotGeoJSON.geometry) {
           try {
-            wktGeom = Terraformer.convert(plotGeoJSON.geometry);
-            console.log("WKT enviado al backend:", wktGeom);
+            wktGeom = Terraformer.convert(plotGeoJSON.geometry);            
           } catch (error) {
             console.error("Error converting to WKT:", error);
             alert("Error al procesar la geometría del mapa.");
@@ -222,17 +221,16 @@ const filteredPlots = Array.isArray(plots)
         const creationYear = newPlot.plot_creation_year ? parseInt(newPlot.plot_creation_year) : null;
 
         const plotToCreate = {
-          ...newPlot,
+          plot_name: newPlot.plot_name,
           plot_var: selectedVariety ? selectedVariety.gv_id : null,
           plot_rootstock: selectedRootstock ? selectedRootstock.gv_id : null,
           plot_conduction: selectedConduction ? selectedConduction.value : null,
           plot_management: selectedManagement ? selectedManagement.value : null, 
-          plot_geom: newPlot.plot_geom, // ← Usar directamente del estado
+          plot_geom: newPlot.plot_geom,
           plot_implant_year: implantYear,
           plot_creation_year: creationYear,
+          plot_description: newPlot.plot_description,
         };
-
-        console.log("Datos para crear parcela:", plotToCreate); // Imprimir los datos antes de enviar
 
         const response = await createPlot(plotToCreate);
         setPlots([...plots, response]);
@@ -294,7 +292,6 @@ const filteredPlots = Array.isArray(plots)
   const handleViewPlot = (plot) => {
     if (plot && plot.plot_geom && typeof plot.plot_geom === 'string') {
       try {
-        console.log("Datos para editar parcela:", plot);
         const geojson = wktToGeoJSON(plot.plot_geom);
         if (geojson) {
           setMapToDisplay(geojson);
@@ -316,24 +313,35 @@ const filteredPlots = Array.isArray(plots)
   };
 
   const handleGeometryChange = (geojson) => {
-    console.log("Nueva geometría capturada:", geojson);
-    const wktGeometry = Terraformer.convert(geojson.geometry);
-    
-    if (isEditingDetails && plotDetails) {
-      // Modo edición
-      setPlotDetails((prevDetails) => ({
-        ...prevDetails,
-        plot_geom: wktGeometry,
-      }));
-    } else if (showForm) {
-      // Modo creación
-      setNewPlot((prevPlot) => ({
-        ...prevPlot,
-        plot_geom: wktGeometry
-      }));
+        
+    if (geojson && geojson.geometry) {
+      try {
+        const wktGeometry = Terraformer.convert(geojson.geometry);
+        
+        if (isEditingDetails && plotDetails) {
+          // Modo edición - actualizar plotDetails inmediatamente
+          const updatedDetails = {
+            ...plotDetails,
+            plot_geom: wktGeometry,
+          };
+          setPlotDetails(updatedDetails);
+
+        } else if (showForm) {
+          // Modo creación
+          setNewPlot((prevPlot) => ({
+            ...prevPlot,
+            plot_geom: wktGeometry
+          }));
+        }
+        
+        setPlotGeoJSON(geojson);
+      } catch (error) {
+        console.error("Error converting geometry to WKT:", error);
+      }
+    } else if (!geojson && isEditingDetails) {
+      // Si se elimina la geometría
+      setPlotDetails(prev => ({ ...prev, plot_geom: null }));
     }
-    
-    setPlotGeoJSON(geojson);
   };
 
   const handleEditDetails = () => {
@@ -346,26 +354,36 @@ const filteredPlots = Array.isArray(plots)
       const updatedPlotDetails = { ...plotDetails };
       
       // Check if plot_var is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_var === 'object' && updatedPlotDetails.plot_var !== null) {
-        updatedPlotDetails.plot_var = updatedPlotDetails.plot_var.gv_id;
-      }
-      
-      // Check if plot_rootstock is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
+      if (typeof updatedPlotDetails.plot_rootstock === 'string') {
+        const selectedRootstock = rootstocks.find(r => r.name === updatedPlotDetails.plot_rootstock);
+        updatedPlotDetails.plot_rootstock = selectedRootstock ? selectedRootstock.gv_id : updatedPlotDetails.plot_rootstock;
+      } else if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
         updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id;
       }
 
-      // Check if plot_conduction is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_conduction === 'object' && updatedPlotDetails.plot_conduction !== null) {
-        updatedPlotDetails.plot_conduction = updatedPlotDetails.plot_conduction.gv_id;
+      // Convertir nombres a IDs para rootstocks
+      if (typeof updatedPlotDetails.plot_rootstock === 'string') {
+        const selectedRootstock = rootstocks.find(r => r.name === updatedPlotDetails.plot_rootstock);
+        updatedPlotDetails.plot_rootstock = selectedRootstock ? selectedRootstock.gv_id : null;
+      } else if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
+        updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id;
       }
 
-      // Check if management is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_management === 'object' && updatedPlotDetails.plot_management !== null) {
-        updatedPlotDetails.plot_management = updatedPlotDetails.plot_management.gv_id;
-      }      
+      // Para conduction y management, mantener como string si el backend los espera así
+      if (typeof updatedPlotDetails.plot_conduction === 'object' && updatedPlotDetails.plot_conduction !== null) {
+        updatedPlotDetails.plot_conduction = updatedPlotDetails.plot_conduction.value;
+      }
 
-      console.log("Sending updated plot details:", updatedPlotDetails);
+      if (typeof updatedPlotDetails.plot_management === 'object' && updatedPlotDetails.plot_management !== null) {
+        updatedPlotDetails.plot_management = updatedPlotDetails.plot_management.value;
+      }
+
+      if (!updatedPlotDetails.plot_geom) {
+        console.warn("No hay geometría para actualizar");
+        setErrorMessage("Error: La parcela debe tener una geometría válida.");
+        setShowErrorModal(true);
+        return;
+      }
       
       const updatedPlot = await updatePlot(updatedPlotDetails.plot_id, updatedPlotDetails);
       setPlots(plots.map((p) => (p.plot_id === updatedPlot.plot_id ? updatedPlot : p)));
@@ -382,8 +400,7 @@ const filteredPlots = Array.isArray(plots)
   };
 
   const handleCreateGeometryChange = (geojson) => {
-      console.log("Nueva geometría capturada (creación):", geojson);
-      
+            
       // Actualizar ambos estados necesarios
       setPlotGeoJSON(geojson);
       
@@ -431,12 +448,12 @@ const filteredPlots = Array.isArray(plots)
         <button onClick={() => setShowForm(true)} className="btn btn-primary">Crear Nueva Parcela</button>
         <Spacer width={0.5} />
         {Object.values(selectedPlots).flat().length > 0 && (
-        <button
-          onClick={() => handleDownloadCSV(Object.values(selectedPlots).flat().map(id => selectedPlots.find(a => a.id === id).filter(Boolean)))}
-          className="btn btn-secondary"
-        >
-          Descargar CSV ({Object.values(selectedPlots).flat().length})
-        </button>
+          <button
+            onClick={handleDownloadCSV}
+            className="btn btn-secondary"
+          >
+            Descargar CSV ({selectedPlots.length})
+          </button>
         )}
       </div>
 
@@ -537,30 +554,34 @@ const filteredPlots = Array.isArray(plots)
               />
               
               <label className="modal-form-label">Variedad:</label>
-        <Select
-          value={{ value: newPlot.plot_var, label: newPlot.plot_var }}
-          onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_var: selectedOption.value })}
-          options={varieties.map((variety) => ({
-            value: variety.name,
-            label: variety.name,
-          }))}
-          isSearchable
-          placeholder="Seleccionar variedad..."
-          className="modal-form-input"
-        />
+              <Select
+                value={{ value: newPlot.plot_var, label: newPlot.plot_var }}
+                onChange={(selectedOption) => {
+                  setNewPlot({ ...newPlot, plot_var: selectedOption.value });
+                }}
+                options={varieties.map((variety) => ({
+                  value: variety.name,
+                  label: variety.name,
+                }))}
+                isSearchable
+                placeholder="Seleccionar variedad..."
+                className="modal-form-input"
+              />
 
-        <label className="modal-form-label">Portainjerto:</label>
-        <Select
-          value={{ value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }}
-          onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_rootstock: selectedOption.value })}
-          options={rootstocks.map((rootstock) => ({
-            value: rootstock.name,
-            label: rootstock.name,
-          }))}
-          isSearchable
-          placeholder="Seleccionar portainjerto..."
-          className="modal-form-input"
-        />
+              <label className="modal-form-label">Portainjerto:</label>
+              <Select
+                value={{ value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }}
+                onChange={(selectedOption) => {
+                  setNewPlot({ ...newPlot, plot_rootstock: selectedOption.value });
+                }}
+                options={rootstocks.map((rootstock) => ({
+                  value: rootstock.name,
+                  label: rootstock.name,
+                }))}
+                isSearchable
+                placeholder="Seleccionar portainjerto..."
+                className="modal-form-input"
+              />
 
               <label className="modal-form-label">Año de implantación:</label>
               <input
@@ -705,9 +726,11 @@ const filteredPlots = Array.isArray(plots)
                 <div className="leaflet-container">
                   {mapToDisplay && (
                     <Map 
+                      ref={viewEditMapRef}
                       geojson={mapToDisplay} 
                       onGeometryChange={handleGeometryChange}
-                      editable={isEditingDetails} 
+                      editable={isEditingDetails}
+                      key={`edit-${plotDetails?.plot_id}-${isEditingDetails}`} // Forzar re-render
                     />
                   )}
                 </div>
@@ -791,9 +814,9 @@ const filteredPlots = Array.isArray(plots)
                         : field.key === 'plot_rootstock'
                         ? rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
                         : field.key === 'plot_conduction'
-                        ? conduction.find(c => c.vy_id === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
+                        ? conduction.find(c => c.value === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
                         : field.key === 'plot_management'
-                        ? management.find(m => m.vy_id === plotDetails.plot_management)?.value || plotDetails.plot_management
+                        ? management.find(m => m.value === plotDetails.plot_management)?.value || plotDetails.plot_management
                         : plotDetails[field.key]?.name || plotDetails[field.key]}
                     </span>
                     )}

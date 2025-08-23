@@ -254,7 +254,6 @@ function BatchManagement({ onBatchCreated }) {
                     URL.revokeObjectURL(url);
                 }, 100);
 
-                console.log(`CSV descargado exitosamente: ${filename}`);
             } else {
                 throw new Error('Su navegador no soporta la descarga de archivos.');
             }
