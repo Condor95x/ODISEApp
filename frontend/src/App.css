@@ -473,57 +473,51 @@ body {
     width: 100%;
     height: auto;
     position: relative;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 60px;
-    padding: 10px 15px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+    padding: 12px 8px 10px 8px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%);
   }
 
   .menu.collapsed {
     width: 100%;
   }
 
+  /* Ocultar el botón toggle en móvil */
   .menu-toggle {
-    order: 1;
-    margin-bottom: 0;
-    margin-right: 15px;
-    flex-shrink: 0;
+    display: none;
   }
 
   .menu-items {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-grow: 1;
-    padding: 0 10px;
-    gap: 10px;
-    order: 2;
-    overflow: visible;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
   }
 
   .menu-items li {
-    flex-shrink: 0;
     margin: 0;
-    white-space: nowrap;
   }
 
   .menu-link {
-    padding: 10px 15px;
-    border-radius: 25px;
+    padding: 8px 4px;
+    border-radius: 12px;
     background-color: rgba(255, 255, 255, 0.15);
     transition: all 0.2s ease;
-    min-width: fit-content;
     color: var(--white) !important;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-decoration: none;
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 50px;
+    text-align: center;
   }
 
   .menu-link:hover,
@@ -536,67 +530,71 @@ body {
   }
 
   .menu-icon {
-    margin-right: 8px;
+    margin-right: 0;
+    margin-bottom: 2px;
     font-size: 1rem;
     color: var(--white) !important;
     width: auto;
   }
 
   .menu-text {
-    font-size: 0.9rem;
+    font-size: 0.65rem;
     font-weight: 500;
     opacity: 1;
     width: auto;
     color: var(--white) !important;
+    line-height: 1;
+    word-break: break-word;
+    hyphens: auto;
   }
 
+  /* Eliminar todos los estilos de collapsed para móvil */
   .menu.collapsed .menu-link {
-    padding: 10px 15px;
-    border-radius: 25px;
+    padding: 8px 4px;
+    border-radius: 12px;
     width: auto;
     height: auto;
-    justify-content: flex-start;
+    flex-direction: column;
+    justify-content: center;
     margin: 0;
+    min-height: 50px;
   }
 
   .menu.collapsed .menu-text {
     opacity: 1;
     width: auto;
     color: var(--white) !important;
+    display: block;
   }
 
   .menu.collapsed .menu-icon {
-    margin-right: 8px;
+    margin-right: 0;
+    margin-bottom: 2px;
     color: var(--white) !important;
   }
 
   .user-info {
-    order: 3;
-    margin-top: 0;
-    padding: 0;
-    border-top: none;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    padding-left: 15px;
+    margin-top: 8px;
+    padding: 8px 0 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    justify-content: space-between;
   }
 
   .user-name {
     margin-bottom: 0;
-    font-size: 0.75rem;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 400;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
   }
 
   .logout-button {
     width: auto;
     height: auto;
-    padding: 8px 12px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 15px;
     font-size: 0.75rem;
     min-width: fit-content;
     background-color: rgba(255, 255, 255, 0.15);
@@ -614,7 +612,7 @@ body {
 
   .logout-icon {
     margin-right: 4px;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: var(--white);
   }
 
@@ -626,14 +624,14 @@ body {
 
   .menu.collapsed .user-name {
     display: block;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .menu.collapsed .logout-button {
     width: auto;
     height: auto;
-    padding: 8px 12px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 15px;
   }
 
   .menu.collapsed .logout-text {
