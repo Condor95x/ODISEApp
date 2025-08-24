@@ -281,7 +281,7 @@ function BatchManagement({ onBatchCreated }) {
                 )}
             </div>
             <div className="flex gap-2 mb-4">
-                <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
+                <label htmlFor="groupingFieldBatch" className="mr-2">Agrupar por:</label>
                 <Spacer width={0.2} />
                 <select id="groupingFieldBatch" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
                     <option value="none">Sin Agrupación</option>
