@@ -459,6 +459,7 @@ const filteredPlots = Array.isArray(plots)
 
       <div className="flex gap-2 mb-4">
         <select
+          id="FilterFieldPlot"
           value={filterField}
           onChange={(e) => setFilterField(e.target.value)}
           className="border p-2 rounded">
@@ -468,7 +469,8 @@ const filteredPlots = Array.isArray(plots)
           <option value="plot_area">Área</option>
         </select>
         <Spacer width={0.2} />
-        <input 
+        <input
+          id="FilterValuePlot" 
           type="text"
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
@@ -481,7 +483,8 @@ const filteredPlots = Array.isArray(plots)
         <thead>
           <tr>
             <th className="border border-gray-300 p-2">
-              <input 
+              <input
+                id="CheckBoxPlot" 
                 type="checkbox" 
                 onChange={handleSelectAll}
                 checked={selectedPlots.length === plots.length && plots.length > 0}
@@ -498,7 +501,8 @@ const filteredPlots = Array.isArray(plots)
             sortedPlots.map((plot) => (
               <tr key={`plot-${plot.plot_id}`}>
                 <td className="border border-gray-300 p-2 text-center">
-                  <input 
+                  <input
+                    id={`checkboxPlots-${plot.plot_id}`} 
                     type="checkbox"
                     checked={selectedPlots.includes(plot.plot_id)}
                     onChange={() => 
@@ -547,6 +551,7 @@ const filteredPlots = Array.isArray(plots)
             <div className="mb-4">
               <label className="modal-form-label">Nombre:</label>
               <input
+                id="NewPlotName"
                 type="text"
                 value={newPlot.plot_name}
                 onChange={(e) => setNewPlot({ ...newPlot, plot_name: e.target.value })}
@@ -555,6 +560,7 @@ const filteredPlots = Array.isArray(plots)
               
               <label className="modal-form-label">Variedad:</label>
               <Select
+                id="NewPlotVar"
                 value={{ value: newPlot.plot_var, label: newPlot.plot_var }}
                 onChange={(selectedOption) => {
                   setNewPlot({ ...newPlot, plot_var: selectedOption.value });
@@ -570,6 +576,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Portainjerto:</label>
               <Select
+                id="NewPlotRoots"
                 value={{ value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }}
                 onChange={(selectedOption) => {
                   setNewPlot({ ...newPlot, plot_rootstock: selectedOption.value });
@@ -585,6 +592,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Año de implantación:</label>
               <input
+                id="NewPlotPlantaY"
                 type="number"
                 value={newPlot.plot_implant_year}
                 onChange={(e) => setNewPlot({ ...newPlot, plot_implant_year: e.target.value })}
@@ -593,6 +601,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Año de creación:</label>
               <input
+                id="NewPlotCreatY"
                 type="number"
                 value={newPlot.plot_creation_year}
                 onChange={(e) => setNewPlot({ ...newPlot, plot_creation_year: e.target.value })}
@@ -601,6 +610,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Sistema de conducción:</label>
               <Select
+                id="NewPlotConduc"
                 value={{ value: newPlot.plot_conduction, label: newPlot.plot_conduction }}
                 onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_conduction: selectedOption.value })}
                 options={conduction.map((conduction) => ({
@@ -614,6 +624,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Tipo de manejo:</label>
               <Select
+                id="NewPlotManagement"
                 value={{ value: newPlot.plot_management, label: newPlot.plot_management }}
                 onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_management: selectedOption.value })}
                 options={management.map((management) => ({
@@ -627,6 +638,7 @@ const filteredPlots = Array.isArray(plots)
 
               <label className="modal-form-label">Descripción:</label>
               <textarea
+                id="NewPlotDescript"
                 value={newPlot.plot_description}
                 onChange={(e) => setNewPlot({ ...newPlot, plot_description: e.target.value })}
                 className="modal-form-input h-24"

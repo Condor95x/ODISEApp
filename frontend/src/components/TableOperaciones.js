@@ -535,7 +535,7 @@ function TableOperaciones() {
                 <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
                 <Spacer width={0.2} />
                 <select
-                    id="groupingField"
+                    id="groupingFieldOperaciones"
                     value={groupBy || "none"}
                     onChange={handleGroupByChange}
                     className="border p-2 rounded"
@@ -549,6 +549,7 @@ function TableOperaciones() {
                 <Spacer width={2} />
                 {/*Filtros de operaciones*/}
                 <select
+                    id="FilterFieldOperaciones"
                     value={filterField}
                     onChange={(e) => setFilterField(e.target.value)}
                     className="border p-2 rounded">
@@ -559,6 +560,7 @@ function TableOperaciones() {
                 </select>
                 <Spacer width={0.2} />
                 <input type="text"
+                    id="FilterValueOperaciones"
                     value={filterValue}
                     onChange={(e) => setFilterValue(e.target.value)}
                     placeholder={`Buscar por ${filterField}...`}
@@ -573,7 +575,7 @@ function TableOperaciones() {
                         <thead>
                             <tr>
                             <th className="border border-gray-300 p-2">
-                            <input type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
+                            <input type="checkbox" id="CheckboxOperaciones" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
                                 </th>
                                 <th className="border border-gray-300 p-2 cursor-pointer" onClick={()=>handleSort("tipo_operacion")}>Operacion</th>
                                 <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("parcela")}>Parcela</th>
@@ -584,6 +586,7 @@ function TableOperaciones() {
                                 <tr key={operacion.id}>
                                     <td>
                                         <input
+                                            id={`checkboxOperaciones-${group}-${operacion.id}`}
                                             type="checkbox"
                                             checked={selectedOperaciones[group]?.includes(operacion.id) || false}
                                             onChange={(e) => handleSelectOperacion(e, operacion, group)}

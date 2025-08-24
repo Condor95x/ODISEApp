@@ -307,19 +307,19 @@ function VesselsManagement() {
       <div className="flex gap-2 mb-4">
         <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
         <Spacer width={0.2} />
-        <select id="groupingField" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
+        <select id="groupingFieldVessel" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
           <option value="none">Sin Agrupación</option>
           <option value="type">Tipo</option>
           <option value="capacity">Capacidad</option>
         </select>
       <Spacer width={2} />
-        <select value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
+        <select id="FilterFieldVessel"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
           <option value="name">Nombre</option>
           <option value="type">Tipo</option>
           <option value="capacity">Capacidad</option>
         </select>
         <Spacer width={0.2} />
-        <input type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="border p-2 rounded w-64" />
+        <input id="FilterValueVessel" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="border p-2 rounded w-64" />
       </div>
   
       {Object.entries(groupedVessels).map(([group, vessels]) => (
@@ -329,7 +329,7 @@ function VesselsManagement() {
             <thead>
               <tr>
                 <th className="border border-gray-300 p-2">
-                  <input type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
+                  <input id="CheckBoxVessel" type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
                 </th>
                 <th className="border border-gray-300 p-2" onClick={() => handleSort('name')}>Nombre</th>
                 <th className="border border-gray-300 p-2" onClick={() => handleSort('type')}>Tipo</th>
@@ -341,7 +341,7 @@ function VesselsManagement() {
               {vessels.map((vessel) => (
                 <tr key={vessel.id}>
                   <td className="border border-gray-300 p-2">
-                    <input type="checkbox" checked={selectedVessels[group]?.includes(vessel.id) || false} onChange={(e) => handleSelectVessel(e, vessel, group)} />
+                    <input id={`checkboxVessel-${group}-${vessel.id}`} type="checkbox" checked={selectedVessels[group]?.includes(vessel.id) || false} onChange={(e) => handleSelectVessel(e, vessel, group)} />
                   </td>
                   <td className="border border-gray-300 p-2">{vessel.name}</td>
                   <td className="border border-gray-300 p-2">{vessel.type}</td>

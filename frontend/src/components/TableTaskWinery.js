@@ -574,6 +574,7 @@ const TableWineryTask = () => {
                 </select>
                 <Spacer width={2} />
                 <select
+                    id="FilterField"
                     value={filterField}
                     onChange={(e) => setFilterField(e.target.value)}
                     className="border p-2 rounded"
@@ -587,6 +588,7 @@ const TableWineryTask = () => {
                 </select>
                 <Spacer width={0.2} />
                 <input
+                    id="FilteValue"
                     type="text"
                     value={filterValue}
                     onChange={(e) => setFilterValue(e.target.value)}
@@ -608,7 +610,8 @@ const TableWineryTask = () => {
                         <thead>
                             <tr>
                                 <th className="border border-gray-300 p-2">
-                                    <input 
+                                    <input
+                                        id="CheckBox" 
                                         type="checkbox" 
                                         checked={allSelected[group] || false} 
                                         onChange={(e) => handleSelectAll(e, group)} 
@@ -638,6 +641,7 @@ const TableWineryTask = () => {
                                 <tr key={activity.id}>
                                     <td className="border border-gray-300 p-2">
                                         <input
+                                            id={`checkbox-${group}-${activity.id}`}
                                             type="checkbox"
                                             checked={selectedActivities[group]?.includes(activity.id) || false}
                                             onChange={(e) => handleSelectActivity(e, activity, group)}

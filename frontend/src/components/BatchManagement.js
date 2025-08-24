@@ -283,18 +283,18 @@ function BatchManagement({ onBatchCreated }) {
             <div className="flex gap-2 mb-4">
                 <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
                 <Spacer width={0.2} />
-                <select id="groupingField" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
+                <select id="groupingFieldBatch" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
                     <option value="none">Sin Agrupación</option>
                     <option value="variety">Variedad de Uva</option>
                 </select>
                 <Spacer width={2} />
-                <select value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
+                <select id="FilterFieldBatch"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
                     <option value="name">Nombre</option>
                     <option value="variety">Variedad de Uva</option>
                     <option value="entry_date">Fecha de Inicio</option>
                 </select>
                 <Spacer width={0.2} />
-                <input type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
+                <input id="FilterValueBatch" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
                 
             </div>
     
@@ -306,7 +306,7 @@ function BatchManagement({ onBatchCreated }) {
                         <thead>
                             <tr>
                                 <th className="border border-gray-300 p-2">
-                                    <input type="checkbox" checked={allSelected[groupKey] || false} onChange={(e) => handleSelectAll(e, groupKey)} />
+                                    <input id="CheckBoxBatch" type="checkbox" checked={allSelected[groupKey] || false} onChange={(e) => handleSelectAll(e, groupKey)} />
                                 </th>
                                 <th className="border border-gray-300 p-2" onClick={() => handleSort('name')}>Nombre</th>
                                 <th className="border border-gray-300 p-2" onClick={() => handleSort('description')}>Descripcion</th>
@@ -321,7 +321,7 @@ function BatchManagement({ onBatchCreated }) {
                         {batches.map((batch) => (
                         <tr key={batch.id}>
                             <td className="border border-gray-300 p-2">
-                                <input type="checkbox" checked={selectedBatches[groupKey]?.includes(batch.id) || false} onChange={(e) => handleSelectBatch(e, batch, groupKey)} />
+                                <input id={`checkboxBatch-${groupKey}-${batch.id}`} type="checkbox" checked={selectedBatches[groupKey]?.includes(batch.id) || false} onChange={(e) => handleSelectBatch(e, batch, groupKey)} />
                             </td>
                             <td className="border border-gray-300 p-2">{batch.name}</td>
                             <td className="border border-gray-300 p-2">{batch.description}</td>

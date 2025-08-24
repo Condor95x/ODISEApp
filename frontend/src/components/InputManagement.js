@@ -278,7 +278,7 @@ function InputManagement({ onInputCreated }) {
         )}
       </div>
       <div className="flex gap-2 mb-4">
-      <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
+      <label htmlFor="groupingFieldInput" className="mr-2">Agrupar por:</label>
         <Spacer width={0.2} />
         <select id="groupingField" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
           <option value="none">Sin Agrupación</option>
@@ -286,13 +286,13 @@ function InputManagement({ onInputCreated }) {
           <option value="brand">Marca</option>
         </select>
         <Spacer width={2} />
-        <select value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
+        <select id="FilterFieldInput" value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
             <option value="name">Nombre</option>
             <option value="category_id">Categoría</option>
             <option value="brand">Marca</option>
         </select>
         <Spacer width={0.2} />
-        <input type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
+        <input id="FilterValueInput" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
       </div>
 
       {Object.entries(groupedInputs).map(([group, inputs]) => (
@@ -302,7 +302,7 @@ function InputManagement({ onInputCreated }) {
               <thead>
                 <tr>
                   <th className="border border-gray-300 p-2">
-                    <input type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
+                    <input id="CheckBoxInput" type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
                   </th>
                   <th className="border border-gray-300 p-2" onClick={() => handleSort('name')}>Nombre</th>
                   <th className="border border-gray-300 p-2" onClick={() => handleSort('category_id')}>Categoría</th>
@@ -317,7 +317,9 @@ function InputManagement({ onInputCreated }) {
                 {inputs.map((input) => (
                   <tr key={input.id}>
                     <td className="border border-gray-300 p-2">
-                      <input type="checkbox" checked={selectedInputs[group]?.includes(input.id) || false} onChange={(e) => handleSelectInput(e, input, group)} />
+                      <input
+                        id={`checkboxInput-${group}-${input.id}`}
+                        type="checkbox" checked={selectedInputs[group]?.includes(input.id) || false} onChange={(e) => handleSelectInput(e, input, group)} />
                     </td>
                     <td className="border border-gray-300 p-2">{input.name}</td>
                     <td className="border border-gray-300 p-2">{getCategoryName(input.category_id)}</td>

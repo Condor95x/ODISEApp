@@ -237,7 +237,7 @@ function StockManagement() {
         <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
           <Spacer width={0.2} />
           <select
-            id="groupingField"
+            id="groupingFieldStock"
             value={groupBy || "none"}
             onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
             className="border p-2 rounded"
@@ -248,6 +248,7 @@ function StockManagement() {
           </select>
         <Spacer width={2} />
         <select
+          id="FilterFieldStock"
           value={filterField}
           onChange={(e) => setFilterField(e.target.value)}
           className="border p-2 rounded"
@@ -257,6 +258,7 @@ function StockManagement() {
         </select>
         <Spacer width={0.2} />
         <input
+          id="FilterValueStock"
           type="text"
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
@@ -273,7 +275,7 @@ function StockManagement() {
           <thead>
             <tr>
               <th className="border border-gray-300 p-2">
-                <input type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
+                <input id="CheckBoxStock" type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
               </th>
               <th className="border border-gray-300 p-2"onClick={() => handleSort('input.name')}>Insumo</th>
               <th className="border border-gray-300 p-2"onClick={() => handleSort('warehouse.name')}>Almacén</th>
@@ -286,6 +288,7 @@ function StockManagement() {
               <tr key={stock.id}>
                 <td>
                   <input
+                    id={`checkboxStock-${group}-${stock.id}`}
                     type="checkbox"
                     checked={selectedStocks[group]?.includes(stock.id) || false}
                     onChange={(e) => handleSelectStock(e, stock, group)}

@@ -16,7 +16,7 @@
   --menu-collapsed-width: 50px;
   --content-margin: 220px;
   --content-margin-collapsed: 70px;
-  --transition: all 0.3s ease-in-out;
+  --transition: all 0.5s ease-in-out;
 }
 
 * {
@@ -164,6 +164,7 @@ body {
 
 .menu.collapsed {
   width: var(--menu-collapsed-width);
+  padding: 10px 5px;
 }
 
 .menu-toggle {
@@ -206,6 +207,7 @@ body {
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   font-weight: 500;
+  width: 100%;
 }
 
 .menu-link:hover,
@@ -226,10 +228,17 @@ body {
 }
 
 .menu-text {
-  transition: var(--transition);
+  transition: all 0.5s ease-in-out; /* Misma duración que el contenedor */
   white-space: nowrap;
   overflow: hidden;
   font-size: 0.9rem;
+}
+
+.menu.collapsed .menu-text {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+  transition: all 0.5s ease-in-out; /* Misma duración, sin delay */
 }
 
 /* Estilos para menú colapsado - pastillas solo para íconos */
@@ -240,12 +249,6 @@ body {
   height: 40px;
   justify-content: center;
   margin: 0 auto 8px auto;
-}
-
-.menu.collapsed .menu-text {
-  opacity: 0;
-  width: 0;
-  margin: 0;
 }
 
 .menu.collapsed .menu-icon {
@@ -472,7 +475,10 @@ body {
   .menu {
     width: 100%;
     height: auto;
-    position: relative;
+    position: fixed; /* Cambio: de relative a fixed */
+    bottom: 0; /* Cambio: posicionar en la parte inferior */
+    left: 0;
+    top: auto; /* Cambio: quitar top: 0 */
     flex-direction: column;
     align-items: stretch;
     min-height: auto;
@@ -645,8 +651,10 @@ body {
   .content {
     margin-left: 0;
     padding: 10px;
-    margin-top: 10px;
+    margin-top: 0;
+    padding-bottom: 120px; /* Espacio para el menú inferior */
   }
+
 
   .modal-wrapper {
     min-width: 300px;

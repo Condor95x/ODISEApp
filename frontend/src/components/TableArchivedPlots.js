@@ -139,6 +139,7 @@ function wktToGeoJSON(wkt) {
         </div>
         <div className="flex gap-2 mb-4">
           <select
+            id="FilterFieldArchivedPlot"
             value={filterField}
             onChange={(e) => setFilterField(e.target.value)}
             className="border p-2 rounded"
@@ -149,7 +150,8 @@ function wktToGeoJSON(wkt) {
             <option value="plot_area">Área</option>
           </select>
           <Spacer width={0.2} />
-          <input 
+          <input
+            id="FilterValueArchivedPlot" 
             type="text"
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
