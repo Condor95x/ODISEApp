@@ -40,10 +40,6 @@ export const AuthProvider = ({ children }) => {
   // Función para iniciar sesión
   const login = async (email, password) => {
     try {
-      console.log('Attempting login to:', `${API_URL}/auth/token`); // Debug log
-      console.log('🔍 Starting login process...');
-      console.log('🔍 API_URL:', API_URL);
-      console.log('🔍 Attempting login to:', `${API_URL}/auth/token`);
     
       const response = await fetch(`${API_URL}/auth/token`, {
         method: 'POST',
@@ -68,7 +64,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.access_token);
       
       // Obtener datos del usuario
-      console.log('Getting user data from:', `${API_URL}/users/users/me`); // Debug log
       
       const userResponse = await fetch(`${API_URL}/users/users/me`, {
         headers: {
@@ -88,8 +83,7 @@ export const AuthProvider = ({ children }) => {
       // Guardar datos del usuario
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      
-      console.log('Login successful for user:', userData.email || userData.username);
+
       return userData;
       
     } catch (error) {

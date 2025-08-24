@@ -197,18 +197,28 @@ class InventoryMovement(Base):
     movement_type = Column(String(50))
     quantity = Column(Numeric(12, 2), nullable=False)
     unit_price = Column(Numeric(12, 2))
-    operation_id = Column(Integer, ForeignKey('operaciones.id'))
+    
+    # Hacer ambos campos opcionales y mutuamente excluyentes
+    operation_id = Column(Integer, ForeignKey('operaciones.id'), nullable=True)
+    vessel_activity_id = Column(Integer, ForeignKey('vessel_activities.id'), nullable=True)
+    
     user_id = Column(Integer, ForeignKey('usuarios.id'))
     comments = Column(String)
     created_at = Column(DateTime, default=func.now())
 
+    input = relationship("Input", back_populates="movements") 
+    warehouse = relationship("Warehouse", back_populates="movements") 
+    
     __table_args__ = (
         CheckConstraint(movement_type.in_(['entry', 'exit', 'adjustment']), name='check_movement_type'),
+        # Asegurar que solo uno de los dos campos esté lleno
+        CheckConstraint(
+            '(operation_id IS NOT NULL AND vessel_activity_id IS NULL) OR '
+            '(operation_id IS NULL AND vessel_activity_id IS NOT NULL)',
+            name='check_single_reference'
+        ),
     )
 
-    input = relationship("Input", back_populates="movements")
-    warehouse = relationship("Warehouse", back_populates="movements")
-    
 class Supplier(Base):
     __tablename__ = 'suppliers'
 

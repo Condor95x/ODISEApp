@@ -60,12 +60,10 @@ function wktToGeoJSON(wkt) {
         try {
             // Llama a getPlots con activeOnly = false para obtener todas las parcelas
             const data = await getPlots(false);
-            console.log('Datos recibidos de la API:', data);
 
             if (data && Array.isArray(data)) {
                 // Filtra las parcelas donde active es false
                 const archivedData = data.filter(plot => plot.active === false);
-                console.log('Parcelas archivadas encontradas:', archivedData);
                 setArchivedPlots(archivedData);
             } else {
                 throw new Error('Los datos recibidos no son un array');

@@ -6,7 +6,7 @@ import 'leaflet-draw';
 import 'leaflet-control-geocoder';
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
-const Map = forwardRef(({ geojson, onGeometryChange }, ref) => {
+const Map = forwardRef(({ geojson, onGeometryChange, editable = false }, ref) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
@@ -111,6 +111,15 @@ const Map = forwardRef(({ geojson, onGeometryChange }, ref) => {
         }
 
     }, [geojson, onGeometryChange, currentGeometry]);
+
+    useEffect(() => {
+        if (mapInstanceRef.current) {
+            const drawControl = mapInstanceRef.current._container.querySelector('.leaflet-draw');
+            if (drawControl) {
+            drawControl.style.display = editable ? 'block' : 'none';
+            }
+        }
+    }, [editable]);
 
     // Efecto para restaurar la geometría si el mapa se reinicializa
     useEffect(() => {

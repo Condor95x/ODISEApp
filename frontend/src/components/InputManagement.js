@@ -108,16 +108,6 @@ function InputManagement({ onInputCreated }) {
         inputData.initial_quantity = parseInt(newInput.initial_quantity) || 0;
       }
 
-      // Log completo para debugging
-      console.log('=== DEBUGGING DATA ===');
-      console.log('newInput original:', newInput);
-      console.log('inputData procesado:', inputData);
-      console.log('Tipos de datos:');
-      Object.entries(inputData).forEach(([key, value]) => {
-        console.log(`${key}: ${value} (${typeof value})`);
-      });
-      console.log('======================');
-
       if (editingInput) {
         await updateInput(editingInput.id, inputData);
       } else {
@@ -392,8 +382,6 @@ function InputManagement({ onInputCreated }) {
                       value={newInput.initial_quantity}
                       onChange={(e) => {
                           const parsedValue = Number(e.target.value);
-                          console.log("Input value:", e.target.value);
-                          console.log("Parsed value:", parsedValue);
                           setNewInput({ ...newInput, initial_quantity: isNaN(parsedValue) ? 0 : parsedValue });
                       }}
                       className="modal-form-input"

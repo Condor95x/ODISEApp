@@ -28,13 +28,26 @@ function VesselsManagement() {
   
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
+  // Mapeo de nombres de campos para mostrar etiquetas más amigables
+  const fieldLabels = {
+    name: 'Nombre',
+    type: 'Tipo',
+    capacity: 'Capacidad',
+    description: 'Descripción',
+    is_active: 'Estado'
+  };
+
+  // Función para obtener la etiqueta amigable del campo
+  const getFieldLabel = (fieldName) => {
+    return fieldLabels[fieldName] || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace("_", " ");
+  };
+
   useEffect(() => {
     const fetchVessels = async () => {
       setLoading(true);
       try {
         const response = await getVessels();
-        console.log("Respuesta de la API:", response);
-        console.log("Datos de la API:", response.data);
+
         if (response && Array.isArray(response.data)) {
           setVessels(response.data);
         } else {
@@ -170,6 +183,7 @@ function VesselsManagement() {
   };
 
   const generateCSV = () => {
+    // Recopilar datos seleccionados
     const selectedData = [];
     for (const group in selectedVessels) {
       const selectedIdsInGroup = selectedVessels[group];
@@ -178,27 +192,100 @@ function VesselsManagement() {
         selectedData.push(...filteredVessels);
       }
     }
+    
     if (selectedData.length === 0) {
       alert("No hay vasijas seleccionadas para descargar.");
       return;
     }
+
+    // Definir las columnas que queremos en el CSV y sus encabezados
+    const columnConfig = [
+      { key: 'id', header: 'ID' },
+      { key: 'name', header: 'Nombre' },
+      { key: 'type', header: 'Tipo' },
+      { key: 'capacity', header: 'Capacidad' },
+      { key: 'description', header: 'Descripción' },
+      { key: 'is_active', header: 'Activo' }
+    ];
+
+    // Función para escapar valores CSV
+    const escapeCSVValue = (value) => {
+      if (value === null || value === undefined) {
+        return '';
+      }
+      
+      const stringValue = String(value);
+      
+      // Si el valor contiene comas, saltos de línea o comillas, lo envolvemos en comillas
+      if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('\r') || stringValue.includes('"')) {
+        // Escapar comillas dobles duplicándolas
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      
+      return stringValue;
+    };
+
+    // Crear el contenido CSV
     const csvRows = [];
-    const header = Object.keys(selectedData[0]).join(",");
-    csvRows.push(header);
-    selectedData.forEach((item) => {
-      const values = Object.values(item).map((value) => `"${value}"`).join(",");
-      csvRows.push(values);
+    
+    // Agregar encabezados
+    const headers = columnConfig.map(col => col.header);
+    csvRows.push(headers.join(','));
+    
+    // Agregar datos
+    selectedData.forEach((vessel) => {
+      const row = columnConfig.map(col => {
+        let value = vessel[col.key];
+        
+        // Formatear valores especiales
+        if (col.key === 'is_active') {
+          value = value ? 'Sí' : 'No';
+        } else if (col.key === 'capacity') {
+          value = parseFloat(value) || 0;
+        }
+        
+        return escapeCSVValue(value);
+      });
+      csvRows.push(row.join(','));
     });
-    const csvContent = csvRows.join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.setAttribute("download", "Vasijas.csv");
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const csvContent = csvRows.join('\n');
+
+    // Generar nombre de archivo con timestamp
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+    const filename = `Vasijas_${timestamp}.csv`;
+
+    // Crear y descargar el archivo
+    try {
+      const BOM = '\uFEFF'; // BOM para UTF-8 para mejor compatibilidad con Excel
+      const blob = new Blob([BOM + csvContent], { 
+        type: 'text/csv;charset=utf-8;' 
+      });
+      
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.href = url;
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Liberar el objeto URL después de un breve delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Mostrar mensaje de éxito
+      alert(`CSV descargado exitosamente: ${filename}\nRegistros exportados: ${selectedData.length}`);
+      
+    } catch (error) {
+      console.error('Error al generar CSV:', error);
+      alert('Error al generar el archivo CSV. Por favor, inténtalo de nuevo.');
+    }
   };
 
   if (loading) return <p>Cargando...</p>;
@@ -210,7 +297,11 @@ function VesselsManagement() {
         <button onClick={() => handleOpenVesselForm()} className="btn btn-primary">Crear Vasija</button>
         <Spacer width={0.5} />
         {Object.values(selectedVessels).flat().length > 0 && (
-          <button className="btn btn-secondary" onClick={generateCSV}>Descargar CSV</button>
+          <button
+            className="btn btn-secondary"
+            onClick={generateCSV}>
+            Descargar CSV ({Object.values(selectedVessels).flat().length})
+          </button>
         )}
       </div>
       <div className="flex gap-2 mb-4">
@@ -228,12 +319,12 @@ function VesselsManagement() {
           <option value="capacity">Capacidad</option>
         </select>
         <Spacer width={0.2} />
-        <input type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
+        <input type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="border p-2 rounded w-64" />
       </div>
   
       {Object.entries(groupedVessels).map(([group, vessels]) => (
         <div key={group} className="mb-4">
-          {groupBy && <h3 className="titulo-seccion">{`${groupBy.charAt(0).toUpperCase() + groupBy.slice(1).replace("_", " ")}: ${group}`}</h3>}
+          {groupBy && <h3 className="titulo-seccion">{`${getFieldLabel(groupBy)}: ${group}`}</h3>}
           <table className="table-auto w-full border-collapse border border-gray-300">
             <thead>
               <tr>
@@ -310,4 +401,4 @@ function VesselsManagement() {
   );
 }
 
-export default VesselsManagement
+export default VesselsManagement;
