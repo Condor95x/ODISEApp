@@ -234,7 +234,7 @@ function StockManagement() {
       )}
         </div>
       <div className="flex gap-2 mb-4">
-        <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
+        <label htmlFor="groupingFieldStock" className="mr-2">Agrupar por:</label>
           <Spacer width={0.2} />
           <select
             id="groupingFieldStock"

@@ -557,10 +557,10 @@ const TableWineryTask = () => {
             </div>
     
             <div className="flex gap-2 mb-4">
-                <label htmlFor="groupingField" className="mr-2">Agrupar por:</label>
+                <label htmlFor="groupingFieldWineryTasks" className="mr-2">Agrupar por:</label>
                 <Spacer width={0.2} />
                 <select
-                    id="groupingField"
+                    id="groupingFieldWineryTasks"
                     value={groupBy || "none"}
                     onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
                     className="border p-2 rounded"
@@ -574,7 +574,7 @@ const TableWineryTask = () => {
                 </select>
                 <Spacer width={2} />
                 <select
-                    id="FilterField"
+                    id="FilterFieldWineryTasks"
                     value={filterField}
                     onChange={(e) => setFilterField(e.target.value)}
                     className="border p-2 rounded"
@@ -588,7 +588,7 @@ const TableWineryTask = () => {
                 </select>
                 <Spacer width={0.2} />
                 <input
-                    id="FilteValue"
+                    id="FilteValueWineryTasks"
                     type="text"
                     value={filterValue}
                     onChange={(e) => setFilterValue(e.target.value)}
@@ -611,7 +611,7 @@ const TableWineryTask = () => {
                             <tr>
                                 <th className="border border-gray-300 p-2">
                                     <input
-                                        id="CheckBox" 
+                                        id="CheckBoxWineryTasks" 
                                         type="checkbox" 
                                         checked={allSelected[group] || false} 
                                         onChange={(e) => handleSelectAll(e, group)} 
@@ -641,7 +641,7 @@ const TableWineryTask = () => {
                                 <tr key={activity.id}>
                                     <td className="border border-gray-300 p-2">
                                         <input
-                                            id={`checkbox-${group}-${activity.id}`}
+                                            id={`checkboxWineryTasks-${group}-${activity.id}`}
                                             type="checkbox"
                                             checked={selectedActivities[group]?.includes(activity.id) || false}
                                             onChange={(e) => handleSelectActivity(e, activity, group)}
