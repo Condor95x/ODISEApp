@@ -1,10 +1,9 @@
 NOTEBOOK ODISEA
 ---------------------------------------------------------------------------------
 ISSUES
-Estilos
-*homogeneizar modales
-*menu cuando ventana no es 100 auiero que sea vertical
 Seguridad
+Problemas
+probar todo
 ---------------------------------------------------------------------------------
 USUARIOS
 --------
