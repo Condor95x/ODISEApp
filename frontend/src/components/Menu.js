@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import { FaHome, FaMapMarkerAlt, FaBox, FaWineGlassAlt, FaChartBar, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaBox, FaWineGlassAlt, FaChartBar, FaSignOutAlt, FaCloudSun, FaCog } from 'react-icons/fa';
 import { MdAgriculture } from "react-icons/md";
 import '../App.css'
 
@@ -17,6 +17,16 @@ const Menu = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Función para verificar acceso a Meteorología
+  const hasWeatherAccess = () => {
+    return user && (user.rol === 'tecnico finca' || user.rol === 'administrador');
+  };
+
+  // Función para verificar acceso a Administración
+  const hasAdminAccess = () => {
+    return user && user.rol === 'administrador';
   };
 
   return (
@@ -74,6 +84,24 @@ const Menu = () => {
             <Link to="/analisis" className="menu-link">
               <FaChartBar className="menu-icon" />
               <span className="menu-text">Análisis</span>
+            </Link>
+          </li>
+        )}
+
+        {hasWeatherAccess() && (
+          <li>
+            <Link to="/meteorologia" className="menu-link">
+              <FaCloudSun className="menu-icon" />
+              <span className="menu-text">Meteorología</span>
+            </Link>
+          </li>
+        )}
+
+        {hasAdminAccess() && (
+          <li>
+            <Link to="/administracion" className="menu-link">
+              <FaCog className="menu-icon" />
+              <span className="menu-text">Administración</span>
             </Link>
           </li>
         )}

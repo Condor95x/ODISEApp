@@ -147,11 +147,11 @@ function TableOperaciones() {
                 alert("Error al visualizar la operacion.");
             }
     };
-
+/*
     const handleEditDetails = () => {  // Definición de la función
         setIsEditingDetails(true);
     };
-
+*/
     const handleSaveDetails = async () => {
         try {
             if (!operacionDetails.id) {
@@ -531,42 +531,50 @@ function TableOperaciones() {
                 </button>
                 )}
             </div>
-            <div className="flex gap-2 mb-4">
-                <label htmlFor="groupingFieldOperaciones" className="mr-2">Agrupar por:</label>
-                <Spacer width={0.2} />
-                <select
-                    id="groupingFieldOperaciones"
-                    value={groupBy || "none"}
-                    onChange={handleGroupByChange}
-                    className="border p-2 rounded"
-                >
-                    <option value="none">Sin Agrupación</option>
-                    <option value="tipo_operacion">Tipo de Operación</option>
-                    <option value="estado">Estado</option>
-                    <option value="parcela">Parcela</option> {/* Nueva opción */}
-                    {/* ... otras opciones de agrupación */}
-                </select>
-                <Spacer width={2} />
-                {/*Filtros de operaciones*/}
-                <select
-                    id="FilterFieldOperaciones"
-                    value={filterField}
-                    onChange={(e) => setFilterField(e.target.value)}
-                    className="border p-2 rounded">
-                    <option value="id">ID</option>
-                    <option value="parcela_id">Parcela</option>
-                    <option value="estado">Estado</option>
-                    <option value="responsable_id">Responsable</option>
-                </select>
-                <Spacer width={0.2} />
-                <input type="text"
-                    id="FilterValueOperaciones"
-                    value={filterValue}
-                    onChange={(e) => setFilterValue(e.target.value)}
-                    placeholder={`Buscar por ${filterField}...`}
-                    className="border p-2 rounded w-64"
-                />               
-            </div>         
+            <div className="filter-controls-container">
+                <div className="control-group">
+                    <label htmlFor="groupingFieldOperaciones" className="control-label">
+                        Agrupar por:
+                    </label>
+                    <select
+                        id="groupingFieldOperaciones"
+                        value={groupBy || "none"}
+                        onChange={handleGroupByChange}
+                        className="control-select"
+                    >
+                        <option value="none">Sin Agrupación</option>
+                        <option value="tipo_operacion">Tipo de Operación</option>
+                        <option value="estado">Estado</option>
+                        <option value="parcela">Parcela</option>
+                    </select>
+                </div>
+                <div className="control-group">
+                        <label htmlFor="FilterFieldOperaciones" className="control-label">
+                            Filtrar por:
+                        </label>
+                        <div className="filter-inputs">
+                            <select
+                                id="FilterFieldOperaciones"
+                                value={filterField}
+                                onChange={(e) => setFilterField(e.target.value)}
+                                className="control-select filter-field"
+                            >
+                                <option value="id">ID</option>
+                                <option value="parcela_id">Parcela</option>
+                                <option value="estado">Estado</option>
+                                <option value="responsable_id">Responsable</option>
+                            </select>
+                            <input 
+                                type="text"
+                                id="FilterValueOperaciones"
+                                value={filterValue}
+                                onChange={(e) => setFilterValue(e.target.value)}
+                                placeholder={`Buscar por ${filterField}...`}
+                                className="control-input"
+                            />
+                    </div>
+                </div>
+            </div>
             {/* Tabla*/}
             {Object.entries(groupedOperaciones).map(([group, operaciones]) => (
                 <div key={group} className="mb-4">
@@ -624,8 +632,9 @@ function TableOperaciones() {
                         <div className="modal-form-grid"> {/* Contenedor para las columnas */}
                             <div className="modal-column"> {/* Columna 1 */}
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Operacion:</label>
+                                    <label className="modal-form-label" htmlFor='NewOperationSelect'>Operacion:</label>
                                     <Select
+                                        inputId='NewOperationSelect'
                                         options={options}
                                         onChange={(selectedOption) => handleCreateSelectChange('tipo_operacion', selectedOption)}
                                         value={options.find((option) => option.value === newOperacion.tipo_operacion)}
@@ -635,8 +644,9 @@ function TableOperaciones() {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Responsable:</label>
+                                    <label className="modal-form-label" htmlFor='NewOperationResponsable'>Responsable:</label>
                                     <Select
+                                        inputId='NewOperationResponsable'
                                         options={responsableOptions}
                                         onChange={(selectedOption) => handleCreateSelectChange('responsable_id', selectedOption)}
                                         value={responsableOptions.find((option) => option.value === newOperacion.responsable_id)}
@@ -647,8 +657,9 @@ function TableOperaciones() {
                                 </div>
                                 
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Fecha de inicio:</label>
-                                    <input 
+                                    <label className="modal-form-label" htmlFor='NewOperationDateIni'>Fecha de inicio:</label>
+                                    <input
+                                        id='NewOperationDateIni' 
                                         type="date" 
                                         value={newOperacion.fecha_inicio} 
                                         onChange={(e) => handleCreateChange('fecha_inicio', e.target.value)} 
@@ -656,8 +667,9 @@ function TableOperaciones() {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Nota:</label>
-                                    <input 
+                                    <label className="modal-form-label" htmlFor='NewOperationNota'>Nota:</label>
+                                    <input
+                                        id='NewOperationNota' 
                                         type="text" 
                                         value={newOperacion.nota} 
                                         onChange={(e) => handleCreateChange('nota', e.target.value)} 
@@ -667,8 +679,9 @@ function TableOperaciones() {
                             </div>
                             <div className="modal-column"> {/* Columna 2 */}
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Parcela:</label>
+                                    <label className="modal-form-label" htmlFor='NewOperationParcela'>Parcela:</label>
                                     <Select
+                                        inputId='NewOperationParcela'
                                         options={parcelaOptions}
                                         onChange={(selectedOption) => handleCreateSelectChange('parcela_id', selectedOption)}
                                         value={parcelaOptions.find((option) => option.value === newOperacion.parcela_id)}
@@ -678,8 +691,9 @@ function TableOperaciones() {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Estado:</label>
-                                    <input 
+                                    <label className="modal-form-label" htmlFor='NewOperationStatus'>Estado:</label>
+                                    <input
+                                        id='NewOperationStatus' 
                                         type="text" 
                                         value={newOperacion.estado} 
                                         onChange={(e) => handleCreateChange('estado', e.target.value)} 
@@ -687,8 +701,9 @@ function TableOperaciones() {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Fecha de finalizacion:</label>
-                                    <input 
+                                    <label className="modal-form-label" htmlFor='NewOperationDateFin'>Fecha de finalizacion:</label>
+                                    <input
+                                        id='NewOperationDateFin' 
                                         type="date" 
                                         value={newOperacion.fecha_fin} 
                                         onChange={(e) => handleCreateChange('fecha_fin', e.target.value)} 
@@ -696,8 +711,9 @@ function TableOperaciones() {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Comentario:</label>
-                                    <input 
+                                    <label className="modal-form-label" htmlFor='NewOperationComentario'>Comentario:</label>
+                                    <input
+                                        id='NewOperationComentario' 
                                         type="text" 
                                         value={newOperacion.comentario} 
                                         onChange={(e) => handleCreateChange('comentario', e.target.value)} 
@@ -708,8 +724,10 @@ function TableOperaciones() {
                         </div>
                         <div className="mb-4 insumos-grid">
                             <div className="insumos-column">
-                                <label className="modal-form-label">Insumos Consumidos:</label>
-                                <select 
+                                <label className="modal-form-label" htmlFor="NewOperationInsumoConsumido">Insumos Consumidos:</label>
+                                <select
+                                    id='NewOperationInsumoConsumido'
+                                    name='insumos_consumidos'
                                     multiple 
                                     value={newOperacion.inputs.map(insumo => insumo.insumo_id)} 
                                     onChange={(e) => {
@@ -733,10 +751,11 @@ function TableOperaciones() {
                             <div className="insumos-column">
                                 {newOperacion.inputs.map((insumo) => (
                                     <div key={insumo.insumo_id}>
-                                        <label className="modal-form-label">
+                                        <label className="modal-form-label" htmlFor={insumo.id}>
                                             Cantidad {insumos.find(i => i.id === insumo.insumo_id)?.name || 'Insumo'}:
                                         </label>
                                         <input 
+                                            id={insumo.id}
                                             type="number" 
                                             value={insumo.cantidad} 
                                             onChange={(e) => {
@@ -818,9 +837,10 @@ function TableOperaciones() {
                             <div className="modal-form-grid">
                                 <div className="modal-column">
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Operacion:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditOperacion'>Operacion:</label>
                                         {isEditingDetails ? (
                                             <Select
+                                                inputId='OperacionEditOperacion'
                                                 options={options}
                                                 onChange={(selectedOption) => handleDetailSelectChange('tipo_operacion', selectedOption)}
                                                 value={options.find((option) => option.value === operacionDetails.tipo_operacion)}
@@ -833,9 +853,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Responsable:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditResponsable'>Responsable:</label>
                                         {isEditingDetails ? (
                                             <Select
+                                                inputId='OperacionEditResponsable'
                                                 options={responsableOptions}
                                                 onChange={(selectedOption) => handleDetailSelectChange('responsable_id', selectedOption)}
                                                 value={responsableOptions.find((option) => option.value === operacionDetails.responsable_id)}
@@ -848,9 +869,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Fecha de inicio:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditDateIni'>Fecha de inicio:</label>
                                         {isEditingDetails ? (
                                             <input
+                                                id='OperacionEditDateIni'
                                                 type="date"
                                                 value={operacionDetails.fecha_inicio}
                                                 onChange={(e) => handleDetailChange('fecha_inicio', e.target.value)}
@@ -861,9 +883,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Nota:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditNota'>Nota:</label>
                                         {isEditingDetails ? (
                                             <input
+                                                id='OperacionEditNota'
                                                 type="text"
                                                 value={operacionDetails.nota}
                                                 onChange={(e) => handleDetailChange('nota', e.target.value)}
@@ -874,9 +897,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Insumos Consumidos:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditInsumosConsumidos'>Insumos Consumidos:</label>
                                         {isEditingDetails ? (
                                             <select
+                                                id='OperacionEditInsumosConsumidos'
                                                 multiple
                                                 value={operacionDetails.inputs ? operacionDetails.inputs.map(insumo => insumo.input_id) : []}
                                                 onChange={(e) => {
@@ -916,9 +940,10 @@ function TableOperaciones() {
                                 </div>
                                 <div className="modal-column">
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Parcela:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditParcela'>Parcela:</label>
                                         {isEditingDetails ? (
                                             <Select
+                                                inputId='OperacionEditParcela'
                                                 options={parcelaOptions}
                                                 onChange={(selectedOption) => handleDetailSelectChange('parcela_id', selectedOption)}
                                                 value={parcelaOptions.find((option) => option.value === operacionDetails.parcela_id)}
@@ -931,9 +956,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Estado:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditEstado'>Estado:</label>
                                         {isEditingDetails ? (
                                             <input
+                                                id='OperacionEditEstado'
                                                 type="text"
                                                 value={operacionDetails.estado}
                                                 onChange={(e) => handleDetailChange('estado', e.target.value)}
@@ -944,9 +970,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Fecha de finalizacion:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditDateFin'>Fecha de finalizacion:</label>
                                         {isEditingDetails ? (
                                             <input
+                                                id='OperacionEditDateFin'
                                                 type="date"
                                                 value={operacionDetails.fecha_fin}
                                                 onChange={(e) => handleDetailChange('fecha_fin', e.target.value)}
@@ -957,9 +984,10 @@ function TableOperaciones() {
                                         )}
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Comentario:</label>
+                                        <label className="modal-form-label" htmlFor='OperacionEditComent'>Comentario:</label>
                                         {isEditingDetails ? (
                                             <input
+                                                id='OperacionEditComent'
                                                 type="text"
                                                 value={operacionDetails.comentario}
                                                 onChange={(e) => handleDetailChange('comentario', e.target.value)}
@@ -973,8 +1001,9 @@ function TableOperaciones() {
                                         {isEditingDetails && operacionDetails.inputs && Array.isArray(operacionDetails.inputs) ? (
                                             operacionDetails.inputs.map((insumo) => (
                                                 <div key={insumo.input_id}>
-                                                    <label className="modal-form-label">Cantidad {insumos.find(i => i.id === insumo.input_id)?.name}:</label>
+                                                    <label className="modal-form-label" htmlFor='OperacionEditCantidad'>Cantidad {insumos.find(i => i.id === insumo.input_id)?.name}:</label>
                                                     <input
+                                                        id='OperacionEditCantidad'
                                                         type="number"
                                                         value={insumo.used_quantity || 0}
                                                         onChange={(e) => {
@@ -994,13 +1023,13 @@ function TableOperaciones() {
                                 </div>
                                 {isEditingDetails ? (
                                     <>
-                                        <button onClick={handleSaveDetails} className="btn btn-primary">Guardar</button>
                                         <button onClick={() => setIsEditingDetails(false)} className="btn btn-secondary">Cancelar</button>
+                                        <button onClick={handleSaveDetails} className="btn btn-primary">Guardar</button>
                                     </>
                                 ) : (
                                     <>
+                                        <button onClick={() => handleDeleteOperaciones(operacionDetails.id)} className="btn btn-danger mr-2">Eliminar Operacion</button>
                                         <button onClick={() => setIsEditingDetails(true)} className="btn btn-primary">Editar Operacion</button>
-                                        <button onClick={() => handleDeleteOperaciones(operacionDetails.id)} className="btn btn-secondary">Eliminar Operacion</button>
                                     </>
                                 )}
                             </div>

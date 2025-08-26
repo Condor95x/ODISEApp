@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { deleteVesselActivity,getVesselActivities, getVessels, createVesselActivity, getUsers, updateVesselActivity, getInputs, createTaskInput, getWineryTasks } from "../services/api";
+import { deleteVesselActivity,getVesselActivities, getVessels, getUsers, updateVesselActivity, getInputs, getWineryTasks } from "../services/api";
 import Modal from 'react-modal';
 import Papa from 'papaparse';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -64,9 +64,9 @@ const TableWineryTask = () => {
         setNewActividad(initialNewActividad);
         setError(null);
     };
-    const handleOpenSuccessModal = () => setShowSuccessModal(true);
+    //const handleOpenSuccessModal = () => setShowSuccessModal(true);
     const handleCloseSuccessModal = () => setShowSuccessModal(false);
-    const handleOpenErrorModal = () => setShowErrorModal(true);
+    //const handleOpenErrorModal = () => setShowErrorModal(true);
     const handleCloseErrorModal = () => setShowErrorModal(false);
     const handleOpenDeleteModal = () => setShowDeleteModal(true);
     const handleCloseDeleteModal = () => setShowDeleteModal(false)
@@ -270,16 +270,16 @@ const TableWineryTask = () => {
                 throw new Error('Debe seleccionar una vasija de origen');
             }
             
-            const inputsBackend = newActividad.inputs.map(insumo => ({
+            /*const inputsBackend = newActividad.inputs.map(insumo => ({
                 input_id: insumo.id,
                 used_quantity: insumo.cantidad,
                 warehouse_id: 8,
                 status: "used",
                 vessel_activity_id: null,
                 operation_id: null
-            }));
+            }));*/
     
-            const vesselActivityData = {
+            /*const vesselActivityData = {
                 origin_vessel_id: parseInt(newActividad.origin_vessel_id),
                 destination_vessel_id: newActividad.destination_vessel_id ? parseInt(newActividad.destination_vessel_id) : null,
                 task_id: newActividad.task_id,
@@ -292,14 +292,14 @@ const TableWineryTask = () => {
                 origin_batch_id: newActividad.origin_batch_id ? parseInt(newActividad.origin_batch_id) : null,
                 destination_batch_id: newActividad.destination_batch_id ? parseInt(newActividad.destination_batch_id) : null,
                 volume: newActividad.volume ? parseFloat(newActividad.volume) : null,
-            };
+            };*/
     
-            const actividadToCreate = {
+            /*const actividadToCreate = {
                 vessel_activity: vesselActivityData,
                 inputs: inputsBackend,
-            };
+            };*/
 
-            const response = await createVesselActivity(actividadToCreate);
+            //const response = await createVesselActivity(actividadToCreate);
     
             // Actualizar la lista de actividades
             await cargarDatos();
@@ -356,7 +356,7 @@ const TableWineryTask = () => {
         return 0;
     });
 
-    const groupActivities = (data, groupBy) => {
+    /*const groupActivities = (data, groupBy) => {
         return data.reduce((acc, activity) => {
             let key = activity[groupBy] || 'Sin asignar';
             
@@ -385,7 +385,7 @@ const TableWineryTask = () => {
             acc[key].push(activity);
             return acc;
         }, {});
-    };
+    };*/
 
     const groupedActivities = groupBy ? 
         sortedActivities.reduce((acc, activity) => {
@@ -556,45 +556,51 @@ const TableWineryTask = () => {
                 )}
             </div>
     
-            <div className="flex gap-2 mb-4">
-                <label htmlFor="groupingFieldWineryTasks" className="mr-2">Agrupar por:</label>
-                <Spacer width={0.2} />
-                <select
-                    id="groupingFieldWineryTasks"
-                    value={groupBy || "none"}
-                    onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
-                    className="border p-2 rounded"
-                >
-                    <option value="none">Sin Agrupación</option>
-                    <option value="responsible_id">Responsable</option>
-                    <option value="origin_vessel_id">Vasija de Origen</option>
-                    <option value="destination_vessel_id">Vasija de Destino</option>
-                    <option value="task_id">Tarea</option>
-                    <option value="status">Estado</option>
-                </select>
-                <Spacer width={2} />
-                <select
-                    id="FilterFieldWineryTasks"
-                    value={filterField}
-                    onChange={(e) => setFilterField(e.target.value)}
-                    className="border p-2 rounded"
-                >
-                    <option value="task_id">Tarea</option>
-                    <option value="responsible_id">Responsable</option>
-                    <option value="origin_vessel_id">Vasija</option>
-                    <option value="start_date">Fecha</option>
-                    <option value="status">Estado</option>
-                    <option value="comments">Comentarios</option>
-                </select>
-                <Spacer width={0.2} />
-                <input
-                    id="FilteValueWineryTasks"
-                    type="text"
-                    value={filterValue}
-                    onChange={(e) => setFilterValue(e.target.value)}
-                    placeholder={`Buscar por ${filterField}...`}
-                    className="border p-2 rounded w-64"
-                />
+            <div className="filter-controls-container">
+                <div className="control-group">
+                    <label htmlFor="groupingFieldWineryTasks" className="control-label">Agrupar por:</label>
+                    <select
+                        id="groupingFieldWineryTasks"
+                        value={groupBy || "none"}
+                        onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
+                        className="control-select"
+                    >
+                        <option value="none">Sin Agrupación</option>
+                        <option value="responsible_id">Responsable</option>
+                        <option value="origin_vessel_id">Vasija de Origen</option>
+                        <option value="destination_vessel_id">Vasija de Destino</option>
+                        <option value="task_id">Tarea</option>
+                        <option value="status">Estado</option>
+                    </select>
+                </div>
+                <div className="control-group">
+                    <label htmlFor="FilterFieldWineryTasks" className="control-label">
+                        Filtrar por:
+                    </label>
+                    <div className="filter-inputs">
+                        <select
+                            id="FilterFieldWineryTasks"
+                            value={filterField}
+                            onChange={(e) => setFilterField(e.target.value)}
+                            className="control-select filter-field"
+                        >
+                            <option value="task_id">Tarea</option>
+                            <option value="responsible_id">Responsable</option>
+                            <option value="origin_vessel_id">Vasija</option>
+                            <option value="start_date">Fecha</option>
+                            <option value="status">Estado</option>
+                            <option value="comments">Comentarios</option>
+                        </select>
+                        <input
+                            id="FilteValueWineryTasks"
+                            type="text"
+                            value={filterValue}
+                            onChange={(e) => setFilterValue(e.target.value)}
+                            placeholder={`Buscar por ${filterField}...`}
+                            className="control-input"
+                        />
+                    </div>
+                </div>
             </div>
 
             {error && (
@@ -689,8 +695,9 @@ const TableWineryTask = () => {
 
                         <div className="modal-form-grid">
                             <div className="mb-4">
-                                <label className="modal-form-label">Tarea: *</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskTarea'>Tarea: *</label>
                                 <select
+                                    id='NewWTaskTarea'
                                     value={newActividad.task_id}
                                     onChange={(e) => setNewActividad({ ...newActividad, task_id: e.target.value })}
                                     className="modal-form-input"
@@ -705,8 +712,9 @@ const TableWineryTask = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Responsable: *</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskResponsable'>Responsable: *</label>
                                 <select
+                                    id='NewWTaskResponsable'
                                     value={newActividad.responsible_id}
                                     onChange={(e) => setNewActividad({ ...newActividad, responsible_id: e.target.value })}
                                     className="modal-form-input"
@@ -721,8 +729,9 @@ const TableWineryTask = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Vasija de origen: *</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskOriginVessel'>Vasija de origen: *</label>
                                 <select
+                                    id='NewWTaskOriginVessel'
                                     value={newActividad.origin_vessel_id}
                                     onChange={(e) => setNewActividad({ ...newActividad, origin_vessel_id: e.target.value })}
                                     className="modal-form-input"
@@ -737,8 +746,9 @@ const TableWineryTask = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Vasija de destino:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskDestinyVessel'>Vasija de destino:</label>
                                 <select
+                                    id='NewWTaskDestinyVessel'
                                     value={newActividad.destination_vessel_id}
                                     onChange={(e) => setNewActividad({ ...newActividad, destination_vessel_id: e.target.value })}
                                     className="modal-form-input"
@@ -752,8 +762,9 @@ const TableWineryTask = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Fecha de inicio:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskDateIni'>Fecha de inicio:</label>
                                 <input
+                                    id='NewWTaskDateIni'
                                     type="date"
                                     value={newActividad.start_date}
                                     onChange={(e) => setNewActividad({ ...newActividad, start_date: e.target.value })}
@@ -761,8 +772,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Fecha de fin:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskDateFin'>Fecha de fin:</label>
                                 <input
+                                    id='NewWTaskDateFin'
                                     type="date"
                                     value={newActividad.end_date}
                                     onChange={(e) => setNewActividad({ ...newActividad, end_date: e.target.value })}
@@ -770,8 +782,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Volumen:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskVol'>Volumen:</label>
                                 <input
+                                    id='NewWTaskVol'
                                     type="number"
                                     step="any"
                                     value={newActividad.volume || ''}
@@ -780,8 +793,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Estado:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskEstado'>Estado:</label>
                                 <input
+                                    id='NewWTaskEstado'
                                     type="text"
                                     value={newActividad.status}
                                     onChange={(e) => setNewActividad({ ...newActividad, status: e.target.value })}
@@ -790,8 +804,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Lote de origen:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskBatchOrigin'>Lote de origen:</label>
                                 <input
+                                    id='NewWTaskBatchOrigin'
                                     type="number"
                                     value={newActividad.origin_batch_id || ''}
                                     onChange={(e) => setNewActividad({ ...newActividad, origin_batch_id: e.target.value })}
@@ -799,8 +814,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Lote de destino:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskBatchFin'>Lote de destino:</label>
                                 <input
+                                    id='NewWTaskBatchFin'
                                     type="number"
                                     value={newActividad.destination_batch_id || ''}
                                     onChange={(e) => setNewActividad({ ...newActividad, destination_batch_id: e.target.value })}
@@ -808,8 +824,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Comentarios:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskComentario'>Comentarios:</label>
                                 <textarea
+                                    id='NewWTaskComentario'
                                     value={newActividad.comments}
                                     onChange={(e) => setNewActividad({ ...newActividad, comments: e.target.value })}
                                     className="modal-form-input"
@@ -818,8 +835,9 @@ const TableWineryTask = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="modal-form-label">Notas:</label>
+                                <label className="modal-form-label" htmlFor='NewWTaskNota'>Notas:</label>
                                 <textarea
+                                    id='NewWTaskNota'
                                     value={newActividad.notes}
                                     onChange={(e) => setNewActividad({ ...newActividad, notes: e.target.value })}
                                     className="modal-form-input"
@@ -827,8 +845,8 @@ const TableWineryTask = () => {
                                     placeholder="Ingrese notas adicionales..."
                                 />
                             </div>
-                            <div className="mb-4">
-                                <label className="modal-form-label">Insumos Consumidos:</label>
+                            <fieldset className="mb-4">
+                                <legend className="modal-form-label">Insumos Consumidos:</legend>
                                 <button 
                                     type='button' 
                                     onClick={handleAddInput}
@@ -839,6 +857,7 @@ const TableWineryTask = () => {
                                 {newActividad.inputs.map((input, index) => (
                                     <div key={index} className="flex gap-2 mb-2">
                                         <select
+                                            id={`NewWTaskInsumo-${index}`}
                                             value={input.id || ''}
                                             onChange={(e) => handleInputChange(e, index)}
                                             className="modal-form-input flex-1"
@@ -851,6 +870,7 @@ const TableWineryTask = () => {
                                             ))}
                                         </select>
                                         <input
+                                            id={`NewWTaskInsumoCantidad-${index}`}
                                             type="number"
                                             value={input.cantidad}
                                             onChange={(e) => handleInputCantidadChange(e, index)}
@@ -871,7 +891,7 @@ const TableWineryTask = () => {
                                         </button>
                                     </div>
                                 ))}
-                            </div>
+                            </fieldset>
                         </div>
 
                         <div className="modal-buttons mt-4">
@@ -952,8 +972,9 @@ const TableWineryTask = () => {
                             {editingActividad ? (
                                 <div className="modal-form-grid">
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Tarea:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskTask'>Tarea:</label>
                                         <select
+                                            id='EditWTaskTask'
                                             value={actividadToEdit?.task_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, task_id: e.target.value })}
                                             className="modal-form-input"
@@ -967,8 +988,9 @@ const TableWineryTask = () => {
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Responsable:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskResponsable'>Responsable:</label>
                                         <select
+                                            id='EditWTaskResponsable'
                                             value={actividadToEdit?.responsible_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, responsible_id: parseInt(e.target.value) })}
                                             className="modal-form-input"
@@ -982,8 +1004,9 @@ const TableWineryTask = () => {
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Vasija de origen:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskOriginVessel'>Vasija de origen:</label>
                                         <select
+                                            id='EditWTaskOriginVessel'
                                             value={actividadToEdit?.origin_vessel_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, origin_vessel_id: e.target.value ? parseInt(e.target.value) : null })}
                                             className="modal-form-input"
@@ -997,8 +1020,9 @@ const TableWineryTask = () => {
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Vasija de destino:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskDestinoVessel'>Vasija de destino:</label>
                                         <select
+                                            id='EditWTaskDestinoVessel'
                                             value={actividadToEdit?.destination_vessel_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, destination_vessel_id: e.target.value ? parseInt(e.target.value) : null })}
                                             className="modal-form-input"
@@ -1012,8 +1036,9 @@ const TableWineryTask = () => {
                                         </select>
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Fecha de inicio:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskDateIni'>Fecha de inicio:</label>
                                         <input
+                                            id='EditWTaskDateIni'
                                             type="date"
                                             value={actividadToEdit?.start_date ? actividadToEdit.start_date.slice(0, 10) : ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, start_date: e.target.value })}
@@ -1021,8 +1046,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Fecha de fin:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskDateFin'>Fecha de fin:</label>
                                         <input
+                                            id='EditWTaskDateFin'
                                             type="date"
                                             value={actividadToEdit?.end_date ? actividadToEdit.end_date.slice(0, 10) : ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, end_date: e.target.value })}
@@ -1030,8 +1056,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Estado:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskStatus'>Estado:</label>
                                         <input
+                                            id='EditWTaskStatus'
                                             type="text"
                                             value={actividadToEdit?.status || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, status: e.target.value })}
@@ -1039,8 +1066,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Notas:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskNotas'>Notas:</label>
                                         <textarea
+                                            id='EditWTaskNotas'
                                             value={actividadToEdit?.notes || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, notes: e.target.value })}
                                             className="modal-form-input"
@@ -1048,8 +1076,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Comentarios:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskComents'>Comentarios:</label>
                                         <textarea
+                                            id='EditWTaskComents'
                                             value={actividadToEdit?.comments || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, comments: e.target.value })}
                                             className="modal-form-input"
@@ -1057,8 +1086,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Lote de origen:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskOriginBatch'>Lote de origen:</label>
                                         <input
+                                            id='EditWTaskOriginBatch'
                                             type="number"
                                             value={actividadToEdit?.origin_batch_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, origin_batch_id: e.target.value ? parseInt(e.target.value) : null })}
@@ -1066,8 +1096,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Lote de destino:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskDestinyBatch'>Lote de destino:</label>
                                         <input
+                                            id='EditWTaskDestinyBatch'
                                             type="number"
                                             value={actividadToEdit?.destination_batch_id || ''}
                                             onChange={(e) => setActividadToEdit({ ...actividadToEdit, destination_batch_id: e.target.value ? parseInt(e.target.value) : null })}
@@ -1075,8 +1106,9 @@ const TableWineryTask = () => {
                                         />
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Volumen:</label>
+                                        <label className="modal-form-label" htmlFor='EditWTaskVol'>Volumen:</label>
                                         <input
+                                            id='EditWTaskVol'
                                             type="number"
                                             step="any"
                                             value={actividadToEdit?.volume || ''}
@@ -1103,9 +1135,7 @@ const TableWineryTask = () => {
                             )}
                             
                             <div className="modal-buttons mt-4">
-                                <button onClick={handleCloseActividadModal} className="btn btn-secondary mr-2">
-                                    Cerrar
-                                </button>
+
                                 {editingActividad ? (
                                     <button 
                                         onClick={handleSaveActividad} 

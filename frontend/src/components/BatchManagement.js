@@ -29,7 +29,6 @@ function BatchManagement({ onBatchCreated }) {
     const [selectedBatches, setSelectedBatches] = useState({});
     const [allSelected, setAllSelected] = useState({});
     const [grapevines, setGrapevines] = useState([]); 
-    const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
     useEffect(() => {
         const fetchBatchesAndGrapevines = async () => {
@@ -280,22 +279,39 @@ function BatchManagement({ onBatchCreated }) {
                     </button>
                 )}
             </div>
-            <div className="flex gap-2 mb-4">
-                <label htmlFor="groupingFieldBatch" className="mr-2">Agrupar por:</label>
-                <Spacer width={0.2} />
-                <select id="groupingFieldBatch" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
-                    <option value="none">Sin Agrupación</option>
-                    <option value="variety">Variedad de Uva</option>
-                </select>
-                <Spacer width={2} />
-                <select id="FilterFieldBatch"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
-                    <option value="name">Nombre</option>
-                    <option value="variety">Variedad de Uva</option>
-                    <option value="entry_date">Fecha de Inicio</option>
-                </select>
-                <Spacer width={0.2} />
-                <input id="FilterValueBatch" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
-                
+            <div className="filter-controls-container">
+                <div className="control-group">
+                    <label htmlFor="groupingFieldBatch" className="control-label">Agrupar por:</label>
+                    <select id="groupingFieldBatch" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="control-select">
+                        <option value="none">Sin Agrupación</option>
+                        <option value="variety">Variedad de Uva</option>
+                    </select>
+                </div>
+                <div className="control-group">
+                    <label htmlFor="FilterFieldBatch" className="control-label">
+                        Filtrar por:
+                    </label>
+                    <div className="filter-inputs">
+                        <select
+                            id="FilterFieldBatch"
+                            value={filterField}
+                            onChange={(e) => setFilterField(e.target.value)}
+                            className="control-select filter-field"
+                        >
+                            <option value="name">Nombre</option>
+                            <option value="variety">Variedad de Uva</option>
+                            <option value="entry_date">Fecha de Inicio</option>
+                        </select>
+                        <input
+                            id="FilterValueBatch"
+                            type="text"
+                            value={filterValue}
+                            onChange={(e) => setFilterValue(e.target.value)}
+                            placeholder={`Buscar por ${filterField}...`}
+                            className="control-input"
+                            />
+                    </div>
+                </div>
             </div>
     
             {Object.entries(groupedBatches).map(([groupKey, batches]) => (
@@ -351,23 +367,24 @@ function BatchManagement({ onBatchCreated }) {
                         <div className="modal-form-grid">
                             <div className="modal-column">
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Nombre:</label>
-                                    <input type="text" value={newBatch.name} onChange={(e) => setNewBatch({ ...newBatch, name: e.target.value })} className="modal-form-input" />
+                                    <label className="modal-form-label" htmlFor='NewBatchNombre'>Nombre:</label>
+                                    <input id='NewBatchNombre' type="text" value={newBatch.name || ''} onChange={(e) => setNewBatch({ ...newBatch, name: e.target.value })} className="modal-form-input" />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Fecha de Inicio:</label>
-                                    <input type="date" value={newBatch.entry_date} onChange={(e) => setNewBatch({ ...newBatch, entry_date: e.target.value })} className="modal-form-input" />
+                                    <label className="modal-form-label" htmlFor='NewBatchDateIni'>Fecha de Inicio:</label>
+                                    <input id='NewBatchDateIni' type="date" value={newBatch.entry_date || ''} onChange={(e) => setNewBatch({ ...newBatch, entry_date: e.target.value })} className="modal-form-input" />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">initial_volumen:</label>
-                                    <input type="number" value={newBatch.initial_volume} onChange={(e) => setNewBatch({ ...newBatch, initial_volume: e.target.value })} className="modal-form-input" />
+                                    <label className="modal-form-label" htmlFor='NewBatchVol'>initial_volumen:</label>
+                                    <input id='NewBatchVol' type="number" value={newBatch.initial_volume || ''} onChange={(e) => setNewBatch({ ...newBatch, initial_volume: e.target.value })} className="modal-form-input" />
                                 </div>
                             </div>
                             <div className="modal-column">
                             <div className="mb-4">
-                                    <label className="modal-form-label">Variedad de Uva:</label>
+                                    <label className="modal-form-label" htmlFor='NewBatchVar'>Variedad de Uva:</label>
                                     <Select
-                                        value={{ value: newBatch.variety, label: newBatch.variety}}
+                                        inputId='NewBatchVar'
+                                        value={{ value: newBatch.variety || '', label: newBatch.variety}}
                                         onChange={(selectedOption) => setNewBatch({ ...newBatch, variety: selectedOption.value })}
                                         options={grapevines.map((grapevines) => ({
                                             value: grapevines.gv_id,
@@ -379,12 +396,12 @@ function BatchManagement({ onBatchCreated }) {
                                         />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Fecha de Fin:</label>
-                                    <input type="date" value={newBatch.exit_date} onChange={(e) => setNewBatch({ ...newBatch, exit_date: e.target.value })} className="modal-form-input" />
+                                    <label className="modal-form-label" htmlFor='NewBatchDateFin'>Fecha de Fin:</label>
+                                    <input id='NewBatchDateFin' type="date" value={newBatch.exit_date || ''} onChange={(e) => setNewBatch({ ...newBatch, exit_date: e.target.value })} className="modal-form-input" />
                                 </div>
                                 <div className="mb-4">
-                                    <label className="modal-form-label">Observaciones:</label>
-                                    <textarea value={newBatch.description} onChange={(e) => setNewBatch({ ...newBatch, description: e.target.value })} className="modal-form-input" />
+                                    <label className="modal-form-label" htmlFor='NewBatchObs'>Observaciones:</label>
+                                    <textarea id='NewBatchObs' value={newBatch.description || ''} onChange={(e) => setNewBatch({ ...newBatch, description: e.target.value })} className="modal-form-input" />
                                 </div>
                             </div>
                         </div>

@@ -84,7 +84,6 @@ const TablePlots = () => {
   const [management, setManagement] = useState([]);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [plotToArchive, setPlotToArchive] = useState(null);
-  const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const createMapRef = useRef(null);
   const viewEditMapRef = useRef(null);
@@ -125,8 +124,30 @@ const TablePlots = () => {
 const filteredPlots = Array.isArray(plots)
   ? plots.filter((p) => {
       if (!filterValue) return true;
-      const value = String(p[filterField] || "").toLowerCase();
-      return value.includes(filterValue.toLowerCase());
+      
+      let value;
+      
+      // Manejar casos especiales donde necesitamos buscar por nombre en lugar de ID
+      if (filterField === 'plot_var') {
+        // Buscar el nombre de la variedad por su ID
+        const variety = varieties.find(v => v.gv_id === p.plot_var);
+        value = variety ? variety.name : (p.plot_var || "");
+      } else if (filterField === 'plot_rootstock') {
+        // Si también quieres filtrar por portainjerto por nombre
+        const rootstock = rootstocks.find(r => r.gv_id === p.plot_rootstock);
+        value = rootstock ? rootstock.name : (p.plot_rootstock || "");
+      } else if (filterField === 'plot_conduction') {
+        // Para sistema de conducción, usar el valor directamente
+        value = p.plot_conduction || "";
+      } else if (filterField === 'plot_management') {
+        // Para tipo de manejo, usar el valor directamente
+        value = p.plot_management || "";
+      } else {
+        // Para otros campos, usar el valor original
+        value = p[filterField] || "";
+      }
+      
+      return String(value).toLowerCase().includes(filterValue.toLowerCase());
     })
   : [];
 
@@ -190,6 +211,27 @@ const filteredPlots = Array.isArray(plots)
       window.URL.revokeObjectURL(url);
     }
   };
+
+const handleSelectChange = (field, selectedOption) => {
+  if (!selectedOption) {
+    // Si se limpia la selección
+    setPlotDetails({
+      ...plotDetails,
+      [field]: null
+    });
+    return;
+  }
+
+  let value = selectedOption.value;
+
+  // Para variety y rootstock, guardamos el nombre temporalmente
+  // pero en handleSaveDetails lo convertiremos al gv_id
+    setPlotDetails({
+      ...plotDetails,
+      [field]: value
+    });
+  };
+
 
   const handleCreatePlot = async () => {  
     if (!newPlot.plot_name || !newPlot.plot_var) {
@@ -312,35 +354,32 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-  const handleGeometryChange = (geojson) => {
-        
-    if (geojson && geojson.geometry) {
-      try {
-        const wktGeometry = Terraformer.convert(geojson.geometry);
-        
-        if (isEditingDetails && plotDetails) {
-          // Modo edición - actualizar plotDetails inmediatamente
-          const updatedDetails = {
-            ...plotDetails,
-            plot_geom: wktGeometry,
-          };
-          setPlotDetails(updatedDetails);
+  const handleGeometryChange = (geojson) => {    
+    if (!geojson || !geojson.geometry) {
+      console.log('No hay geojson válido');
+      return;
+    }
 
-        } else if (showForm) {
-          // Modo creación
-          setNewPlot((prevPlot) => ({
-            ...prevPlot,
-            plot_geom: wktGeometry
-          }));
-        }
-        
-        setPlotGeoJSON(geojson);
-      } catch (error) {
-        console.error("Error converting geometry to WKT:", error);
+    try {
+      const wktGeometry = Terraformer.convert(geojson.geometry);
+      console.log('WKT generado:', wktGeometry);
+      
+      if (isEditingDetails && plotDetails) {
+        console.log('Actualizando plotDetails en modo edición');
+        const updatedDetails = {
+          ...plotDetails,
+          plot_geom: wktGeometry,
+        };
+        console.log('plotDetails actualizado:', updatedDetails);
+        setPlotDetails(updatedDetails);
+      } else {
+        console.log('No está en modo edición o no hay plotDetails');
       }
-    } else if (!geojson && isEditingDetails) {
-      // Si se elimina la geometría
-      setPlotDetails(prev => ({ ...prev, plot_geom: null }));
+      
+      setPlotGeoJSON(geojson);
+      console.log('=== END GEOMETRY CHANGE DEBUG ===');
+    } catch (error) {
+      console.error("Error converting geometry to WKT:", error);
     }
   };
 
@@ -353,23 +392,35 @@ const filteredPlots = Array.isArray(plots)
       // Create a copy of plotDetails for updating
       const updatedPlotDetails = { ...plotDetails };
       
-      // Check if plot_var is an object (from Select component) and extract ID
-      if (typeof updatedPlotDetails.plot_rootstock === 'string') {
-        const selectedRootstock = rootstocks.find(r => r.name === updatedPlotDetails.plot_rootstock);
-        updatedPlotDetails.plot_rootstock = selectedRootstock ? selectedRootstock.gv_id : updatedPlotDetails.plot_rootstock;
-      } else if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
-        updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id;
+      console.log('Datos originales plotDetails:', plotDetails);
+      
+      // Convertir nombres a IDs para varieties
+      if (typeof updatedPlotDetails.plot_var === 'string') {
+        const selectedVariety = varieties.find(v => v.name === updatedPlotDetails.plot_var);
+        if (selectedVariety) {
+          updatedPlotDetails.plot_var = selectedVariety.gv_id;
+          console.log(`Variedad encontrada: ${updatedPlotDetails.plot_var} -> ${selectedVariety.gv_id}`);
+        } else {
+          console.log(`Variedad NO encontrada: ${updatedPlotDetails.plot_var}`);
+          console.log('Variedades disponibles:', varieties.map(v => v.name));
+          // No cambiar el valor si no encontramos coincidencia
+        }
       }
 
       // Convertir nombres a IDs para rootstocks
       if (typeof updatedPlotDetails.plot_rootstock === 'string') {
         const selectedRootstock = rootstocks.find(r => r.name === updatedPlotDetails.plot_rootstock);
-        updatedPlotDetails.plot_rootstock = selectedRootstock ? selectedRootstock.gv_id : null;
-      } else if (typeof updatedPlotDetails.plot_rootstock === 'object' && updatedPlotDetails.plot_rootstock !== null) {
-        updatedPlotDetails.plot_rootstock = updatedPlotDetails.plot_rootstock.gv_id;
+        if (selectedRootstock) {
+          updatedPlotDetails.plot_rootstock = selectedRootstock.gv_id;
+          console.log(`Rootstock encontrado: ${updatedPlotDetails.plot_rootstock} -> ${selectedRootstock.gv_id}`);
+        } else {
+          console.log(`Rootstock NO encontrado: ${updatedPlotDetails.plot_rootstock}`);
+          console.log('Rootstocks disponibles:', rootstocks.map(r => r.name));
+          // No cambiar el valor si no encontramos coincidencia
+        }
       }
 
-      // Para conduction y management, mantener como string si el backend los espera así
+      // Asegurar que los campos sean strings o null (no objetos)
       if (typeof updatedPlotDetails.plot_conduction === 'object' && updatedPlotDetails.plot_conduction !== null) {
         updatedPlotDetails.plot_conduction = updatedPlotDetails.plot_conduction.value;
       }
@@ -378,12 +429,33 @@ const filteredPlots = Array.isArray(plots)
         updatedPlotDetails.plot_management = updatedPlotDetails.plot_management.value;
       }
 
-      if (!updatedPlotDetails.plot_geom) {
+      // Convertir años a números si no están vacíos
+      if (updatedPlotDetails.plot_implant_year) {
+        updatedPlotDetails.plot_implant_year = parseInt(updatedPlotDetails.plot_implant_year) || null;
+      }
+      
+      if (updatedPlotDetails.plot_creation_year) {
+        updatedPlotDetails.plot_creation_year = parseInt(updatedPlotDetails.plot_creation_year) || null;
+      }
+
+      // Verificar y preservar geometría
+      if (!updatedPlotDetails.plot_geom || updatedPlotDetails.plot_geom === '') {
         console.warn("No hay geometría para actualizar");
         setErrorMessage("Error: La parcela debe tener una geometría válida.");
         setShowErrorModal(true);
         return;
       }
+
+      // Asegurar que la geometría sea string (WKT)
+      if (typeof updatedPlotDetails.plot_geom !== 'string') {
+        console.error('plot_geom no es string:', typeof updatedPlotDetails.plot_geom, updatedPlotDetails.plot_geom);
+        setErrorMessage("Error: Formato de geometría inválido.");
+        setShowErrorModal(true);
+        return;
+      }
+
+      console.log('Datos a enviar al backend:', JSON.stringify(updatedPlotDetails, null, 2));
+      console.log('Geometría a enviar:', updatedPlotDetails.plot_geom);
       
       const updatedPlot = await updatePlot(updatedPlotDetails.plot_id, updatedPlotDetails);
       setPlots(plots.map((p) => (p.plot_id === updatedPlot.plot_id ? updatedPlot : p)));
@@ -394,7 +466,31 @@ const filteredPlots = Array.isArray(plots)
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error al guardar los detalles:", error);
-      setErrorMessage("Error al guardar los detalles: " + error.message);
+      
+      // Mostrar más detalles del error
+      if (error.response) {
+        console.error('Response data completa:', JSON.stringify(error.response.data, null, 2));
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+        
+        // Mostrar el error completo en la consola para debugging
+        console.error('Error completo del servidor:', error.response.data);
+        
+        let errorMsg = 'Error al guardar los detalles: ';
+        if (error.response.data?.message) {
+          errorMsg += error.response.data.message;
+        } else if (error.response.data?.error) {
+          errorMsg += error.response.data.error;
+        } else if (typeof error.response.data === 'string') {
+          errorMsg += error.response.data;
+        } else {
+          errorMsg += `Estado HTTP ${error.response.status}`;
+        }
+        
+        setErrorMessage(errorMsg);
+      } else {
+        setErrorMessage("Error al guardar los detalles: " + error.message);
+      }
       setShowErrorModal(true);
     }
   };
@@ -446,7 +542,6 @@ const filteredPlots = Array.isArray(plots)
     <div className="container mx-auto p-4">
       <div className="table-header">
         <button onClick={() => setShowForm(true)} className="btn btn-primary">Crear Nueva Parcela</button>
-        <Spacer width={0.5} />
         {Object.values(selectedPlots).flat().length > 0 && (
           <button
             onClick={handleDownloadCSV}
@@ -457,26 +552,36 @@ const filteredPlots = Array.isArray(plots)
         )}
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <select
-          id="FilterFieldPlot"
-          value={filterField}
-          onChange={(e) => setFilterField(e.target.value)}
-          className="border p-2 rounded">
-          <option value="plot_id">ID</option>
-          <option value="plot_name">Nombre</option>
-          <option value="plot_var">Variedad</option>
-          <option value="plot_area">Área</option>
-        </select>
-        <Spacer width={0.2} />
-        <input
-          id="FilterValuePlot" 
-          type="text"
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          placeholder={`Buscar por ${filterField}...`}
-          className="border p-2 rounded w-64"
-        />
+      <div className="filter-controls-container">
+        <div className="control-group">
+          <label htmlFor="FilterFieldPlot" className="control-label">
+            Filtrar por:
+          </label>
+          <div className="filter-inputs">
+            <select
+              id="FilterFieldPlot"
+              value={filterField}
+              onChange={(e) => setFilterField(e.target.value)}
+              className="control-select filter-field">
+              <option value="plot_id">ID</option>
+              <option value="plot_name">Nombre</option>
+              <option value="plot_var">Variedad</option>
+              <option value="plot_area">Área</option>
+              <option value="plot_rootstock">Portainjerto</option>
+              <option value="plot_conduction">Sistema de Conducción</option>
+              <option value="plot_management">Tipo de Manejo</option>
+              <option value="plot_area">Área</option>
+            </select>
+            <input
+              id="FilterValuePlot" 
+              type="text"
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              placeholder={`Buscar por ${filterField}...`}
+              className="control-input"
+            />
+          </div>
+        </div>
       </div>
 
       <table className="table-auto w-full border-collapse border border-gray-300">
@@ -549,7 +654,7 @@ const filteredPlots = Array.isArray(plots)
           <div className="modal-content">
             <h2 className="modal-title">Crear una Nueva Parcela</h2>
             <div className="mb-4">
-              <label className="modal-form-label">Nombre:</label>
+              <label className="modal-form-label" htmlFor="NewPlotName">Nombre:</label>
               <input
                 id="NewPlotName"
                 type="text"
@@ -558,9 +663,9 @@ const filteredPlots = Array.isArray(plots)
                 className="modal-form-input"
               />
               
-              <label className="modal-form-label">Variedad:</label>
+              <label className="modal-form-label" htmlFor="NewPlotVar">Variedad:</label>
               <Select
-                id="NewPlotVar"
+                inputId="NewPlotVar"
                 value={{ value: newPlot.plot_var, label: newPlot.plot_var }}
                 onChange={(selectedOption) => {
                   setNewPlot({ ...newPlot, plot_var: selectedOption.value });
@@ -574,9 +679,9 @@ const filteredPlots = Array.isArray(plots)
                 className="modal-form-input"
               />
 
-              <label className="modal-form-label">Portainjerto:</label>
+              <label className="modal-form-label" htmlFor="NewPlotRoots">Portainjerto:</label>
               <Select
-                id="NewPlotRoots"
+                inputId="NewPlotRoots"
                 value={{ value: newPlot.plot_rootstock, label: newPlot.plot_rootstock }}
                 onChange={(selectedOption) => {
                   setNewPlot({ ...newPlot, plot_rootstock: selectedOption.value });
@@ -590,7 +695,7 @@ const filteredPlots = Array.isArray(plots)
                 className="modal-form-input"
               />
 
-              <label className="modal-form-label">Año de implantación:</label>
+              <label className="modal-form-label" htmlFor="NewPlotPlantaY">Año de implantación:</label>
               <input
                 id="NewPlotPlantaY"
                 type="number"
@@ -599,7 +704,7 @@ const filteredPlots = Array.isArray(plots)
                 className="modal-form-input"
               />
 
-              <label className="modal-form-label">Año de creación:</label>
+              <label className="modal-form-label" htmlFor="NewPlotCreatY">Año de creación:</label>
               <input
                 id="NewPlotCreatY"
                 type="number"
@@ -608,9 +713,9 @@ const filteredPlots = Array.isArray(plots)
                 className="modal-form-input"
               />
 
-              <label className="modal-form-label">Sistema de conducción:</label>
+              <label className="modal-form-label" htmlFor="NewPlotConduc">Sistema de conducción:</label>
               <Select
-                id="NewPlotConduc"
+                inputId="NewPlotConduc"
                 value={{ value: newPlot.plot_conduction, label: newPlot.plot_conduction }}
                 onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_conduction: selectedOption.value })}
                 options={conduction.map((conduction) => ({
@@ -620,11 +725,22 @@ const filteredPlots = Array.isArray(plots)
                 isSearchable
                 placeholder="Seleccionar sistema de conduccion"
                 className="modal-form-input"
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (provided) => ({
+                    ...provided,
+                    zIndex: 10000
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    zIndex: 10000
+                  })
+                }}
               />
 
-              <label className="modal-form-label">Tipo de manejo:</label>
+              <label className="modal-form-label" htmlFor="NewPlotManagement">Tipo de manejo:</label>
               <Select
-                id="NewPlotManagement"
+                inputId="NewPlotManagement"
                 value={{ value: newPlot.plot_management, label: newPlot.plot_management }}
                 onChange={(selectedOption) => setNewPlot({ ...newPlot, plot_management: selectedOption.value })}
                 options={management.map((management) => ({
@@ -634,9 +750,20 @@ const filteredPlots = Array.isArray(plots)
                 isSearchable
                 placeholder="Seleccionar portainjerto..."
                 className="modal-form-input"
-              />
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: (provided) => ({
+                    ...provided,
+                    zIndex: 10000
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    zIndex: 10000
+                  })
+                }}
+                            />
 
-              <label className="modal-form-label">Descripción:</label>
+              <label className="modal-form-label" htmlFor="NewPlotDescript">Descripción:</label>
               <textarea
                 id="NewPlotDescript"
                 value={newPlot.plot_description}
@@ -656,7 +783,7 @@ const filteredPlots = Array.isArray(plots)
                 <div className="mb-4">
                   <button
                     onClick={handleClearCreateMap}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                    className="btn btn-danger mr-2"
                   >
                     Limpiar Mapa
                   </button>
@@ -759,35 +886,32 @@ const filteredPlots = Array.isArray(plots)
                     {isEditingDetails ? (
                       field.type === 'select' ? (
                         <Select
+                          inputId={field.key}
+                          name={field.key}
                           value={
                             field.key === 'plot_var' 
                               ? { 
-                                  value: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '', 
-                                  label: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || '' 
+                                  value: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var, 
+                                  label: varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var
                                 }
                               : field.key === 'plot_rootstock'
                               ? {
-                                  value: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || '',
-                                  label: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || ''
+                                  value: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock,
+                                  label: rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
                                 }
                               : field.key === 'plot_conduction'
                               ? {
-                                  value: conduction.find(c => c.value === plotDetails.plot_conduction)?.value || '',
-                                  label: conduction.find(c => c.value === plotDetails.plot_conduction)?.value || ''
+                                  value: plotDetails.plot_conduction || '',
+                                  label: plotDetails.plot_conduction || ''
                                 }
                               : field.key === 'plot_management'
                               ? {
-                                  value: management.find(m => m.value === plotDetails.plot_management)?.value || '',
-                                  label: management.find(m => m.value === plotDetails.plot_management)?.value || ''
+                                  value: plotDetails.plot_management || '',
+                                  label: plotDetails.plot_management || ''
                                 }
                               : null
                           }
-                          onChange={(selectedOption) => {
-                            setPlotDetails({
-                              ...plotDetails,
-                              [field.key]: selectedOption.value
-                            });
-                          }}
+                          onChange={(selectedOption) => handleSelectChange(field.key, selectedOption)}
                           options={
                             field.options === 'varieties' 
                               ? varieties.map(option => ({ value: option.name, label: option.name }))
@@ -802,73 +926,79 @@ const filteredPlots = Array.isArray(plots)
                           isSearchable
                           placeholder={`Seleccionar ${field.label}...`}
                           className="w-full"
+                          isClearable={!field.required} // Solo si el campo no es requerido
                         />
-                      ) : field.type === 'textarea' ? (
-                        <textarea
-                          value={plotDetails[field.key] || ''}
-                          onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                          className="w-full p-2 border rounded"
-                          disabled={field.disabled}
-                        />
+                        ) : field.type === 'textarea' ? (
+                          <textarea
+                            id={field.key}
+                            name={field.key}
+                            value={plotDetails[field.key] || ''}
+                            onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
+                            className="w-full p-2 border rounded"
+                            disabled={field.disabled}
+                          />
+                        ) : (
+                          <input
+                            id={field.key}
+                            name={field.key}
+                            type={field.type}
+                            value={plotDetails[field.key] || ''}
+                            onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
+                            className="w-full p-2 border rounded"
+                            disabled={field.disabled}
+                          />
+                        )
                       ) : (
-                        <input
-                          type={field.type}
-                          value={plotDetails[field.key] || ''}
-                          onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                          className="w-full p-2 border rounded"
-                          disabled={field.disabled}
-                        />
-                      )
-                    ) : (
-                      <span>
-                        {field.key === 'plot_var'
-                        ? varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var
-                        : field.key === 'plot_rootstock'
-                        ? rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
-                        : field.key === 'plot_conduction'
-                        ? conduction.find(c => c.value === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
-                        : field.key === 'plot_management'
-                        ? management.find(m => m.value === plotDetails.plot_management)?.value || plotDetails.plot_management
-                        : plotDetails[field.key]?.name || plotDetails[field.key]}
-                    </span>
+                        <span>
+                          {field.key === 'plot_var'
+                          ? varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var
+                          : field.key === 'plot_rootstock'
+                          ? rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock
+                          : field.key === 'plot_conduction'
+                          ? conduction.find(c => c.value === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction
+                          : field.key === 'plot_management'
+                          ? management.find(m => m.value === plotDetails.plot_management)?.value || plotDetails.plot_management
+                          : plotDetails[field.key]?.name || plotDetails[field.key]}
+                      </span>
                     )}
                   </dd>
                 </div>
               ))}
             </dl>
             {/* Botones de acción unificados */}
-            <div className="flex justify-end gap-4 mt-6 border-t pt-4">
+            <div className="modal-buttons mt-4">
             {isEditingDetails ? (
             <>
               <button
-                onClick={handleSaveDetails}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                Guardar Cambios
-              </button>
-              <button
                 onClick={() => setIsEditingDetails(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="btn btn-secondary"
               >
                 Cancelar
+              </button>
+              <button
+                onClick={handleSaveDetails}
+                className="btn btn-primary"
+              >
+                Guardar Cambios
               </button>
             </>
           ) : (
             <>
               <button
-                onClick={handleEditDetails}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Editar Parcela
-              </button>
-              <button
                 onClick={() => {
                   setPlotToArchive(plotDetails);
                   setShowArchiveModal(true);
                 }}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                className="btn btn-secondary"
               >
                 Archivar Parcela
+              </button>
+
+                            <button
+                onClick={handleEditDetails}
+                className="btn btn-primary"
+              >
+                Editar Parcela
               </button>
                 </>
               )}
@@ -896,30 +1026,28 @@ const filteredPlots = Array.isArray(plots)
             <p className="mb-6">
               ¿Estás seguro que deseas archivar la parcela {plotToArchive?.plot_name}?
             </p>
-            <div className="flex items-center justify-between">
+            <div className="modal-buttons mt-4">
               <button
                 onClick={() => handleDeletePlot(plotToArchive?.plot_id)}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                className="btn btn-danger mr-2"
               >
                 Eliminar Parcela
               </button>
-              <div className="flex gap-4">
                 <button
                   onClick={() => {
                     setShowArchiveModal(false);
                     setPlotToArchive(null);
                   }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                  className="btn btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={() => handleArchivePlot(plotToArchive?.plot_id)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  className="btn btn-primary"
                 >
                   Sí, Archivar Parcela
                 </button>
-              </div>
             </div>
           </div>
         </div>

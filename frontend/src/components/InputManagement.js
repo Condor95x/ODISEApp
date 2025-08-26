@@ -349,12 +349,13 @@ function InputManagement({ onInputCreated }) {
               <div className="modal-form-grid"> {/* Contenedor para las columnas */}
                 <div className="modal-column"> {/* Columna 1 */}
                   <div className="mb-4">
-                    <label className="modal-form-label">Nombre:</label>
-                    <input type="text" value={newInput.name} onChange={(e) => setNewInput({ ...newInput, name: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputNombre'>Nombre:</label>
+                    <input id='NewInputNombre' type="text" value={newInput.name} onChange={(e) => setNewInput({ ...newInput, name: e.target.value })} className="modal-form-input" />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Categoría:</label>
+                    <label className="modal-form-label" htmlFor='NewInputCat'>Categoría:</label>
                     <select
+                      id='NewInputCat'
                       value={newInput.category_id || ''} // Usar category_id como valor
                       onChange={(e) => {
                           const value = e.target.value;
@@ -374,12 +375,13 @@ function InputManagement({ onInputCreated }) {
                     </select>
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Marca:</label>
-                    <input type="text" value={newInput.brand} onChange={(e) => setNewInput({ ...newInput, brand: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputMarca'>Marca:</label>
+                    <input id='NewInputMarca'type="text" value={newInput.brand} onChange={(e) => setNewInput({ ...newInput, brand: e.target.value })} className="modal-form-input" />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Cantidad Inicial:</label>
+                    <label className="modal-form-label" htmlFor='NewInputCantidadInicial'>Cantidad Inicial:</label>
                     <input
+                      id='NewInputCantidadInicial'
                       type="number"
                       value={newInput.initial_quantity}
                       onChange={(e) => {
@@ -390,22 +392,23 @@ function InputManagement({ onInputCreated }) {
                   />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Descripción:</label>
-                    <textarea value={newInput.description} onChange={(e) => setNewInput({ ...newInput, description: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputDescripcion'>Descripción:</label>
+                    <textarea id='NewInputDescripcion' value={newInput.description} onChange={(e) => setNewInput({ ...newInput, description: e.target.value })} className="modal-form-input" />
                   </div>
                 </div>
                 <div className="modal-column">
                   <div className="mb-4">
-                    <label className="modal-form-label">Unidad de Medida:</label>
-                    <input type="text" value={newInput.unit_of_measure} onChange={(e) => setNewInput({ ...newInput, unit_of_measure: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputUnidad'>Unidad de Medida:</label>
+                    <input id='NewInputUnidad' type="text" value={newInput.unit_of_measure} onChange={(e) => setNewInput({ ...newInput, unit_of_measure: e.target.value })} className="modal-form-input" />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Precio Unitario:</label>
-                    <input type="number" value={newInput.unit_price} onChange={(e) => setNewInput({ ...newInput, unit_price: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputPrecio'>Precio Unitario:</label>
+                    <input id='NewInputPrecio' type="number" value={newInput.unit_price} onChange={(e) => setNewInput({ ...newInput, unit_price: e.target.value })} className="modal-form-input" />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Almacén:</label>
+                    <label className="modal-form-label" htmlFor='NewInputAlmacen' >Almacén:</label>
                     <select
+                      id='NewInputAlmacen'
                       value={newInput.warehouse_id || ''}
                       onChange={(e) => setNewInput({ ...newInput, warehouse_id: e.target.value })}
                       className="modal-form-input"
@@ -419,12 +422,12 @@ function InputManagement({ onInputCreated }) {
                     </select>
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Stock Mínimo:</label>
-                    <input type="number" value={newInput.minimum_stock} onChange={(e) => setNewInput({ ...newInput, minimum_stock: e.target.value })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputMinimo'>Stock Mínimo:</label>
+                    <input id='NewInputMinimo' type="number" value={newInput.minimum_stock} onChange={(e) => setNewInput({ ...newInput, minimum_stock: e.target.value })} className="modal-form-input" />
                   </div>
                   <div className="mb-4">
-                    <label className="modal-form-label">Activo:</label>
-                    <input type="checkbox" checked={newInput.is_active} onChange={(e) => setNewInput({ ...newInput, is_active: e.target.checked })} className="modal-form-input" />
+                    <label className="modal-form-label" htmlFor='NewInputActivo'>Activo:</label>
+                    <input id='NewInputActivo' type="checkbox" checked={newInput.is_active} onChange={(e) => setNewInput({ ...newInput, is_active: e.target.checked })} className="modal-form-input" />
                   </div>
                   </div></div>
               <div className="modal-buttons mt-4">

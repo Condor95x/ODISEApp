@@ -304,22 +304,28 @@ function VesselsManagement() {
           </button>
         )}
       </div>
-      <div className="flex gap-2 mb-4">
-        <label htmlFor="groupingFieldVessel" className="mr-2">Agrupar por:</label>
-        <Spacer width={0.2} />
-        <select id="groupingFieldVessel" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
-          <option value="none">Sin Agrupación</option>
-          <option value="type">Tipo</option>
-          <option value="capacity">Capacidad</option>
-        </select>
-      <Spacer width={2} />
-        <select id="FilterFieldVessel"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
-          <option value="name">Nombre</option>
-          <option value="type">Tipo</option>
-          <option value="capacity">Capacidad</option>
-        </select>
-        <Spacer width={0.2} />
-        <input id="FilterValueVessel" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="border p-2 rounded w-64" />
+      <div className="filter-controls-container">
+        <div className="control-group">
+          <label htmlFor="groupingFieldVessel" className="control-label">Agrupar por:</label>
+          <select id="groupingFieldVessel" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="control-select">
+            <option value="none">Sin Agrupación</option>
+            <option value="type">Tipo</option>
+            <option value="capacity">Capacidad</option>
+          </select>
+        </div>
+        <div className="control-group">
+          <label htmlFor="FilterFieldVessel" className="control-label">
+            Filtrar por:
+          </label>
+          <div className="filter-inputs">
+            <select id="FilterFieldVessel"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="control-select filter-field">
+              <option value="name">Nombre</option>
+              <option value="type">Tipo</option>
+              <option value="capacity">Capacidad</option>
+            </select>
+            <input id="FilterValueVessel" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="control-input" />
+          </div>
+        </div>
       </div>
   
       {Object.entries(groupedVessels).map(([group, vessels]) => (
@@ -367,26 +373,26 @@ function VesselsManagement() {
             <div className="modal-form-grid">
               <div className="modal-column">
                 <div className="mb-4">
-                  <label className="modal-form-label">Nombre:</label>
-                  <input type="text" value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewVesselName'>Nombre:</label>
+                  <input type="text" id='NewVesselName' value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} className="modal-form-input" />
                 </div>
                 <div className="mb-4">
-                  <label className="modal-form-label">Descripción:</label>
-                  <textarea value={newVessel.description} onChange={(e) => setNewVessel({ ...newVessel, description: e.target.value })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewVesselDescription'>Descripción:</label>
+                  <textarea id='NewVesselDescription' value={newVessel.description} onChange={(e) => setNewVessel({ ...newVessel, description: e.target.value })} className="modal-form-input" />
                 </div>
                 <div className="mb-4">
-                  <label className="modal-form-label">Activo:</label>
-                  <input type="checkbox" checked={newVessel.is_active} onChange={(e) => setNewVessel({ ...newVessel, is_active: e.target.checked })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewVesselStatus'>Activo:</label>
+                  <input id='NewVesselStatus' type="checkbox" checked={newVessel.is_active} onChange={(e) => setNewVessel({ ...newVessel, is_active: e.target.checked })} className="modal-form-input" />
                 </div>
               </div>
               <div className="modal-column">
                 <div className="mb-4">
-                  <label className="modal-form-label">Tipo:</label>
-                  <input type="text" value={newVessel.type} onChange={(e) => setNewVessel({ ...newVessel, type: e.target.value })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewVesselTipo' >Tipo:</label>
+                  <input id='NewVesselTipo' type="text" value={newVessel.type} onChange={(e) => setNewVessel({ ...newVessel, type: e.target.value })} className="modal-form-input" />
                 </div>
                 <div className="mb-4">
-                  <label className="modal-form-label">Capacidad:</label>
-                  <input type="number" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewVesselCapacidad'>Capacidad:</label>
+                  <input id='NewVesselCapacidad' type="number" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} className="modal-form-input" />
                 </div>
               </div>
             </div>

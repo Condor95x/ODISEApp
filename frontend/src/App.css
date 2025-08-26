@@ -54,6 +54,71 @@ body {
 }
 
 /* ========================================
+   Sistema de Filtros y Controles
+   ======================================== */
+.filter-controls-container {
+  background: #f8f9fa;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 4px rgba(3, 17, 78, 0.05);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.control-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary-color);
+  margin-bottom: 4px;
+}
+
+.control-select, .control-input {
+  padding: 10px 12px;
+  border: 2px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: var(--white);
+  font-family: inherit;
+}
+
+.control-select:focus, .control-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(3, 17, 78, 0.1);
+}
+
+.control-select:hover, .control-input:hover {
+  border-color: var(--primary-color);
+}
+
+.filter-inputs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  min-width: 120px;
+}
+
+.control-input {
+  min-width: 200px;
+  flex: 1;
+}
+
+/* ========================================
    Sistema de Botones
    ======================================== */
 .btn {
@@ -372,6 +437,13 @@ body {
   overflow-y: auto;
   max-height: 90vh;
 }
+.modal-content .react-select__menu {
+  z-index: 9999 !important;
+}
+
+.modal-content .react-select__menu-portal {
+  z-index: 9999 !important;
+}
 
 .modal-title {
   text-align: center;
@@ -460,6 +532,9 @@ body {
   border-radius: 5px !important;
   padding: 5px !important;
   box-shadow: var(--shadow) !important;
+}
+.leaflet-container {
+  z-index: 1;
 }
 
 /* ========================================
@@ -655,7 +730,6 @@ body {
     padding-bottom: 120px; /* Espacio para el menú inferior */
   }
 
-
   .modal-wrapper {
     min-width: 300px;
   }
@@ -666,6 +740,26 @@ body {
 
   .insumos-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Estilos responsive para filtros */
+  .filter-controls-container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+  
+  .control-group {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .filter-inputs {
+    flex-direction: column;
+  }
+  
+  .control-input {
+    min-width: unset;
   }
 }
 
@@ -686,5 +780,20 @@ body {
   .btn {
     width: 100%;
     margin-bottom: 8px;
+  }
+
+  /* Ajustes adicionales para filtros en pantallas muy pequeñas */
+  .filter-controls-container {
+    padding: 10px;
+    gap: 12px;
+  }
+  
+  .control-select, .control-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .control-label {
+    font-size: 13px;
   }
 }

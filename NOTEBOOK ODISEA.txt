@@ -1,9 +1,27 @@
 NOTEBOOK ODISEA
 ---------------------------------------------------------------------------------
 ISSUES
-Seguridad
-Problemas
-probar todo
+Estilo
+Parcelas
+  Mapa gral
+Probar todo
+  Parcelas
+    Parcelas archivadas muestran la clave del portainjerto *
+  Operaciones(finca)
+    filtrar toma claves y no valores
+    dos problemas ligados a los inputs
+  VEssels
+    filtrqr por canticad
+  lotes
+    filtrar parece tomar ids
+    modal de visualizar lotes muestra claves de variedades
+  inputs
+    agrupa por categorias toma id
+    filtros
+
+---------------
+Administracion
+Meteo
 ---------------------------------------------------------------------------------
 USUARIOS
 --------
@@ -12,7 +30,7 @@ maria.gomez@example.com		|  maria20     |	obrero	bodega
 carlos.lopez@example.com	|  charly20    |	tecnico bodega   
 ana.rodriguez@example.com	|  testana20   |	tecnico finca    
 sofia.martinez@example.com	|  testsofi20  |	administrador    
-andreselcrack@odisea.com	|  C0nDor!25   |        administrador
+andreselcrack@odisea.com	|  C0nDor!25   |    administrador
 ---------------------------------------------------------------------------------
 para hacer el batch de la database
 heroku run python C:\Users\andre\Documentos\ODISEA\ODISEApp\scripts\seed_db.py --app odiseapp
@@ -34,3 +52,694 @@ mail vale:
 -pwd: Urquiza1338
 pbi: ^5ub$8*3$ypGM6g
 -------------------------------------------------------------------------------------------
+css24.08
+/* ========================================
+   Variables CSS y Reset Básico
+   ======================================== */
+:root {
+  --primary-color: #03114e;
+  --white: #ffffff;
+  --gray-light: #ccc;
+  --gray-medium: #585858;
+  --gray-dark: #444;
+  --danger-color: #dc3545;
+  --danger-hover: #c82333;
+  --disabled-color: #6c757d;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --border-radius: 4px;
+  --menu-width: 200px;
+  --menu-collapsed-width: 50px;
+  --content-margin: 220px;
+  --content-margin-collapsed: 70px;
+  --transition: all 0.5s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.5;
+}
+
+/* ========================================
+   Utilidades Generales
+   ======================================== */
+.contenedor {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.titulo-seccion {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--primary-color);
+}
+
+.titulo-seccion h2 {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+/* ========================================
+   Sistema de Botones
+   ======================================== */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn:disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+}
+
+.boton,
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #041a5c;
+}
+
+.btn-secondary {
+  background-color: var(--gray-light);
+  color: var(--white);
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger-hover);
+}
+
+.btn-retry {
+  background-color: #f0ad4e;
+  color: var(--white);
+}
+
+/* ========================================
+   Componente App (React)
+   ======================================== */
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--white);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: var(--white);
+}
+
+.App-link {
+  color: #ff0000;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   Sistema de Navegación/Menú
+   ======================================== */
+.menu {
+  width: var(--menu-width);
+  background-color: var(--primary-color);
+  padding: 10px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  color: var(--white);
+  z-index: 100;
+}
+
+.menu.collapsed {
+  width: var(--menu-collapsed-width);
+  padding: 10px 5px;
+}
+
+.menu-toggle {
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: var(--transition);
+  color: var(--white);
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+}
+
+.menu.collapsed .menu-toggle {
+  text-align: center;
+}
+
+.menu-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.menu-items li {
+  text-align: left;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.menu-link {
+  color: var(--white);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  width: 100%;
+}
+
+.menu-link:hover,
+.menu-link:visited {
+  color: var(--white);
+  background-color: rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.menu-icon {
+  margin-right: 10px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.menu-text {
+  transition: all 0.5s ease-in-out; /* Misma duración que el contenedor */
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.menu.collapsed .menu-text {
+  opacity: 0;
+  width: 0;
+  margin: 0;
+  transition: all 0.5s ease-in-out; /* Misma duración, sin delay */
+}
+
+/* Estilos para menú colapsado - pastillas solo para íconos */
+.menu.collapsed .menu-link {
+  padding: 10px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  margin: 0 auto 8px auto;
+}
+
+.menu.collapsed .menu-icon {
+  margin-right: 0;
+  font-size: 1.1rem;
+}
+
+/* Información del usuario */
+.user-info {
+  margin-top: auto;
+  padding: 15px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-name {
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.85em;
+  text-align: center;
+  font-weight: 400;
+}
+
+.menu.collapsed .user-name {
+  display: none;
+}
+
+.logout-button {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.logout-icon {
+  margin-right: 8px;
+  color: var(--white);
+  font-size: 1rem;
+}
+
+.logout-text {
+  color: var(--white);
+}
+
+/* Botón logout colapsado - pastilla circular */
+.menu.collapsed .logout-button {
+  width: 40px;
+  height: 40px;
+  padding: 10px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.menu.collapsed .logout-icon {
+  margin-right: 0;
+  font-size: 1.1rem;
+}
+
+.menu.collapsed .logout-text {
+  display: none;
+}
+
+/* Contenido principal */
+.content {
+  margin-left: var(--content-margin);
+  padding: 20px;
+  transition: var(--transition);
+  min-height: 100vh;
+}
+
+.menu.collapsed ~ .content {
+  margin-left: var(--content-margin-collapsed);
+}
+
+/* ========================================
+   Sistema de Modales
+   ======================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-wrapper {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  min-width: 400px;
+}
+
+.modal-content {
+  background-color: var(--white);
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.modal-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+/* Formularios en modales */
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 20px;
+}
+
+.modal-form-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.modal-form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.modal-form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 17, 78, 0.1);
+}
+
+/* Grids específicos */
+.insumos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.insumos-column {
+  padding: 0.5rem;
+}
+
+/* Botones del modal */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* Detalles */
+.detail-item {
+  margin-bottom: 12px;
+}
+
+.detail-item dt {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--primary-color);
+}
+
+.detail-item dd {
+  margin-left: 0;
+  color: #555;
+}
+
+.contenedor-imagen {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+/* ========================================
+   Leaflet/Mapa
+   ======================================== */
+.leaflet-control-geocoder-form {
+  background-color: var(--white) !important;
+  border: 1px solid var(--gray-light) !important;
+  border-radius: 5px !important;
+  padding: 5px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* ========================================
+   Media Queries - Responsive
+   ======================================== */
+@media (max-width: 768px) {
+  :root {
+    --menu-width: 100%;
+    --content-margin: 0;
+    --content-margin-collapsed: 0;
+  }
+
+  .menu {
+    width: 100%;
+    height: auto;
+    position: fixed; /* Cambio: de relative a fixed */
+    bottom: 0; /* Cambio: posicionar en la parte inferior */
+    left: 0;
+    top: auto; /* Cambio: quitar top: 0 */
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+    padding: 12px 8px 10px 8px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%);
+  }
+
+  .menu.collapsed {
+    width: 100%;
+  }
+
+  /* Ocultar el botón toggle en móvil */
+  .menu-toggle {
+    display: none;
+  }
+
+  .menu-items {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .menu-items li {
+    margin: 0;
+  }
+
+  .menu-link {
+    padding: 8px 4px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease;
+    color: var(--white) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 50px;
+    text-align: center;
+  }
+
+  .menu-link:hover,
+  .menu-link:visited {
+    color: var(--white) !important;
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .menu-icon {
+    margin-right: 0;
+    margin-bottom: 2px;
+    font-size: 1rem;
+    color: var(--white) !important;
+    width: auto;
+  }
+
+  .menu-text {
+    font-size: 0.65rem;
+    font-weight: 500;
+    opacity: 1;
+    width: auto;
+    color: var(--white) !important;
+    line-height: 1;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  /* Eliminar todos los estilos de collapsed para móvil */
+  .menu.collapsed .menu-link {
+    padding: 8px 4px;
+    border-radius: 12px;
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    min-height: 50px;
+  }
+
+  .menu.collapsed .menu-text {
+    opacity: 1;
+    width: auto;
+    color: var(--white) !important;
+    display: block;
+  }
+
+  .menu.collapsed .menu-icon {
+    margin-right: 0;
+    margin-bottom: 2px;
+    color: var(--white) !important;
+  }
+
+  .user-info {
+    margin-top: 8px;
+    padding: 8px 0 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .user-name {
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+  }
+
+  .logout-button {
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    min-width: fit-content;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+    margin: 0;
+  }
+
+  .logout-button:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .logout-icon {
+    margin-right: 4px;
+    font-size: 0.8rem;
+    color: var(--white);
+  }
+
+  .logout-text {
+    font-size: 0.75rem;
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .menu.collapsed .user-name {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .menu.collapsed .logout-button {
+    width: auto;
+    height: auto;
+    padding: 6px 12px;
+    border-radius: 15px;
+  }
+
+  .menu.collapsed .logout-text {
+    display: inline;
+  }
+
+  .menu.collapsed .logout-icon {
+    margin-right: 4px;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 10px;
+    margin-top: 0;
+    padding-bottom: 120px; /* Espacio para el menú inferior */
+  }
+
+
+  .modal-wrapper {
+    min-width: 300px;
+  }
+
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insumos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .contenedor {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .modal-content {
+    padding: 16px;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}

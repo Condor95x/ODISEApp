@@ -335,8 +335,9 @@ function StockManagement() {
                 <p>Insumo: {selectedStock.input.name}</p>
                 <p>Almacén: {selectedStock.warehouse.name}</p>
                 <div className="mb-4">
-                  <label className="modal-form-label">Cantidad:</label>
+                  <label className="modal-form-label" htmlFor='NewStockCantidad'>Cantidad:</label>
                   <input
+                    id='NewStockCantidad'
                     type="number"
                     value={movementQuantity}
                     onChange={(e) => setMovementQuantity(e.target.value)}
