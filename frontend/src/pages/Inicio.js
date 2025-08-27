@@ -7,7 +7,7 @@ function Inicio() {
   return (
     <div className="contenedor">
       <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-xl shadow-lg mb-8 max-w-lg w-full">
-        <h1 className="titulo-seccion">Bienvenido</h1>
+        <h1>Bienvenido</h1>
         <img src={odiseaLogo} alt="Logo de Odisea" className="logo-app" />
       </div>
       <div className="flex flex-row items-center justify-center gap-12 p-6 bg-white rounded-xl shadow-lg max-w-2xl w-full">
