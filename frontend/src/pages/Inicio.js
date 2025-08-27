@@ -6,7 +6,7 @@ import Resumen from '../../public/Resumen.png';
 function Inicio() {
   return (
     <div className="contenedor">
-      <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-xl shadow-lg mb-8 max-w-lg w-full">
+     <div className="titulo-seccion">
         <h1>Bienvenido</h1>
         <img src={odiseaLogo} alt="Logo de Odisea" className="logo-app" />
       </div>
