@@ -6,19 +6,17 @@ Parcelas
   Mapa gral
 Probar todo
   Parcelas
-    Parcelas archivadas muestran la clave del portainjerto *
-  Operaciones(finca)
-    filtrar toma claves y no valores
-    dos problemas ligados a los inputs
-  VEssels
-    filtrqr por canticad
-  lotes
-    filtrar parece tomar ids
-    modal de visualizar lotes muestra claves de variedades
-  inputs
-    agrupa por categorias toma id
-    filtros
-
+    Plots
+    ParcelasArchivadas
+  OperacioneFinca
+    Operaciones
+  TareasBodega
+    Tasks
+    Vessels
+    Lotes
+  Inventarios
+    Inputs
+    Stocks
 ---------------
 Administracion
 Meteo

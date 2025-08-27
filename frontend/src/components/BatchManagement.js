@@ -116,22 +116,44 @@ function BatchManagement({ onBatchCreated }) {
 
   const handleDeleteBatch = async (id) => {
     try {
-      await deleteBatch(id);
-      const response = await getBatches(); // Cambia data por response para acceder a response.data
-      if (response && Array.isArray(response.data)) {
+        await deleteBatch(id);
+        const response = await getBatches(); // Cambia data por response para acceder a response.data
+        if (response && Array.isArray(response.data)) {
         setBatches(response.data);
-      } else {
+        } else {
         setError("La respuesta de la API no es un array válido.");
         setBatches([]);
-      }
-    } catch (err) {
-      setError(err);
-    }
-  };
+        }
+        } catch (err) {
+            setError(err);
+        }
+    };
 
-    const filteredBatches = batches.filter((batch) =>
-        batch[filterField].toLowerCase().includes(filterValue.toLowerCase())
-    );
+    const filteredBatches = batches.filter((batch) => {
+        if (!filterValue) return true;
+        
+        let valueToFilter = '';
+        
+        switch (filterField) {
+            case 'name':
+                valueToFilter = String(batch.name || '');
+                break;
+            case 'variety':
+                // Filtrar por el nombre de la variedad, no por el ID
+                valueToFilter = getVarName(batch.variety);
+                break;
+            case 'entry_date':
+                valueToFilter = String(batch.entry_date || '');
+                break;
+            case 'description':
+                valueToFilter = String(batch.description || '');
+                break;
+            default:
+                valueToFilter = String(batch[filterField] || '');
+        }
+        
+        return valueToFilter.toLowerCase().includes(filterValue.toLowerCase());
+    });
 
     const handleSort = (key) => {
         let direction = 'ascending';
@@ -299,8 +321,9 @@ function BatchManagement({ onBatchCreated }) {
                             className="control-select filter-field"
                         >
                             <option value="name">Nombre</option>
-                            <option value="variety">Variedad de Uva</option>
+                            <option value="variety">Variedad de Uva (por nombre)</option>
                             <option value="entry_date">Fecha de Inicio</option>
+                            <option value="description">Descripción</option>
                         </select>
                         <input
                             id="FilterValueBatch"
@@ -384,16 +407,19 @@ function BatchManagement({ onBatchCreated }) {
                                     <label className="modal-form-label" htmlFor='NewBatchVar'>Variedad de Uva:</label>
                                     <Select
                                         inputId='NewBatchVar'
-                                        value={{ value: newBatch.variety || '', label: newBatch.variety}}
+                                        value={grapevines.find(gv => gv.gv_id === newBatch.variety) 
+                                            ? { value: newBatch.variety, label: getVarName(newBatch.variety) }
+                                            : null
+                                        }
                                         onChange={(selectedOption) => setNewBatch({ ...newBatch, variety: selectedOption.value })}
-                                        options={grapevines.map((grapevines) => ({
-                                            value: grapevines.gv_id,
-                                            label: grapevines.name,
+                                        options={grapevines.map((grapevine) => ({
+                                            value: grapevine.gv_id,
+                                            label: grapevine.name,
                                         }))}
                                         isSearchable
                                         placeholder="Seleccionar variedad..."
                                         className="modal-form-input"
-                                        />
+                                    />
                                 </div>
                                 <div className="mb-4">
                                     <label className="modal-form-label" htmlFor='NewBatchDateFin'>Fecha de Fin:</label>

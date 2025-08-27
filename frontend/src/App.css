@@ -571,15 +571,21 @@ body {
   }
 
   .menu-items {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
     gap: 4px;
     padding: 0;
     margin: 0;
     width: 100%;
   }
 
+  .menu-items::-webkit-scrollbar {
+    display: none;
+  }
+
   .menu-items li {
+    flex: 0 0 20%;
     margin: 0;
   }
 

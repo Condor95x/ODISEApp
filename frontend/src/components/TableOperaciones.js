@@ -99,10 +99,36 @@ function TableOperaciones() {
         return 0;
     });
 
-    const filteredSortedOperaciones = sortedOperaciones.filter((p) => {
+    const filteredSortedOperaciones = sortedOperaciones.filter((operacion) => {
         if (!filterValue) return true;
-        const value = String(p[filterField] || "").toLowerCase();
-        return value.includes(filterValue.toLowerCase());
+        
+        let valueToFilter = '';
+        
+        switch (filterField) {
+            case 'id':
+                valueToFilter = String(operacion.id);
+                break;
+            case 'parcela_id':
+                // Filtrar por el nombre de la parcela, no por el ID
+                const parcela = plotsData.find(plot => plot.plot_id === operacion.parcela_id);
+                valueToFilter = parcela ? parcela.plot_name : '';
+                break;
+            case 'estado':
+                valueToFilter = String(operacion.estado || '');
+                break;
+            case 'responsable_id':
+                // Filtrar por el nombre del responsable, no por el ID
+                const responsable = usuarios.find(usuario => usuario.id === operacion.responsable_id);
+                valueToFilter = responsable ? `${responsable.nombre} ${responsable.apellido}` : '';
+                break;
+            case 'tipo_operacion':
+                valueToFilter = String(operacion.tipo_operacion || '');
+                break;
+            default:
+                valueToFilter = String(operacion[filterField] || '');
+        }
+        
+        return valueToFilter.toLowerCase().includes(filterValue.toLowerCase());
     });
     
     const groupedOperaciones = groupBy ? groupOperaciones(filteredSortedOperaciones, groupBy) : { "Todas las operaciones": filteredSortedOperaciones };   
@@ -560,9 +586,10 @@ function TableOperaciones() {
                                 className="control-select filter-field"
                             >
                                 <option value="id">ID</option>
-                                <option value="parcela_id">Parcela</option>
+                                <option value="tipo_operacion">Tipo de Operación</option>
+                                <option value="parcela_id">Parcela (por nombre)</option>
                                 <option value="estado">Estado</option>
-                                <option value="responsable_id">Responsable</option>
+                                <option value="responsable_id">Responsable (por nombre)</option>
                             </select>
                             <input 
                                 type="text"
@@ -751,11 +778,12 @@ function TableOperaciones() {
                             <div className="insumos-column">
                                 {newOperacion.inputs.map((insumo) => (
                                     <div key={insumo.insumo_id}>
-                                        <label className="modal-form-label" htmlFor={insumo.id}>
+                                        <label className="modal-form-label" htmlFor={`cantidad-${insumo.insumo_id}`}>
                                             Cantidad {insumos.find(i => i.id === insumo.insumo_id)?.name || 'Insumo'}:
                                         </label>
                                         <input 
-                                            id={insumo.id}
+                                            id={`cantidad-${insumo.insumo_id}`}
+                                            name={`cantidad-${insumo.insumo_id}`}
                                             type="number" 
                                             value={insumo.cantidad} 
                                             onChange={(e) => {

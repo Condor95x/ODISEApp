@@ -171,9 +171,19 @@ function InputManagement({ onInputCreated }) {
     }
   };
 
-  const filteredInputs = inputs.filter((input) =>
-    input[filterField].toLowerCase().includes(filterValue.toLowerCase())
-  );
+  const filteredInputs = inputs.filter((input) => {
+    const value = input[filterField];
+    let filterString = '';
+
+    if (filterField === 'category_id') {
+        const category = categories.find(cat => cat.id === value);
+        filterString = category ? category.name : '';
+    } else if (value !== null && value !== undefined) {
+        filterString = String(value);
+    }
+
+    return filterString.toLowerCase().includes(filterValue.toLowerCase());
+  });
 
   const handleSort = (key) => {
     let direction = 'ascending';
@@ -297,7 +307,7 @@ function InputManagement({ onInputCreated }) {
 
       {Object.entries(groupedInputs).map(([group, inputs]) => (
         <div key={group} className="mb-4">
-          {groupBy && <h3 className="titulo-seccion">{`${groupBy.charAt(0).toUpperCase() + groupBy.slice(1).replace("_", " ")}: ${group}`}</h3>}
+          {groupBy && <h3 className="titulo-seccion">{`${groupBy === 'category_id' ? 'Categoría' : 'Marca'}: ${groupBy === 'category_id' ? getCategoryName(parseInt(group)) : group}`}</h3>}
           <table className="table-auto w-full border-collapse border border-gray-300">
               <thead>
                 <tr>

@@ -52,7 +52,17 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
         const data = await getVarieties();
         setVarieties(data);
       };
-      fetchVarieties();    
+      const fetchRootstocks = async () => {
+        try {
+          const data = await getRootstocks();
+          setRootstocks(data);
+        } catch (error) {
+          console.error("Error al obtener portainjertos:", error);
+        }
+      };
+
+      fetchVarieties();
+      fetchRootstocks();    
       fetchArchivedPlots();
     }, []);
   

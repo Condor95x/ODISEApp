@@ -126,9 +126,29 @@ function VesselsManagement() {
     }
   };
 
-  const filteredVessels = vessels.filter((vessel) =>
-    vessel[filterField].toLowerCase().includes(filterValue.toLowerCase())
-  );
+  const filteredVessels = vessels.filter((vessel) => {
+    const fieldValue = vessel[filterField];
+    const searchValue = filterValue.toLowerCase();
+    
+    // Si el campo es numérico (como capacity), convertir ambos valores a string
+    if (typeof fieldValue === 'number') {
+      return fieldValue.toString().includes(searchValue);
+    }
+    
+    // Si el campo es string, usar toLowerCase normalmente
+    if (typeof fieldValue === 'string') {
+      return fieldValue.toLowerCase().includes(searchValue);
+    }
+    
+    // Si es boolean (como is_active), convertir a string y buscar
+    if (typeof fieldValue === 'boolean') {
+      const booleanText = fieldValue ? 'activo' : 'inactivo';
+      return booleanText.includes(searchValue);
+    }
+    
+    // Para otros tipos, convertir a string
+    return String(fieldValue).toLowerCase().includes(searchValue);
+  });
 
   const handleSort = (key) => {
     let direction = 'ascending';
