@@ -14,4 +14,4 @@ function Administracion() {
   );
 }
 
-export default Administracion()
+export default Administracion;

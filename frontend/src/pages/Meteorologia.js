@@ -18,4 +18,4 @@ function Meteorología() {
   );
 }
 
-export default Meteorología()
+export default Meteorología;

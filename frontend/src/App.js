@@ -13,6 +13,8 @@ import Bodega from './pages/Bodega';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Analisis from './pages/Analisis';
+import Meteorologia from './pages/Meteorologia';
+import Administracion from './pages/administracion';
 
 function App() {
   return (
@@ -38,6 +40,8 @@ function App() {
                           <Route path="/bodega" element={<Bodega />} />
                           <Route path="/inventory" element={<Inventory />} />
                           <Route path="/Analisis" element={<Analisis />} />
+                          <Route path="/Meteorologia" element={<Meteorologia />} />
+                          <Route path="/Administracion" element={<Administracion />} />
                         </Routes>
                       </div>
                     </div>
