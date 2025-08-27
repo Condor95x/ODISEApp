@@ -1,7 +1,7 @@
 import React from 'react';
 import odiseaLogo from '../../public/odiseapp.png';
-import Meteo from '../../public/Meteo.png';
-import Resumen from '../../public/Resumen.png';
+import Meteo from '../../maqueta/Meteo.png';
+import Resumen from '../../maqueta/Resumen.png';
 
 function Inicio() {
   return (
