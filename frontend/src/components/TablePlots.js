@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect,useRef, Fragment} from "react";
 import { getPlots, createPlot, updatePlot, deletePlot,archivePlot, getRootstocks,getVarieties,getConduction,getManagement } from "../services/api";
 import Papa from "papaparse";
 import Modal from 'react-modal';
@@ -84,6 +84,9 @@ const TablePlots = () => {
   const [management, setManagement] = useState([]);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [plotToArchive, setPlotToArchive] = useState(null);
+  const [groupBy, setGroupBy] = useState(null);
+  const [allSelected, setAllSelected] = useState({});
+  const [selectedPlotsByGroup, setSelectedPlotsByGroup] = useState({});
 
   const createMapRef = useRef(null);
   const viewEditMapRef = useRef(null);
@@ -120,45 +123,71 @@ const TablePlots = () => {
     fetchVarieties();
     fetchRootstocks();
   }, []);
+  const handleGroupByChange = (e) => {
+    setGroupBy(e.target.value === "none" ? null : e.target.value);
+  };
 
-const filteredPlots = Array.isArray(plots)
-  ? plots.filter((p) => {
-      if (!filterValue) return true;
-      
-      let value;
-      
-      // Manejar casos especiales donde necesitamos buscar por nombre en lugar de ID
-      if (filterField === 'plot_var') {
-        // Buscar el nombre de la variedad por su ID
-        const variety = varieties.find(v => v.gv_id === p.plot_var);
-        value = variety ? variety.name : (p.plot_var || "");
-      } else if (filterField === 'plot_rootstock') {
-        // Si también quieres filtrar por portainjerto por nombre
-        const rootstock = rootstocks.find(r => r.gv_id === p.plot_rootstock);
-        value = rootstock ? rootstock.name : (p.plot_rootstock || "");
-      } else if (filterField === 'plot_conduction') {
-        // Para sistema de conducción, usar el valor directamente
-        value = p.plot_conduction || "";
-      } else if (filterField === 'plot_management') {
-        // Para tipo de manejo, usar el valor directamente
-        value = p.plot_management || "";
+  const filteredPlots = Array.isArray(plots)
+    ? plots.filter((p) => {
+        if (!filterValue) return true;
+        
+        let value;
+        
+        // Manejar casos especiales donde necesitamos buscar por nombre en lugar de ID
+        if (filterField === 'plot_var') {
+          // Buscar el nombre de la variedad por su ID
+          const variety = varieties.find(v => v.gv_id === p.plot_var);
+          value = variety ? variety.name : (p.plot_var || "");
+        } else if (filterField === 'plot_rootstock') {
+          // Si también quieres filtrar por portainjerto por nombre
+          const rootstock = rootstocks.find(r => r.gv_id === p.plot_rootstock);
+          value = rootstock ? rootstock.name : (p.plot_rootstock || "");
+        } else if (filterField === 'plot_conduction') {
+          // Para sistema de conducción, usar el valor directamente
+          value = p.plot_conduction || "";
+        } else if (filterField === 'plot_management') {
+          // Para tipo de manejo, usar el valor directamente
+          value = p.plot_management || "";
+        } else {
+          // Para otros campos, usar el valor original
+          value = p[filterField] || "";
+        }
+        
+        return String(value).toLowerCase().includes(filterValue.toLowerCase());
+      })
+  : [];
+
+  const groupPlots = (data, groupBy) => {
+    return data.reduce((acc, plot) => {
+      let key;
+      if (groupBy === 'plot_var') {
+        const variety = varieties.find(v => v.gv_id === plot.plot_var);
+        key = variety ? variety.name : 'Sin variedad';
+      } else if (groupBy === 'plot_rootstock') {
+        const rootstock = rootstocks.find(r => r.gv_id === plot.plot_rootstock);
+        key = rootstock ? rootstock.name : 'Sin portainjerto';
       } else {
-        // Para otros campos, usar el valor original
-        value = p[filterField] || "";
+        key = plot[groupBy] || 'Sin valor';
       }
       
-      return String(value).toLowerCase().includes(filterValue.toLowerCase());
-    })
-  : [];
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(plot);
+      return acc;
+    }, {});
+  };
 
   const sortedPlots = [...filteredPlots].sort((a, b) => {
     if (!sortConfig.key) return 0;
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
-    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
   });
+
+  const groupedPlots = groupBy ? groupPlots(sortedPlots, groupBy) : { 'all': sortedPlots };
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -167,16 +196,83 @@ const filteredPlots = Array.isArray(plots)
     }));
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedPlots(plots.map((plot) => plot.plot_id));
+  const handleSelectAll = (e, group) => {
+    const isChecked = e.target.checked;
+    const plotsInGroup = groupedPlots[group];
+    const plotIds = plotsInGroup.map(plot => plot.plot_id);
+    
+    setAllSelected(prev => ({
+      ...prev,
+      [group]: isChecked
+    }));
+    
+    setSelectedPlotsByGroup(prev => ({
+      ...prev,
+      [group]: isChecked ? plotIds : []
+    }));
+    
+    // Actualizar selectedPlots para mantener compatibilidad
+    if (isChecked) {
+      setSelectedPlots(prev => [...new Set([...prev, ...plotIds])]);
     } else {
-      setSelectedPlots([]);
+      setSelectedPlots(prev => prev.filter(id => !plotIds.includes(id)));
     }
   };
 
+  const handleSelectPlot = (e, plot, group) => {
+    const isChecked = e.target.checked;
+    const plotId = plot.plot_id;
+    
+    setSelectedPlotsByGroup(prev => {
+      const currentGroup = prev[group] || [];
+      const newGroup = isChecked 
+        ? [...currentGroup, plotId]
+        : currentGroup.filter(id => id !== plotId);
+      
+      // Actualizar allSelected para este grupo
+      const plotsInGroup = groupedPlots[group];
+      setAllSelected(prevAll => ({
+        ...prevAll,
+        [group]: newGroup.length === plotsInGroup.length
+      }));
+      
+      return {
+        ...prev,
+        [group]: newGroup
+      };
+    });
+    
+    // Actualizar selectedPlots para mantener compatibilidad
+    setSelectedPlots(prev => 
+      isChecked 
+        ? [...prev, plotId]
+        : prev.filter(id => id !== plotId)
+    );
+  };
+
+  const getGroupDisplayName = (groupBy) => {
+    const names = {
+      'plot_var': 'Variedad',
+      'plot_rootstock': 'Portainjerto', 
+      'plot_conduction': 'Sistema de Conducción',
+      'plot_management': 'Tipo de Manejo'
+    };
+    return names[groupBy] || groupBy;
+  };
+
   const handleDownloadCSV = () => {
-    const selectedData = plots.filter((p) => selectedPlots.includes(p.plot_id));
+    let selectedData = [];
+    
+    // Recopilar todas las parcelas seleccionadas de todos los grupos
+    Object.entries(selectedPlotsByGroup).forEach(([group, plotIds]) => {
+      const groupPlots = plots.filter(p => plotIds.includes(p.plot_id));
+      selectedData = [...selectedData, ...groupPlots];
+    });
+    
+    // Si no hay agrupación, usar selectedPlots original
+    if (!groupBy) {
+      selectedData = plots.filter((p) => selectedPlots.includes(p.plot_id));
+    }
     
     const transformedData = selectedData.map(plot => ({
       ID: plot.plot_id,
@@ -192,8 +288,6 @@ const filteredPlots = Array.isArray(plots)
     }));
 
     const csv = Papa.unparse(transformedData);
-    
-    // Agregar BOM UTF-8 al inicio del archivo
     const bom = '\uFEFF';
     const csvWithBom = bom + csv;
     
@@ -212,7 +306,7 @@ const filteredPlots = Array.isArray(plots)
     }
   };
 
-const handleSelectChange = (field, selectedOption) => {
+  const handleSelectChange = (field, selectedOption) => {
   if (!selectedOption) {
     // Si se limpia la selección
     setPlotDetails({
@@ -554,6 +648,23 @@ const handleSelectChange = (field, selectedOption) => {
 
       <div className="filter-controls-container">
         <div className="control-group">
+          <label htmlFor="groupingFieldPlots" className="control-label">
+            Agrupar por:
+          </label>
+          <select
+            id="groupingFieldPlots"
+            value={groupBy || "none"}
+            onChange={handleGroupByChange}
+            className="control-select"
+          >
+            <option value="none">Sin Agrupación</option>
+            <option value="plot_var">Variedad</option>
+            <option value="plot_rootstock">Portainjerto</option>
+            <option value="plot_conduction">Sistema de Conducción</option>
+            <option value="plot_management">Tipo de Manejo</option>
+          </select>
+        </div>
+        <div className="control-group">
           <label htmlFor="FilterFieldPlot" className="control-label">
             Filtrar por:
           </label>
@@ -584,63 +695,71 @@ const handleSelectChange = (field, selectedOption) => {
         </div>
       </div>
 
-      <table className="table-auto w-full border-collapse border border-gray-300">
-        <thead>
-          <tr>
-            <th className="border border-gray-300 p-2">
-              <input
-                id="CheckBoxPlot" 
-                type="checkbox" 
-                onChange={handleSelectAll}
-                checked={selectedPlots.length === plots.length && plots.length > 0}
-              />
-            </th>
-            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_name")}>Nombre</th>
-            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_var")}>Variedad</th>
-            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_area")}>Área</th>
-            <th className="border border-gray-300 p-2">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedPlots.length > 0 ? (
-            sortedPlots.map((plot) => (
-              <tr key={`plot-${plot.plot_id}`}>
-                <td className="border border-gray-300 p-2 text-center">
-                  <input
-                    id={`checkboxPlots-${plot.plot_id}`} 
-                    type="checkbox"
-                    checked={selectedPlots.includes(plot.plot_id)}
-                    onChange={() => 
-                      setSelectedPlots((prev) => 
-                        prev.includes(plot.plot_id) 
-                          ? prev.filter((id) => id !== plot.plot_id) 
-                          : [...prev, plot.plot_id]
-                      )
-                    }
+      {/* Tabla */}
+      {Object.entries(groupedPlots).map(([group, plots]) => (
+        <div key={group} className="mb-4">
+          {groupBy && <h3 className="titulo-seccion">{`${getGroupDisplayName(groupBy)}: ${group}`}</h3>}
+          <table className="table-auto w-full border-collapse border border-gray-300">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 p-2">
+                  <input 
+                    type="checkbox" 
+                    id={`CheckboxPlots-${group}`}
+                    checked={allSelected[group] || false} 
+                    onChange={(e) => handleSelectAll(e, group)} 
                   />
-                </td>
-                <td className="border border-gray-300 p-2">{plot.plot_name}</td>
-                <td className="border border-gray-300 p-2">{varieties.find(v => v.gv_id === plot.plot_var)?.name || plot.plot_var}</td>
-                <td className="border border-gray-300 p-2 text-right">{plot.plot_area}</td>
-                <td className="border border-gray-300 p-2 text-center">
-                  <button
-                    onClick={() => handleViewPlot(plot)}
-                    className="p-2 rounded text-blue-500 hover:text-blue-700"
-                  >
-                    <FontAwesomeIcon icon={faSearch} />
-                  </button>
-                </td>
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_name")}>
+                  Nombre
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_var")}>
+                  Variedad
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_area")}>
+                  Área
+                </th>
+                <th className="border border-gray-300 p-2">Acciones</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" className="border border-gray-300 p-4 text-center">
-                No hay datos disponibles.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {plots.length > 0 ? (
+                plots.map((plot) => (
+                  <tr key={`plot-${group}-${plot.plot_id}`}>
+                    <td className="border border-gray-300 p-2 text-center">
+                      <input
+                        id={`checkboxPlots-${group}-${plot.plot_id}`}
+                        type="checkbox"
+                        checked={selectedPlotsByGroup[group]?.includes(plot.plot_id) || false}
+                        onChange={(e) => handleSelectPlot(e, plot, group)}
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-2">{plot.plot_name}</td>
+                    <td className="border border-gray-300 p-2">
+                      {varieties.find(v => v.gv_id === plot.plot_var)?.name || plot.plot_var}
+                    </td>
+                    <td className="border border-gray-300 p-2 text-right">{plot.plot_area}</td>
+                    <td className="border border-gray-300 p-2 text-center">
+                      <button
+                        onClick={() => handleViewPlot(plot)}
+                        className="p-2 rounded text-blue-500 hover:text-blue-700"
+                      >
+                        <FontAwesomeIcon icon={faSearch} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="border border-gray-300 p-4 text-center">
+                    No hay datos disponibles.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ))}
 
       {/* Modal para crear parcela */}
       <Modal

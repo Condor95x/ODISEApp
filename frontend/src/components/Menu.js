@@ -90,7 +90,7 @@ const Menu = () => {
 
         {hasWeatherAccess() && (
           <li>
-            <Link to="/meteorologia" className="menu-link">
+            <Link to="/Meteorologia" className="menu-link">
               <FaCloudSun className="menu-icon" />
               <span className="menu-text">Meteorología</span>
             </Link>
