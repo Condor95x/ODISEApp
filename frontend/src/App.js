@@ -14,7 +14,7 @@ import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Analisis from './pages/Analisis';
 import Meteorologia from './pages/Meteorologia';
-import Administracion from './pages/administracion';
+import Administracion from './pages/Administracion';
 
 function App() {
   return (
