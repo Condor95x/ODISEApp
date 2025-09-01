@@ -1,44 +1,110 @@
-from pydantic import BaseModel, validator, Field
-from typing import Optional, Dict, Any
-from datetime import date
-from enum import Enum
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 
-class ConductionType(str, Enum):
-    ESPALDERA = "ESPALDERA"
-    VASO = "VASO"
-    PARRAL = "PARRAL"
-    LIRA = "LIRA"
-    GUYOT = "GUYOT"
+# Schemas para objetos anidados
+class GrapevineInfo(BaseModel):
+    """Información básica de variedad/portainjerto"""
+    gv_id: str
+    name: str
+    color: Optional[str] = None
+    gv_type: Optional[str] = None
 
-class ManagementType(str, Enum):
-    CONVENTIONAL = "CONVENTIONAL"
-    ORGANIC = "ORGANIC"
-    BIODYNAMIC = "BIODYNAMIC"
-    INTEGRATED = "INTEGRATED"
+class GrapevineInfoData(BaseModel):
+    """Información básica de variedad/portainjerto"""
+    gv_id: str
+    name: str
 
-class PlotBase(BaseModel):
+class VineyardInfo(BaseModel):
+    """Información de sistemas de conducción/manejo"""
+    vy_id: str
+    value: str
+    description: Optional[str] = None
+
+class VineyardInfoData(BaseModel):
+    """Información de sistemas de conducción/manejo"""
+    vy_id: str
+    value: str
+
+class FincaInfo(BaseModel):
+    """Info base de la finca"""
+    id: int
+    value: str
+    description: Optional[str]
+
+class FincaInfoData(BaseModel):
+    """Info base de la finca"""
+    id: int
+    value: Optional[str]
+
+class SectorInfo(BaseModel):
+    """Informacion del sector y su finca"""
+    id: int
+    value: str
+    finca: int
+    description: Optional[str]
+
+class SectorInfoData(BaseModel):
+    """Informacion del sector y su finca"""
+    id: int
+    value: str
+    finca: FincaInfoData = None
+
+# Schema principal optimizado
+class PlotResponseOptimized(BaseModel):
+    """Response optimizada que incluye toda la información relacionada"""
+    plot_id: int
+    plot_name: str
+    plot_geom: Optional[str] = None
+    plot_area: Optional[float] = None
+    plot_implant_year: Optional[int] = None
+    plot_creation_year: Optional[int] = None
+    plot_description: Optional[str] = None
+    sector_id: Optional[int]
+    active: bool = True
+    
+    # Objetos anidados en lugar de IDs
+    variety: Optional[GrapevineInfoData] = None
+    rootstock: Optional[GrapevineInfoData] = None
+    conduction: Optional[VineyardInfoData] = None
+    management: Optional[VineyardInfoData] = None
+    sector: Optional[SectorInfoData] = None
+
+    class Config:
+        from_attributes = True
+
+# Schema para metadatos
+class PlotMetadata(BaseModel):
+    """Metadatos para selects del frontend"""
+    varieties: List[GrapevineInfo]
+    rootstocks: List[GrapevineInfo] 
+    conduction_systems: List[VineyardInfo]
+    management_types: List[VineyardInfo]
+    sectores: List[SectorInfo]
+    fincas: List[FincaInfo]
+
+# Response combinada
+class PlotsWithMetadata(BaseModel):
+    """Response que incluye parcelas + metadatos"""
+    plots: List[PlotResponseOptimized]
+    metadata: PlotMetadata
+    total_count: int
+    filtered_count: int
+
+# Schemas para crear/actualizar (mantienen IDs para simplificar)
+class PlotCreate(BaseModel):
     plot_name: str = Field(..., description="Nombre de la parcela")
-    plot_var: str = Field(..., description="Variedad de la vid")
-    plot_rootstock: Optional[str] = Field(None, description="Portainjerto") 
+    plot_var: str = Field(..., description="ID de la variedad")
+    plot_rootstock: Optional[str] = Field(None, description="ID del portainjerto")
     plot_implant_year: Optional[int] = Field(None, description="Año de implantación")
     plot_creation_year: Optional[int] = Field(None, description="Año de creación")
-    plot_conduction: Optional[ConductionType] = Field(None, description="Sistema de conducción")
-    plot_management: Optional[ManagementType] = Field(None, description="Tipo de manejo")
-    plot_description: Optional[str] = Field(None, description="Descripción de la parcela")
-    active: bool = Field(True, description="Estado activo de la parcela")      
-    plot_geom: str = Field(..., description="Geometría en formato GeoJSON") # Modificado a GeoJSON
-    plot_area: Optional[float] = Field(None, description="Área de la parcela en metros cuadrados")
-
-    @validator("plot_implant_year", "plot_creation_year")
-    def validate_years(cls, value):
-        if value is not None:
-            current_year = date.today().year
-            if value < 1800 or value > current_year:
-                raise ValueError(f"El año debe estar entre 1800 y {current_year}")
-        return value
-    
-class PlotCreate(PlotBase):
-    pass
+    plot_conduction: Optional[str] = Field(None, description="Sistema de conducción")
+    plot_management: Optional[str] = Field(None, description="Tipo de manejo")
+    plot_description: Optional[str] = Field(None, description="Descripción")
+    plot_geom: str = Field(..., description="Geometría en formato WKT")
+    plot_area: Optional[float] = Field(None, description="Área calculada")
+    sector_id: Optional[int] = Field(None, description="Sector de la parcela")
+    active: bool = Field(True, description="Estado activo")
 
 class PlotUpdate(BaseModel):
     plot_name: Optional[str] = None
@@ -46,67 +112,54 @@ class PlotUpdate(BaseModel):
     plot_rootstock: Optional[str] = None
     plot_implant_year: Optional[int] = None
     plot_creation_year: Optional[int] = None
-    plot_conduction: Optional[ConductionType] = None
-    plot_management: Optional[ManagementType] = None
+    plot_conduction: Optional[str] = None
+    plot_management: Optional[str] = None
     plot_description: Optional[str] = None
-    active: Optional[bool] = None      
     plot_geom: Optional[str] = None
     plot_area: Optional[float] = None
+    sector_id: Optional[int] = None
+    active: Optional[bool] = None
 
-    @validator("plot_geom")
-    def validate_plot_geom(cls, value):
-        if value is None:
-            return None
-        try:
-            from geoalchemy2 import WKTElement
-            WKTElement(value, srid=4326)
-            return value
-        except Exception as e:
-            raise ValueError("Formato WKT inválido")
+# Schema para filtros
+class PlotFilters(BaseModel):
+    """Parámetros de filtrado"""
+    active_only: bool = True
+    filter_field: Optional[str] = None
+    filter_value: Optional[str] = None
+    variety_ids: Optional[List[str]] = None
+    rootstock_ids: Optional[List[str]] = None
+    conduction_systems: Optional[List[str]] = None
+    management_types: Optional[List[str]] = None
+    min_area: Optional[float] = None
+    max_area: Optional[float] = None
+    implant_year_from: Optional[int] = None
+    implant_year_to: Optional[int] = None
 
-    @validator("plot_implant_year", "plot_creation_year")
-    def validate_years(cls, value):
-        if value is not None:
-            current_year = date.today().year
-            if value < 1800 or value > current_year:
-                raise ValueError(f"El año debe estar entre 1800 y {current_year}")
-        return value
-
-class PlotResponse(BaseModel): 
-    plot_id: int = Field(..., description="ID único de la parcela")
-    plot_name: str = Field(..., description="Nombre de la parcela")
-    plot_var: Optional[str] = Field(..., description="Variedad de la vid")
-    plot_rootstock: Optional[str] = Field(None, description="Portainjerto")
-    plot_implant_year: Optional[int] = Field(None, description="Año de implantación")
-    plot_creation_year: Optional[int] = Field(None, description="Año de creación")
-    plot_conduction: Optional[ConductionType] = Field(None, description="Sistema de conducción")
-    plot_management: Optional[ManagementType] = Field(None, description="Tipo de manejo")
-    plot_description: Optional[str] = Field(None, description="Descripción de la parcela")
-    active: bool = Field(True, description="Estado activo de la parcela")
-    plot_geom: Optional[str] = Field(None, description="Geometría en formato WKT")
-    plot_area: float = Field(..., description="Área de la parcela en metros cuadrados")
-    
+class PlotForOPS(BaseModel):
+    """Schema para recuperar los datos importantes para las operaciones"""
+    plot_id: int
+    plot_name: str
     class Config:
         from_attributes = True
-        json_schema_extra = {
-            "example": {
-                "plot_id": 1,
-                "plot_name": "Parcela Norte",
-                "plot_var": "Tempranillo",
-                "plot_rootstock": "110R",
-                "plot_implant_year": 2015,
-                "plot_creation_year": 2014,
-                "plot_conduction": "espaldera",
-                "plot_management": "orgánico",
-                "plot_description": "Parce la principal de Tempranillo",
-                "active": True,
-                "plot_area": 10000.50
-            }
-        }
 
-
-    #plot_var_details: Optional[GrapevineResponse] = None
-    #plot_rootstock_details: Optional[GrapevineResponse] = None
-
+# Mantener el schema original para compatibilidad
+class PlotResponse(BaseModel):
+    """Schema original para compatibilidad hacia atrás"""
+    plot_id: int
+    plot_name: str
+    plot_var: str
+    plot_rootstock: Optional[str] = None
+    plot_implant_year: Optional[int] = None
+    plot_creation_year: Optional[int] = None
+    plot_conduction: Optional[str] = None
+    plot_management: Optional[str] = None
+    plot_description: Optional[str] = None
+    plot_geom: Optional[str] = None
+    plot_area: Optional[float] = None
+    active: bool = True
+    variety_name: Optional[str] = None
+    sector_id: Optional[int] = None
+    rootstock_name: Optional[str] = None
+    
     class Config:
         from_attributes = True

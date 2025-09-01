@@ -10,9 +10,11 @@ Probar todo
     ParcelasArchivadas
   OperacioneFinca
     Operaciones
+      eliminar operacion
   TareasBodega
     Tasks
     Vessels
+      Problemqs
     Lotes
   Inventarios
     Inputs

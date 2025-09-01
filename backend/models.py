@@ -10,7 +10,7 @@ class Operacion(Base):
     __tablename__ = "operaciones"
     id = Column(Integer, primary_key=True, index=True)
     parcela_id = Column(Integer, ForeignKey("plot.plot_id"))
-    tipo_operacion = Column(String, ForeignKey("task_list.task_name"))
+    tipo_operacion = Column(String, ForeignKey("task_list.task_name"),nullable=False)
     fecha_inicio = Column(Date, nullable=True)
     fecha_fin = Column(Date, nullable=True)
     estado = Column(String, nullable=True)
@@ -18,8 +18,15 @@ class Operacion(Base):
     nota = Column(Text, nullable=True)
     comentario = Column(Text, nullable=True)
 
+    # Nuevos campos
+    creation_date = Column(Date, default=func.current_date())
+    jornales = Column(Numeric(8,2), nullable=True)  # Permite decimales
+    personas = Column(Integer, nullable=True)
+    # Agregar campo faltante:
+    porcentaje_avance = Column(Integer)
+
     inputs = relationship("TaskInput", back_populates="operation")
-    responsable = relationship("Usuario", back_populates="operaciones") # Relación con usuario
+    responsable = relationship("Usuario", back_populates="operaciones")
     plot = relationship("Plot", back_populates="operaciones")
     task = relationship("TaskList")
     
@@ -27,10 +34,11 @@ class TaskList(Base):
     __tablename__ = "task_list"
 
     task_list_id = Column(Integer, primary_key=True, index=True)
+    task_key = task_type = Column(String, unique=True, nullable=False)
     task_type = Column(String)
     task_supclass = Column(String, nullable=True)
     task_class = Column(String, nullable=True)
-    task_name = Column(String, unique=True)
+    task_name = Column(String, unique=True, nullable=False)
 
 class Insumo(Base):
     __tablename__ = "insumos"
@@ -38,17 +46,7 @@ class Insumo(Base):
     nombre = Column(String)
     unidad = Column(String)
 
-    detalles_consumidos = relationship("DetalleInsumoConsumido", back_populates="insumo")
-
-class DetalleInsumoConsumido(Base):
-    __tablename__ = "detalles_insumos_consumidos"
-    id = Column(Integer, primary_key=True, index=True)
-    operacion_id = Column(Integer, ForeignKey("operaciones.id"))
-    insumo_id = Column(Integer, ForeignKey("insumos.id"))
-    cantidad = Column(Numeric)
-
-    #operacion = relationship("Operacion", back_populates="insumos_consumidos")
-    insumo = relationship("Insumo", back_populates="detalles_consumidos")
+    #detalles_consumidos = relationship("DetalleInsumoConsumido", back_populates="insumo")
 
 class Usuario(Base):
     __tablename__ = "usuarios"
@@ -58,44 +56,71 @@ class Usuario(Base):
     email = Column(String, unique=True)
     password = Column(String)  # Recuerda encriptar la contraseña
     rol = Column(String)
-    fecha_creacion = Column(Date)
+    fecha_creacion = Column(DateTime, default=func.now())
 
     operaciones = relationship("Operacion", back_populates="responsable")
 
 class Plot(Base):
     __tablename__ = "plot"
     
-    # Columnas básicas
+    # Columnas básicas e identificadores
     plot_id = Column(Integer, primary_key=True, index=True)
     plot_name = Column(String, nullable=False, unique=True)
-    plot_var = Column(String, ForeignKey("grapevines.gv_id"), nullable=False)
-    plot_rootstock = Column(String, ForeignKey("grapevines.gv_id"), nullable=True)
+
+    # Atributos del viñedo
     plot_implant_year = Column(Integer, nullable=True)
     plot_creation_year = Column(Integer, nullable=True)
-    plot_conduction = Column(ForeignKey("vineyard.value"), nullable=True)
-    plot_management = Column(ForeignKey("vineyard.value"), nullable=True)
     plot_description = Column(Text, nullable=True)
-    
-    # Estado
     active = Column(Boolean, default=True, nullable=False)
-    
+
     # Geometría y área
     plot_geom = Column(Geometry("POLYGON", srid=4326), nullable=True)
     plot_area = Column(Numeric(10, 2), Computed("ST_Area(ST_Transform(plot_geom, 3857))", persisted=True))
-    
-    # Propiedades calculadas
+
+    # Claves foráneas actualizadas
+    plot_var = Column(String, ForeignKey("grapevines.gv_id"), nullable=False)
+    plot_rootstock = Column(String, ForeignKey("grapevines.gv_id"), nullable=True)
+    plot_conduction = Column("plot_conduction", String, ForeignKey("vineyard.vy_id"), nullable=True)
+    plot_management = Column("plot_management", String, ForeignKey("vineyard.vy_id"), nullable=True)
+    sector_id = Column(Integer, ForeignKey("sectores.id"), nullable=True)
+
+    # ... (relaciones y propiedades)
+    plot_var_relationship = relationship("Grapevine", foreign_keys=[plot_var], backref="plots_var")
+    plot_rootstock_relationship = relationship("Grapevine", foreign_keys=[plot_rootstock], backref="plots_rootstock")
+    operaciones = relationship("Operacion", back_populates="plot")
+    conduction = relationship("Vineyard", foreign_keys=[plot_conduction], backref="plots_conduction")
+    management = relationship("Vineyard", foreign_keys=[plot_management], backref="plots_management")
+    sector_rel = relationship("Sector", back_populates="plots")
+
     @hybrid_property
     def total_vines(self):
         if self.planting_density and self.plot_area:
             return int(self.planting_density * (self.plot_area / 10000))  # Convertir m² a hectáreas
         return None
 
-    # Relaciones
-    plot_var_relationship = relationship("Grapevine", foreign_keys=[plot_var], backref="plots_var")
-    plot_rootstock_relationship = relationship("Grapevine", foreign_keys=[plot_rootstock], backref="plots_rootstock")
-    operaciones = relationship("Operacion", back_populates="plot")
-    #plot_management_relationship = relationship("Vineyard", foreign_keys=[plot_management], backref="plots_management")
-    #plot_conduction_relationship = relationship("Vineyard", foreign_keys=[plot_conduction], backref="plots_conduction")
+class Finca(Base):
+    __tablename__ = "finca"
+
+    id = Column(Integer, primary_key=True, index=True)
+    value = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+
+    # Relación uno-a-muchos con la tabla Sectores
+    sectores = relationship("Sector", back_populates="finca")
+
+class Sector(Base):
+    __tablename__ = "sectores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    finca_id = Column(Integer, ForeignKey("finca.id"), nullable=False)
+    value = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    
+    # Relación muchos-a-uno con la tabla Finca
+    finca = relationship("Finca", back_populates="sectores")
+
+    # Relación uno-a-muchos con la tabla Plot
+    plots = relationship("Plot", back_populates="sector_rel")
 
 class Grapevine(Base):
     __tablename__ = "grapevines"
@@ -113,14 +138,16 @@ class Grapevine(Base):
     parcelas_portainjerto = relationship("Plot", foreign_keys="[Plot.plot_rootstock]", overlaps="plot_rootstock_relationship,plots_rootstock")
 
 class Vineyard(Base):
-    __tablename__ = "vineyard"  
+    __tablename__ = "vineyard"
 
     vy_id = Column(String, primary_key=True)
     description = Column(String)
     value = Column(String, unique=True)
-
-    #management_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_management])
-    #conduction_plot_relationship = relationship("plot", foreign_keys=[Plot.plot_conduction])
+    
+    # Define las relaciones para enlazar con la tabla 'Plot'
+    # Estas relaciones se basan en la columna 'vy_id'
+    plots_as_conduction = relationship("Plot", foreign_keys="Plot.plot_conduction", overlaps="conduction,plots_conduction")
+    plots_as_management = relationship("Plot", foreign_keys="Plot.plot_management", overlaps="management,plots_management")
 
 class InputCategory(Base):
     __tablename__ = 'input_categories'
@@ -335,8 +362,8 @@ class VesselActivity(Base):
     origin_vessel_id = Column(Integer, ForeignKey("vessels.id"))
     destination_vessel_id = Column(Integer, ForeignKey("vessels.id"))
     task_id = Column(Integer, ForeignKey("task_list.task_list_id"))
-    start_date = Column(DateTime)
-    end_date = Column(DateTime)
+    start_date = Column(Date)
+    end_date = Column(Date)
     status = Column(String(50))
     responsible_id = Column(Integer, ForeignKey("usuarios.id"))
     notes = Column(Text)
