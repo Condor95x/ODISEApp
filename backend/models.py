@@ -1,6 +1,6 @@
 from geoalchemy2 import Geometry
 from .database import Base
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Numeric, Text, Boolean, CheckConstraint,DateTime
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Numeric, Text, Boolean, CheckConstraint, DateTime, event
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -82,7 +82,7 @@ class Plot(Base):
     plot_rootstock = Column(String, ForeignKey("grapevines.gv_id"), nullable=True)
     plot_conduction = Column("plot_conduction", String, ForeignKey("vineyard.vy_id"), nullable=True)
     plot_management = Column("plot_management", String, ForeignKey("vineyard.vy_id"), nullable=True)
-    sector_id = Column(Integer, ForeignKey("sectores.id"), nullable=True)
+    sector_id = Column(Integer, ForeignKey("sectores.sector_id"), nullable=True)
 
     # ... (relaciones y propiedades)
     plot_var_relationship = relationship("Grapevine", foreign_keys=[plot_var], backref="plots_var")
@@ -101,7 +101,7 @@ class Plot(Base):
 class Finca(Base):
     __tablename__ = "finca"
 
-    id = Column(Integer, primary_key=True, index=True)
+    finca_id = Column(Integer, primary_key=True, index=True)
     value = Column(String, nullable=False, unique=True)
     description = Column(String, nullable=True)
 
@@ -111,17 +111,49 @@ class Finca(Base):
 class Sector(Base):
     __tablename__ = "sectores"
 
-    id = Column(Integer, primary_key=True, index=True)
-    finca_id = Column(Integer, ForeignKey("finca.id"), nullable=False)
+    sector_id = Column(Integer, primary_key=True, index=True)
+    finca_id = Column(Integer, ForeignKey("finca.finca_id"), nullable=False)
     value = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    
+    etiqueta = Column(String, nullable=True)  # Nueva columna
     # Relación muchos-a-uno con la tabla Finca
     finca = relationship("Finca", back_populates="sectores")
 
     # Relación uno-a-muchos con la tabla Plot
     plots = relationship("Plot", back_populates="sector_rel")
 
+@event.listens_for(Sector, 'before_insert')
+def generar_etiqueta_insert(mapper, connection, target):
+    """Genera la etiqueta antes de insertar un nuevo sector"""
+    # Necesitamos obtener la finca manualmente en este contexto
+    from sqlalchemy.orm import sessionmaker
+    Session = sessionmaker(bind=connection)
+    session = Session()
+    
+    # CORREGIDO: usar finca_id en lugar de id
+    finca = session.query(Finca).filter_by(finca_id=target.finca_id).first()
+    if finca:
+        target.etiqueta = f"{finca.value} - Sector {target.value}"
+    else:
+        target.etiqueta = f"Sector {target.value}"
+    
+    session.close()
+
+@event.listens_for(Sector, 'before_update')
+def generar_etiqueta_update(mapper, connection, target):
+    """Actualiza la etiqueta antes de actualizar un sector"""
+    from sqlalchemy.orm import sessionmaker
+    Session = sessionmaker(bind=connection)
+    session = Session()
+    
+    # CORREGIDO: usar finca_id en lugar de id
+    finca = session.query(Finca).filter_by(finca_id=target.finca_id).first()
+    if finca:
+        target.etiqueta = f"{finca.value} - Sector {target.value}"
+    else:
+        target.etiqueta = f"Sector {target.value}"
+    
+    session.close()
 class Grapevine(Base):
     __tablename__ = "grapevines"
     

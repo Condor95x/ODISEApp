@@ -12,7 +12,6 @@ class GrapevineInfo(BaseModel):
 
 class GrapevineInfoData(BaseModel):
     """Información básica de variedad/portainjerto"""
-    gv_id: str
     name: str
 
 class VineyardInfo(BaseModel):
@@ -23,7 +22,6 @@ class VineyardInfo(BaseModel):
 
 class VineyardInfoData(BaseModel):
     """Información de sistemas de conducción/manejo"""
-    vy_id: str
     value: str
 
 class FincaInfo(BaseModel):
@@ -34,7 +32,6 @@ class FincaInfo(BaseModel):
 
 class FincaInfoData(BaseModel):
     """Info base de la finca"""
-    id: int
     value: Optional[str]
 
 class SectorInfo(BaseModel):
@@ -42,14 +39,15 @@ class SectorInfo(BaseModel):
     id: int
     value: str
     finca: int
+    etiqueta: str
     description: Optional[str]
 
 class SectorInfoData(BaseModel):
     """Informacion del sector y su finca"""
-    id: int
-    value: str
-    finca: FincaInfoData = None
-
+    etiqueta: str
+    
+    class Config:
+        from_attributes = True
 # Schema principal optimizado
 class PlotResponseOptimized(BaseModel):
     """Response optimizada que incluye toda la información relacionada"""
@@ -60,7 +58,7 @@ class PlotResponseOptimized(BaseModel):
     plot_implant_year: Optional[int] = None
     plot_creation_year: Optional[int] = None
     plot_description: Optional[str] = None
-    sector_id: Optional[int]
+    #sector_id: Optional[int]
     active: bool = True
     
     # Objetos anidados en lugar de IDs

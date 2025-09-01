@@ -523,13 +523,14 @@ async def get_metadata(db: AsyncSession) -> PlotMetadata:
                 description=m.description
             ) for m in management_types],
             sectores=[SectorInfo(
-                id=s.id,
+                id=s.sector_id,
                 value=s.value,
                 finca=s.finca_id,
+                etiqueta=s.etiqueta,
                 description =s.description
             ) for s in sector_data],
             fincas=[FincaInfo(
-                id=f.id,
+                id=f.finca_id,
                 value=f.value,
                 description=f.description            
             ) for f in finca_data],
@@ -573,9 +574,9 @@ async def get_plots_optimized(
         ).outerjoin(
             management_alias, Plot.plot_management == management_alias.vy_id
         ).outerjoin(
-            sector_alias, Plot.sector_id == sector_alias.id  # NUEVO JOIN
+            sector_alias, Plot.sector_id == sector_alias.sector_id  # NUEVO JOIN
         ).outerjoin(
-            finca_alias, sector_alias.finca_id == finca_alias.id  # NUEVO JOIN
+            finca_alias, sector_alias.finca_id == finca_alias.finca_id  # NUEVO JOIN
         )
         
         # Aplicar filtros
@@ -631,21 +632,6 @@ async def get_plots_optimized(
         for row in rows:
             plot_data, variety_data, rootstock_data, conduction_data, management_data, sector_data, finca_data = row
             
-            sector_info = None
-            if sector_data:
-                finca_info = None
-                if finca_data:
-                    finca_info = FincaInfoData(
-                        id=finca_data.id,
-                        value=finca_data.value
-                    )
-                
-                sector_info = SectorInfoData(
-                    id=sector_data.id,
-                    value=sector_data.value,
-                    finca=finca_info
-                )
-
             plots_optimized.append(PlotResponseOptimized(
                 plot_id=plot_data.plot_id,
                 plot_name=plot_data.plot_name,
@@ -654,13 +640,13 @@ async def get_plots_optimized(
                 plot_implant_year=plot_data.plot_implant_year,
                 plot_creation_year=plot_data.plot_creation_year,
                 plot_description=plot_data.plot_description,
-                sector_id=plot_data.sector_id,
+                #sector_id=plot_data.sector_id,
                 active=plot_data.active,
                 variety=GrapevineInfoData(gv_id=variety_data.gv_id, name=variety_data.name),
                 rootstock=GrapevineInfoData(gv_id=rootstock_data.gv_id, name=rootstock_data.name) if rootstock_data else None,
                 conduction=VineyardInfoData(vy_id=conduction_data.vy_id, value=conduction_data.value) if conduction_data else None,
                 management=VineyardInfoData(vy_id=management_data.vy_id, value=management_data.value) if management_data else None,
-                sector=sector_info
+                sector=SectorInfoData(etiqueta=sector_data.etiqueta)
             ))
 
         metadata = await get_metadata(db)
@@ -711,7 +697,7 @@ async def get_onlyplots_optimized(
         ).outerjoin(
             management_alias, Plot.plot_management == management_alias.vy_id
         ).outerjoin(
-            sector_alias, Plot.sector_id == sector_alias.id
+            sector_alias, Plot.sector_id == sector_alias.sector_id
         ).outerjoin(
             finca_alias, sector_alias.finca_id == finca_alias.id
         )
@@ -775,12 +761,12 @@ async def get_onlyplots_optimized(
                 finca_info = None
                 if finca_data:
                     finca_info = FincaInfoData(
-                        id=finca_data.id,
+                        id=finca_data.sector_id,
                         value=finca_data.value
                     )
                 
                 sector_info = SectorInfoData(
-                    id=sector_data.id,
+                    id=sector_data.sector_id,
                     value=sector_data.value,
                     finca=finca_info
                 )
