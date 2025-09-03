@@ -13,7 +13,7 @@ const Finca = () => {
   return (
     <div className="Contenedor">
       <div className="titulo-seccion">
-        <h1>Mis fincas</h1>
+        <h1>Mi Cuaderno de Campo</h1>
         <button
           onClick={handleShowOperaciones}
           className={showOperaciones ? 'btn btn-secondary' : 'btn btn-primary'}

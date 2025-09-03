@@ -6,7 +6,7 @@ import 'leaflet-draw';
 import 'leaflet-control-geocoder';
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 
-const Map = forwardRef(({ geojson, onGeometryChange, editable = false }, ref) => {
+const Map = forwardRef(({ geojson, onGeometryChange, editable = false, styleFunction, showPopup = true }, ref) => {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const drawnItemsRef = useRef(new L.FeatureGroup());
@@ -82,14 +82,33 @@ const Map = forwardRef(({ geojson, onGeometryChange, editable = false }, ref) =>
         }
 
         // Procesar GeoJSON externo (cuando viene de props)
-        if (geojson && mapInstanceRef.current && JSON.stringify(geojson) !== JSON.stringify(currentGeometry)) {
+        if (geojson && mapInstanceRef.current) {
             drawnItemsRef.current.clearLayers();
             let hasNewData = false;
 
-            L.geoJSON(geojson).eachLayer(layer => {
-                drawnItemsRef.current.addLayer(layer);
-                hasNewData = true;
-            });
+        L.geoJSON(geojson, {
+        style: styleFunction || undefined,
+        onEachFeature: (feature, layer) => {
+            drawnItemsRef.current.addLayer(layer);
+
+            if (showPopup) {
+            const props = feature.properties || {};
+            const popupContent = `
+                <strong>${props.name || 'Parcela'}</strong><br/>
+                Variedad: ${props.plot_var || '—'}<br/>
+                Manejo: ${props.plot_management || '—'}<br/>
+                Sector: ${props.sector_id || '—'}<br/>
+                Conducción: ${props.plot_conduction || '—'}<br/>
+                Portainjerto: ${props.plot_rootstock || '—'}
+            `;
+
+            layer.bindPopup(popupContent);
+            layer.on('mouseover', () => layer.openPopup());
+            layer.on('mouseout', () => layer.closePopup());
+            }
+        }
+        });
+
 
             setCurrentGeometry(geojson);
 

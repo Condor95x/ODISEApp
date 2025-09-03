@@ -44,6 +44,7 @@ class SectorInfo(BaseModel):
 
 class SectorInfoData(BaseModel):
     """Informacion del sector y su finca"""
+    sector_id: int
     etiqueta: str
     
     class Config:

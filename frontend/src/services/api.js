@@ -1,23 +1,138 @@
 import axios from 'axios';
-const API_URL = process.env.REACT_APP_API_URL
-// Base URL del backend
+
+const API_URL = process.env.REACT_APP_API_URL;
+
+// Base API client
 const API = axios.create({
-  baseURL: API_URL, // Cambia según la configuración de tu backend
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-//ENDPOINTS PLOTS
-// Función auxiliar para manejar errores
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Ha ocurrido un error con la petición');
+// Response interceptor for consistent error handling
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Enhanced error handling
+    if (error.response?.data?.detail) {
+      error.userMessage = error.response.data.detail;
+    } else if (error.response?.status >= 500) {
+      error.userMessage = 'Error interno del servidor. Por favor, inténtalo más tarde.';
+    } else if (error.response?.status >= 400) {
+      error.userMessage = 'Error en la solicitud. Verifica los datos e inténtalo nuevamente.';
+    } else if (error.code === 'ECONNABORTED') {
+      error.userMessage = 'La solicitud tardó demasiado. Por favor, inténtalo nuevamente.';
+    } else {
+      error.userMessage = 'Error de conexión. Verifica tu conexión a internet.';
+    }
+    return Promise.reject(error);
   }
-  return response.json();
+);
+
+// ====== PLOTS ENDPOINTS ======
+
+/**
+ * Obtener parcelas con datos completos y metadatos
+ * Esta función combina múltiples llamadas para simular el endpoint optimizado
+ */
+export const getPlotsWithData = async (filters = {}) => {
+  try {
+    // Parallel requests for better performance
+    const [plotsResponse, metadataResponse] = await Promise.all([
+      getPlots(filters.active_only !== false), // Default to active only
+      getPlotsMetadata()
+    ]);
+
+    let plots = plotsResponse;
+
+    // Apply client-side filtering if needed
+    if (filters.filter_field && filters.filter_value) {
+      plots = plots.filter(plot => {
+        const fieldValue = plot[filters.filter_field];
+        if (fieldValue === null || fieldValue === undefined) return false;
+        return fieldValue.toString().toLowerCase().includes(filters.filter_value.toLowerCase());
+      });
+    }
+
+    // Apply additional filters
+    if (filters.variety_ids?.length > 0) {
+      plots = plots.filter(plot => filters.variety_ids.includes(plot.plot_var));
+    }
+
+    if (filters.rootstock_ids?.length > 0) {
+      plots = plots.filter(plot => filters.rootstock_ids.includes(plot.plot_rootstock));
+    }
+
+    if (filters.sector_ids?.length > 0) {
+      plots = plots.filter(plot => filters.sector_ids.includes(plot.plot_sector));
+    }
+
+    if (filters.conduction_systems?.length > 0) {
+      plots = plots.filter(plot => filters.conduction_systems.includes(plot.plot_conduction));
+    }
+
+    if (filters.management_types?.length > 0) {
+      plots = plots.filter(plot => filters.management_types.includes(plot.plot_management));
+    }
+
+    // Area filters
+    if (filters.min_area !== undefined && filters.min_area !== null) {
+      plots = plots.filter(plot => plot.plot_area >= filters.min_area);
+    }
+
+    if (filters.max_area !== undefined && filters.max_area !== null) {
+      plots = plots.filter(plot => plot.plot_area <= filters.max_area);
+    }
+
+    // Year filters
+    if (filters.implant_year_from !== undefined && filters.implant_year_from !== null) {
+      plots = plots.filter(plot => plot.plot_implant_year >= filters.implant_year_from);
+    }
+
+    if (filters.implant_year_to !== undefined && filters.implant_year_to !== null) {
+      plots = plots.filter(plot => plot.plot_implant_year <= filters.implant_year_to);
+    }
+
+    return {
+      plots: plots,
+      metadata: metadataResponse
+    };
+  } catch (error) {
+    console.error('Error fetching plots with data:', error);
+    throw error;
+  }
 };
-// Obtener todas las parcelas
+
+/**
+ * Obtener metadatos agregados para el componente
+ */
+export const getPlotsMetadata = async () => {
+  try {
+    // Parallel requests for all metadata
+    const [varietiesResponse, rootstocksResponse, conductionResponse, managementResponse, sectorsResponse] = await Promise.all([
+      getVarieties(),
+      getRootstocks(),
+      getConduction(),
+      getManagement(),
+      getSectors()
+    ]);
+
+    return {
+      varieties: varietiesResponse.data || varietiesResponse,
+      rootstocks: rootstocksResponse.data || rootstocksResponse,
+      conduction: conductionResponse.data || conductionResponse,
+      management: managementResponse.data || managementResponse,
+      sectors: sectorsResponse.data || sectorsResponse
+    };
+  } catch (error) {
+    console.error('Error fetching plots metadata:', error);
+    throw error;
+  }
+};
+
+// ====== EXISTING PLOTS ENDPOINTS (Updated) ======
+
 export const getPlots = async (activeOnly = true) => {
   try {
     const response = await API.get(`/plots/?active_only=${activeOnly}`);
@@ -27,7 +142,7 @@ export const getPlots = async (activeOnly = true) => {
     throw error;
   }
 };
-// Obtener una parcela específica
+
 export const getPlot = async (plotId) => {
   try {
     const response = await API.get(`/plots/${plotId}`);
@@ -37,33 +152,42 @@ export const getPlot = async (plotId) => {
     throw error;
   }
 };
-// Crear una nueva parcela
+
 export const createPlot = async (plotData) => {
   try {
-      const response = await API.post('/plots/', plotData);
-      return response.data;
+    // Validate required fields
+    if (!plotData.plot_name?.trim()) {
+      throw new Error('El nombre de la parcela es requerido');
+    }
+    if (!plotData.plot_var) {
+      throw new Error('La variedad es requerida');
+    }
+    if (!plotData.plot_geom) {
+      throw new Error('La geometría de la parcela es requerida');
+    }
+
+    const response = await API.post('/plots/', plotData);
+    return response.data;
   } catch (error) {
-      if (error.response) {
-          // El servidor respondió con un código de estado fuera del rango 2xx
-          console.error('Error creating plot:', error.response.data);
-          console.error('Status code:', error.response.status);
-          console.error('Headers:', error.response.headers);
-          console.log('Error details:', error.response.data.detail); // Asegurate de que esta linea esta aqui.
-          throw error.response.data; // Lanza el error del servidor
-      } else if (error.request) {
-          // La solicitud fue hecha pero no se recibió respuesta
-          console.error('Error creating plot: No response received', error.request);
-          throw new Error('No response received from server');
-      } else {
-          // Algo más causó el error
-          console.error('Error creating plot:', error.message);
-          throw error;
-      }
+    if (error.response) {
+      console.error('Error creating plot:', error.response.data);
+      console.error('Status code:', error.response.status);
+      throw error.response.data;
+    } else if (error.request) {
+      console.error('Error creating plot: No response received', error.request);
+      throw new Error('No response received from server');
+    } else {
+      console.error('Error creating plot:', error.message);
+      throw error;
+    }
   }
 };
-// Actualizar una parcela existente
+
 export const updatePlot = async (plotId, plotData) => {
   try {
+    if (!plotId) {
+      throw new Error('ID de parcela es requerido');
+    }
     const response = await API.put(`/plots/${plotId}`, plotData);
     return response.data;
   } catch (error) {
@@ -71,19 +195,25 @@ export const updatePlot = async (plotId, plotData) => {
     throw error;
   }
 };
-// Eliminar una parcela permanentemente
+
 export const deletePlot = async (plotId) => {
   try {
+    if (!plotId) {
+      throw new Error('ID de parcela es requerido');
+    }
     await API.delete(`/plots/${plotId}/permanent`);
-    return true; // No es necesario devolver datos si el DELETE es exitoso
+    return { success: true, message: 'Parcela eliminada correctamente' };
   } catch (error) {
     console.error('Error deleting plot:', error);
     throw error;
   }
 };
-// Archivar una parcela (cambiar a inactivo)
+
 export const archivePlot = async (plotId) => {
   try {
+    if (!plotId) {
+      throw new Error('ID de parcela es requerido');
+    }
     const response = await API.patch(`/plots/${plotId}/archive`);
     return response.data;
   } catch (error) {
@@ -91,9 +221,12 @@ export const archivePlot = async (plotId) => {
     throw error;
   }
 };
-// Activar una parcela
+
 export const activatePlot = async (plotId) => {
   try {
+    if (!plotId) {
+      throw new Error('ID de parcela es requerido');
+    }
     const response = await API.patch(`/plots/${plotId}/activate`);
     return response.data;
   } catch (error) {
@@ -101,7 +234,7 @@ export const activatePlot = async (plotId) => {
     throw error;
   }
 };
-// Obtener estadísticas de parcelas
+
 export const getPlotStatistics = async () => {
   try {
     const response = await API.get('/plots/statistics/summary');
@@ -112,8 +245,8 @@ export const getPlotStatistics = async () => {
   }
 };
 
-//ENPOINTS VINEYARD
-// Obtener todas las vineyards
+// ====== VINEYARD ENDPOINTS ======
+
 export const getAllVineyards = async () => {
   try {
     const response = await API.get('/vineyard/vineyard/');
@@ -123,7 +256,7 @@ export const getAllVineyards = async () => {
     throw error;
   }
 };
-// Obtener solo las management
+
 export const getManagement = async () => {
   try {
     const response = await API.get('/vineyard/vineyard/management');
@@ -133,7 +266,7 @@ export const getManagement = async () => {
     throw error;
   }
 };
-// Obtener solo los conduction
+
 export const getConduction = async () => {
   try {
     const response = await API.get('/vineyard/vineyard/conduction');
@@ -144,8 +277,8 @@ export const getConduction = async () => {
   }
 };
 
-//ENPOINTS GRAPEVINE
-// Obtener todas las grapevines
+// ====== GRAPEVINE ENDPOINTS ======
+
 export const getAllGrapevines = async () => {
   try {
     const response = await API.get('/grapevines');
@@ -155,17 +288,17 @@ export const getAllGrapevines = async () => {
     throw error;
   }
 };
-// Obtener solo las variedades
+
 export const getVarieties = async () => {
   try {
-  const response = await API.get('/grapevines/grapevines/varieties');
-  return response.data;
+    const response = await API.get('/grapevines/grapevines/varieties');
+    return response.data;
   } catch (error) {
     console.error('Error fetching varieties:', error);
     throw error;
   }
 };
-// Obtener solo los portainjertos
+
 export const getRootstocks = async () => {
   try {
     const response = await API.get('/grapevines/grapevines/rootstocks');
@@ -175,6 +308,101 @@ export const getRootstocks = async () => {
     throw error;
   }
 };
+
+// ====== SECTORS ENDPOINTS ======
+
+export const getSectors = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/sectores/`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching sectors:', error);
+    throw error;
+  }
+};
+
+export const createSector = async (sectorData) => {
+  try {
+    return await axios.post(`${API_URL}/sectores/`, sectorData);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateSector = async (sectorId, sectorData) => {
+  try {
+    return await axios.put(`${API_URL}/sectores/${sectorId}`, sectorData);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteSector = async (sectorId) => {
+  try {
+    return await axios.delete(`${API_URL}/sectores/${sectorId}`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ====== UTILITY FUNCTIONS ======
+
+/**
+ * Build search filters for the API
+ */
+export const buildSearchFilters = (searchCriteria = {}) => {
+  const filters = {};
+
+  // Basic filter
+  if (searchCriteria.filterField && searchCriteria.filterValue) {
+    filters.filter_field = searchCriteria.filterField;
+    filters.filter_value = searchCriteria.filterValue;
+  }
+
+  // Specific filters
+  if (searchCriteria.sectorIds?.length > 0) {
+    filters.sector_ids = searchCriteria.sectorIds;
+  }
+  
+  if (searchCriteria.varietyIds?.length > 0) {
+    filters.variety_ids = searchCriteria.varietyIds;
+  }
+  
+  if (searchCriteria.rootstockIds?.length > 0) {
+    filters.rootstock_ids = searchCriteria.rootstockIds;
+  }
+  
+  if (searchCriteria.conductionSystems?.length > 0) {
+    filters.conduction_systems = searchCriteria.conductionSystems;
+  }
+  
+  if (searchCriteria.managementTypes?.length > 0) {
+    filters.management_types = searchCriteria.managementTypes;
+  }
+
+  // Range filters
+  if (searchCriteria.minArea !== undefined && searchCriteria.minArea !== null) {
+    filters.min_area = parseFloat(searchCriteria.minArea);
+  }
+  
+  if (searchCriteria.maxArea !== undefined && searchCriteria.maxArea !== null) {
+    filters.max_area = parseFloat(searchCriteria.maxArea);
+  }
+  
+  if (searchCriteria.implantYearFrom !== undefined && searchCriteria.implantYearFrom !== null) {
+    filters.implant_year_from = parseInt(searchCriteria.implantYearFrom);
+  }
+  
+  if (searchCriteria.implantYearTo !== undefined && searchCriteria.implantYearTo !== null) {
+    filters.implant_year_to = parseInt(searchCriteria.implantYearTo);
+  }
+
+  // Active only filter
+  filters.active_only = searchCriteria.includeArchived ? false : true;
+
+  return filters;
+};
+
 
 //ENDPOINTS OPERACIONES
 export const getOperaciones = async () => {
@@ -454,5 +682,40 @@ export const deleteBatch = async (batch_id) => {
   return API.delete(`/winery/winery/batches/${batch_id}`);
 };
 
+// Función para obtener todas las fincas
+export const getFincas = async () => {
+    try {
+        return await axios.get(`${API_URL}/fincas/`);
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Función para crear una nueva finca
+export const createFinca = async (fincaData) => {
+    try {
+        return await axios.post(`${API_URL}/fincas/`, fincaData);
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Función para actualizar una finca existente
+export const updateFinca = async (fincaId, fincaData) => {
+    try {
+        return await axios.put(`${API_URL}/fincas/${fincaId}`, fincaData);
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Función para eliminar una finca
+export const deleteFinca = async (fincaId) => {
+    try {
+        return await axios.delete(`${API_URL}/fincas/${fincaId}`);
+    } catch (error) {
+        throw error;
+    }
+};
 
 export default API;

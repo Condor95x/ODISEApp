@@ -123,7 +123,7 @@ async def get_plot(
     except SQLAlchemyError as e:
         logger.error(f"Error al obtener parcela {plot_id}: {e}")
         raise HTTPException(status_code=500, detail="Error al obtener la parcela")
-
+'''
 async def update_plot(db: AsyncSession, plot_id: int, plot_update: PlotUpdate) -> PlotResponse:
     """
     Actualiza una parcela existente.
@@ -182,7 +182,7 @@ async def update_plot(db: AsyncSession, plot_id: int, plot_update: PlotUpdate) -
         await db.rollback()
         logger.error(f"Error al actualizar parcela {plot_id}: {e}")
         raise HTTPException(status_code=500, detail="Error al actualizar la parcela")
-
+'''
 async def delete_plot_permanent(db: AsyncSession, plot_id: int) -> bool:
     """
     Elimina permanentemente una parcela de la base de datos.
@@ -640,13 +640,13 @@ async def get_plots_optimized(
                 plot_implant_year=plot_data.plot_implant_year,
                 plot_creation_year=plot_data.plot_creation_year,
                 plot_description=plot_data.plot_description,
-                #sector_id=plot_data.sector_id,
+                sector_id=plot_data.sector_id,
                 active=plot_data.active,
                 variety=GrapevineInfoData(gv_id=variety_data.gv_id, name=variety_data.name),
                 rootstock=GrapevineInfoData(gv_id=rootstock_data.gv_id, name=rootstock_data.name) if rootstock_data else None,
                 conduction=VineyardInfoData(vy_id=conduction_data.vy_id, value=conduction_data.value) if conduction_data else None,
                 management=VineyardInfoData(vy_id=management_data.vy_id, value=management_data.value) if management_data else None,
-                sector=SectorInfoData(etiqueta=sector_data.etiqueta)
+                sector=SectorInfoData(id=sector_data.sector_id, etiqueta=sector_data.etiqueta)
             ))
 
         metadata = await get_metadata(db)

@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import TablePlots from '../components/TablePlots';
 import ArchivedPlotsTable from '../components/TableArchivedPlots';
+import SectorsManagement from '../components/SectorsManagement';
+import FincaManagement from '../components/FincaManagement';
+import PlotMapComponent from '../components/PlotMapComponent';
 import Cuervo from '../../public/Cuervo.png';
 
 const Plots = () => {
   const [showArchivedPlots, setShowArchivedPlots] = useState(false);
-  const [showActivePlots, setShowActivePlots] = useState(true); // Mostrar parcelas activas por defecto
+  const [showActivePlots, setShowActivePlots] = useState(true);
+  const [showSectors, setShowSectors] = useState(false);
+  const [showFincas, setShowFincas] = useState(false);
+
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const handleShowArchivedPlots = () => {
@@ -16,57 +22,112 @@ const Plots = () => {
     setShowActivePlots(!showActivePlots);
   };
 
+  const handleShowSectors = () => {
+    setShowSectors(!showSectors);
+  };
+
+  const handleShowFincas = () => {
+    setShowFincas(!showFincas);
+  };
+
   const handlePlotActivatedFromArchive = () => {
-    // Esta función no necesita hacer nada por ahora,
-    // pero asegura que la prop onPlotActivated sea una función.
-    };
+    // Esta función no necesita hacer nada por ahora
+  };
 
   return (
     <div className="Contenedor">
-      <div className="titulo-seccion">
-        <h1>Mis parcelas</h1>
-        <button
-          onClick={handleShowActivePlots}
-          className={showActivePlots ? 'btn btn-secondary' : 'btn btn-primary'}
-          >
-          {showActivePlots ? 'Ocultar parcelas' : 'Ver parcelas'}
-        </button>
-        <Spacer width={0.5} />
-        <button
-          onClick={handleShowArchivedPlots}
-          className={showArchivedPlots ? 'btn btn-secondary' : 'btn btn-primary'}
-          >
-          {showArchivedPlots ? 'Ocultar parcelas archivadas' : 'Ver parcelas archivadas'}
-        </button>
+      {/* Mapa fijo a la derecha en desktop, arriba en móvil */}
+      <div className="plot-map-wrapper">
+        <PlotMapComponent />
       </div>
 
-      {showActivePlots && (
-        <div>
-          <div className="titulo-seccion">
-          <h2>Parcelas Activas</h2>
-          </div>
-          <TablePlots />
+      {/* Contenido principal */}
+      <div className="plots-main-content">
+        <div className="titulo-seccion">
+          <h1>Mis parcelas</h1>
         </div>
-      )}
 
+        <div className="titulo-seccion">
+          <button
+            onClick={handleShowActivePlots}
+            className={showActivePlots ? 'btn btn-secondary' : 'btn btn-primary'}
+          >
+            {showActivePlots ? 'Ocultar parcelas' : 'Ver parcelas'}
+          </button>
 
+          <Spacer width={0.5} />
 
-      {showArchivedPlots && (
-        <div>
-          <div className="titulo-seccion">
-          <h2>Mis parcelas archivadas</h2>
-          </div>
-          <ArchivedPlotsTable  onPlotActivated={handlePlotActivatedFromArchive}  />
+          <button
+            onClick={handleShowArchivedPlots}
+            className={showArchivedPlots ? 'btn btn-secondary' : 'btn btn-primary'}
+          >
+            {showArchivedPlots ? 'Ocultar parcelas archivadas' : 'Ver parcelas archivadas'}
+          </button>
+
+          <Spacer width={0.5} />
+
+          <button
+            onClick={handleShowSectors}
+            className={showSectors ? 'btn btn-secondary' : 'btn btn-primary'}
+          >
+            {showSectors ? 'Ocultar sectores' : 'Ver sectores'}
+          </button>
+          
+          <Spacer width={0.5} />
+          
+          <button
+            onClick={handleShowFincas}
+            className={showFincas ? 'btn btn-secondary' : 'btn btn-primary'}
+          >
+            {showFincas ? 'Ocultar fincas' : 'Ver fincas'}
+          </button>
         </div>
-      )}
-      <Spacer width={30} />
-      <div className="contenedor-imagen">
-        <img
-          src={Cuervo}
-          alt="Logo de Odisea"
-          className="logo-app"
-          style={{ width: '100px', height: 'auto' }}
-        />
+
+        {showActivePlots && (
+          <div>
+            <div className="titulo-seccion">
+              <h2>Parcelas Activas</h2>
+            </div>
+            <TablePlots />
+          </div>
+        )}
+
+        {showArchivedPlots && (
+          <div>
+            <div className="titulo-seccion">
+              <h2>Mis parcelas archivadas</h2>
+            </div>
+            <ArchivedPlotsTable onPlotActivated={handlePlotActivatedFromArchive} />
+          </div>
+        )}
+
+        {showSectors && (
+          <div>
+            <div className="titulo-seccion">
+              <h2>Mis Sectores</h2>
+            </div>
+            <SectorsManagement />
+          </div>
+        )}
+
+        {showFincas && (
+          <div>
+            <div className="titulo-seccion">
+              <h2>Mis Fincas</h2>
+            </div>
+            <FincaManagement />
+          </div>
+        )}
+
+        <Spacer width={30} />
+        <div className="contenedor-imagen">
+          <img
+            src={Cuervo}
+            alt="Logo de Odisea"
+            className="logo-app"
+            style={{ width: '100px', height: 'auto' }}
+          />
+        </div>
       </div>
     </div>
   );
