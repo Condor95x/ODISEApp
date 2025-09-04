@@ -1,883 +1,949 @@
 /* ========================================
-   Variables CSS y Reset Básico
-   ======================================== */
+ Variables CSS y Reset Básico
+ ======================================== */
 :root {
-  --primary-color: #03114e;
-  --white: #ffffff;
-  --gray-light: #ccc;
-  --gray-medium: #585858;
-  --gray-dark: #444;
-  --danger-color: #dc3545;
-  --danger-hover: #c82333;
-  --disabled-color: #6c757d;
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --border-radius: 4px;
-  --menu-width: 200px;
-  --menu-collapsed-width: 50px;
-  --content-margin: 220px;
-  --content-margin-collapsed: 70px;
-  --transition: all 0.5s ease-in-out;
+ --primary-color: #03114e;
+ --white: #ffffff;
+ --gray-light: #ccc;
+ --gray-medium: #585858;
+ --gray-dark: #444;
+ --danger-color: #dc3545;
+ --danger-hover: #c82333;
+ --disabled-color: #6c757d;
+ --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+ --border-radius: 4px;
+ --menu-width: 200px;
+ --menu-collapsed-width: 50px;
+ --content-margin: 220px;
+ --content-margin-collapsed: 70px;
+ --transition: all 0.5s ease-in-out;
+ 
+ /* Nuevas variables para el mapa fijo en móvil */
+ --map-height-mobile: 300px;
+ --content-padding-top-mobile: 330px; /* Espacio para el mapa + un poco de margen */
 }
 
 * {
-  box-sizing: border-box;
+ box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  line-height: 1.5;
+ margin: 0;
+ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+ line-height: 1.5;
 }
 
 /* ========================================
-   Utilidades Generales
-   ======================================== */
+ Utilidades Generales
+ ======================================== */
 .contenedor {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+ width: 90%;
+ max-width: 1200px;
+ margin: 0 auto;
+ padding: 20px;
 }
 
 .titulo-seccion {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: var(--primary-color);
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--primary-color);
+ font-size: 1.5em;
+ font-weight: bold;
+ margin-bottom: 10px;
+ color: var(--primary-color);
+ padding-bottom: 5px;
+ border-bottom: 1px solid var(--primary-color);
 }
 
 .titulo-seccion h2 {
-  font-size: 1.5em;
-  margin: 0;
+ font-size: 1.5em;
+ margin: 0;
 }
 
 /* ========================================
-   Layout Principal - Plots con Mapa
-   ======================================== */
+ Layout Principal - Plots con Mapa
+ ======================================== */
 .Contenedor {
-  display: flex;
-  gap: 20px;
-  min-height: 100vh;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 20px;
+ display: flex;
+ gap: 20px;
+ min-height: 100vh;
+ width: 100%;
+ max-width: none;
+ margin: 0;
+ padding: 20px;
 }
 
 .plots-main-content {
-  flex: 2;
-  min-width: 0;
-  overflow-y: auto;
-  order: 1; /* Contenido a la izquierda */
+ flex: 2;
+ min-width: 0;
+ /* overflow-y: auto; */ /* Dejar que el body maneje el scroll principal */
+ order: 1; /* Contenido a la izquierda */
 }
 
 .plot-map-wrapper {
-  flex: 1;
-  position: sticky;
-  top: 20px;
-  height: calc(100vh - 40px);
-  min-width: 300px;
-  max-width: 400px;
-  z-index: 10;
-  order: 2; /* Mapa a la derecha */
+ flex: 1;
+ position: sticky;
+ top: 20px;
+ height: calc(100vh - 40px); /* Altura total menos el padding superior e inferior */
+ min-width: 300px;
+ max-width: 400px;
+ z-index: 10;
+ order: 2; /* Mapa a la derecha */
+ border-radius: 8px; /* Añadido para consistencia con el contenido */
+ overflow: hidden; /* Para que el border-radius funcione */
+ box-shadow: var(--shadow); /* Sombra para el contenedor del mapa */
 }
 
 .plot-map-wrapper > * {
-  height: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
+ height: 100%; /* Asegura que el componente Map ocupe todo el wrapper */
+ border-radius: 8px; /* Aplica border-radius al contenido interno del mapa si es necesario */
+ overflow: hidden;
 }
 
 /* ========================================
-   Sistema de Filtros y Controles
-   ======================================== */
+ Sistema de Filtros y Controles
+ ======================================== */
 .filter-controls-container {
-  background: #f8f9fa;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  box-shadow: 0 2px 4px rgba(3, 17, 78, 0.05);
+ background: #f8f9fa;
+ border: 1px solid #e5e5e5;
+ border-radius: 8px;
+ padding: 16px;
+ margin-bottom: 20px;
+ display: flex;
+ gap: 24px;
+ align-items: flex-start;
+ flex-wrap: wrap;
+ box-shadow: 0 2px 4px rgba(3, 17, 78, 0.05);
 }
 
 .control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 200px;
+ display: flex;
+ flex-direction: column;
+ gap: 8px;
+ min-width: 200px;
 }
 
 .control-label {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--primary-color);
-  margin-bottom: 4px;
+ font-weight: 600;
+ font-size: 14px;
+ color: var(--primary-color);
+ margin-bottom: 4px;
 }
 
 .control-select, .control-input {
-  padding: 10px 12px;
-  border: 2px solid #e5e5e5;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background: var(--white);
-  font-family: inherit;
+ padding: 10px 12px;
+ border: 2px solid #e5e5e5;
+ border-radius: 6px;
+ font-size: 14px;
+ transition: all 0.2s ease;
+ background: var(--white);
+ font-family: inherit;
 }
 
 .control-select:focus, .control-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(3, 17, 78, 0.1);
+ outline: none;
+ border-color: var(--primary-color);
+ box-shadow: 0 0 0 3px rgba(3, 17, 78, 0.1);
 }
 
 .control-select:hover, .control-input:hover {
-  border-color: var(--primary-color);
+ border-color: var(--primary-color);
 }
 
 .filter-inputs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+ display: flex;
+ gap: 8px;
+ flex-wrap: wrap;
 }
 
 .filter-field {
-  min-width: 120px;
+ min-width: 120px;
 }
 
 .control-input {
-  min-width: 200px;
-  flex: 1;
+ min-width: 200px;
+ flex: 1;
 }
 
 /* ========================================
-   Sistema de Botones
-   ======================================== */
+ Sistema de Botones
+ ======================================== */
 .btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background-color 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
+ padding: 0.5rem 1rem;
+ border: none;
+ border-radius: var(--border-radius);
+ cursor: pointer;
+ font-size: 0.875rem;
+ transition: background-color 0.2s ease;
+ text-decoration: none;
+ display: inline-block;
+ text-align: center;
 }
 
 .btn:disabled {
-  background-color: var(--disabled-color);
-  cursor: not-allowed;
+ background-color: var(--disabled-color);
+ cursor: not-allowed;
 }
 
 .boton,
 .btn-primary {
-  background-color: var(--primary-color);
-  color: var(--white);
+ background-color: var(--primary-color);
+ color: var(--white);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #041a5c;
+ background-color: #041a5c;
 }
 
 .btn-secondary {
-  background-color: var(--gray-light);
-  color: var(--white);
+ background-color: var(--gray-light);
+ color: var(--white);
 }
 
 .btn-danger {
-  background-color: var(--danger-color);
-  color: var(--white);
+ background-color: var(--danger-color);
+ color: var(--white);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: var(--danger-hover);
+ background-color: var(--danger-hover);
 }
 
 .btn-retry {
-  background-color: #f0ad4e;
-  color: var(--white);
+ background-color: #f0ad4e;
+ color: var(--white);
 }
 
 /* ========================================
-   Componente App (React)
-   ======================================== */
+ Componente App (React)
+ ======================================== */
 .App {
-  text-align: center;
+ text-align: center;
 }
 
 .App-logo {
-  max-height: 200px;
-  overflow-y: auto;
-  background: var(--white);
-  border-radius: 5px;
-  padding: 5px;
+ max-height: 200px;
+ overflow-y: auto;
+ background: var(--white);
+ border-radius: 5px;
+ padding: 5px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+ .App-logo {
+  animation: App-logo-spin infinite 20s linear;
+ }
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: var(--white);
+ background-color: #282c34;
+ min-height: 100vh;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ font-size: calc(10px + 2vmin);
+ color: var(--white);
 }
 
 .App-link {
-  color: #ff0000;
+ color: #ff0000;
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+ from { transform: rotate(0deg); }
+ to { transform: rotate(360deg); }
 }
 
 /* ========================================
-   Sistema de Navegación/Menú
-   ======================================== */
+ Sistema de Navegación/Menú
+ ======================================== */
 .menu {
-  width: var(--menu-width);
-  background-color: var(--primary-color);
-  padding: 6px;
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
-  color: var(--white);
-  z-index: 100;
+ width: var(--menu-width);
+ background-color: var(--primary-color);
+ padding: 6px;
+ position: fixed;
+ left: 0;
+ top: 0;
+ height: 100vh;
+ overflow-y: auto;
+ transition: var(--transition);
+ display: flex;
+ flex-direction: column;
+ color: var(--white);
+ z-index: 100;
 }
 
 .menu.collapsed {
-  width: var(--menu-collapsed-width);
-  padding: 10px 5px;
+ width: var(--menu-collapsed-width);
+ padding: 10px 5px;
 }
 
 .menu-toggle {
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: var(--transition);
-  color: var(--white);
-  background: none;
-  border: none;
-  font-size: 1.2rem;
+ cursor: pointer;
+ margin-bottom: 10px;
+ transition: var(--transition);
+ color: var(--white);
+ background: none;
+ border: none;
+ font-size: 1.2rem;
 }
 
 .menu.collapsed .menu-toggle {
-  text-align: center;
+ text-align: center;
 }
 
 .menu-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
+ list-style: none;
+ padding: 0;
+ margin: 0;
+ flex-grow: 1;
 }
 
 .menu-items li {
-  text-align: left;
-  width: 100%;
-  margin-bottom: 8px;
+ text-align: left;
+ width: 100%;
+ margin-bottom: 8px;
 }
 
 .menu-link {
-  color: var(--white);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  font-weight: 500;
-  width: 100%;
+ color: var(--white);
+ text-decoration: none;
+ display: flex;
+ align-items: center;
+ padding: 10px 12px;
+ border-radius: 20px;
+ transition: all 0.2s ease;
+ background-color: rgba(255, 255, 255, 0.1);
+ border: 1px solid rgba(255, 255, 255, 0.1);
+ backdrop-filter: blur(10px);
+ box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+ font-weight: 500;
+ width: 100%;
 }
 
 .menu-link:hover,
 .menu-link:visited {
-  color: var(--white);
-  background-color: rgba(255, 255, 255, 0.2);
-  text-decoration: none;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+ color: var(--white);
+ background-color: rgba(255, 255, 255, 0.2);
+ text-decoration: none;
+ transform: translateY(-1px);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .menu-icon {
-  margin-right: 10px;
-  width: 18px;
-  text-align: center;
-  flex-shrink: 0;
-  font-size: 1rem;
+ margin-right: 10px;
+ width: 18px;
+ text-align: center;
+ flex-shrink: 0;
+ font-size: 1rem;
 }
 
 .menu-text {
-  transition: all 0.5s ease-in-out; /* Misma duración que el contenedor */
-  white-space: nowrap;
-  overflow: hidden;
-  font-size: 0.9rem;
+ transition: all 0.5s ease-in-out; /* Misma duración que el contenedor */
+ white-space: nowrap;
+ overflow: hidden;
+ font-size: 0.9rem;
 }
 
 .menu.collapsed .menu-text {
-  opacity: 0;
-  width: 0;
-  margin: 0;
-  transition: all 0.5s ease-in-out; /* Misma duración, sin delay */
+ opacity: 0;
+ width: 0;
+ margin: 0;
+ transition: all 0.5s ease-in-out; /* Misma duración, sin delay */
 }
 
 /* Estilos para menú colapsado - pastillas solo para íconos */
 .menu.collapsed .menu-link {
-  padding: 10px;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  justify-content: center;
-  margin: 0 auto 8px auto;
+ padding: 10px;
+ border-radius: 50%;
+ width: 40px;
+ height: 40px;
+ justify-content: center;
+ margin: 0 auto 8px auto;
 }
 
 .menu.collapsed .menu-icon {
-  margin-right: 0;
-  font-size: 1.1rem;
+ margin-right: 0;
+ font-size: 1.1rem;
 }
 
 /* Información del usuario */
 .user-info {
-  margin-top: auto;
-  padding: 15px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+ margin-top: auto;
+ padding: 15px 0;
+ border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .user-name {
-  color: rgba(255, 255, 255, 0.8);
-  display: block;
-  margin-bottom: 10px;
-  font-size: 0.85em;
-  text-align: center;
-  font-weight: 400;
+ color: rgba(255, 255, 255, 0.8);
+ display: block;
+ margin-bottom: 10px;
+ font-size: 0.85em;
+ text-align: center;
+ font-weight: 400;
 }
 
 .menu.collapsed .user-name {
-  display: none;
+ display: none;
 }
 
 .logout-button {
-  width: 100%;
-  padding: 10px 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--white);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  font-weight: 500;
-  font-size: 0.9rem;
+ width: 100%;
+ padding: 10px 12px;
+ background-color: rgba(255, 255, 255, 0.1);
+ color: var(--white);
+ border: 1px solid rgba(255, 255, 255, 0.1);
+ border-radius: 20px;
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: all 0.2s ease;
+ backdrop-filter: blur(10px);
+ font-weight: 500;
+ font-size: 0.9rem;
 }
 
 .logout-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+ background-color: rgba(255, 255, 255, 0.2);
+ transform: translateY(-1px);
+ box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .logout-icon {
-  margin-right: 8px;
-  color: var(--white);
-  font-size: 1rem;
+ margin-right: 8px;
+ color: var(--white);
+ font-size: 1rem;
 }
 
 .logout-text {
-  color: var(--white);
+ color: var(--white);
 }
 
 /* Botón logout colapsado - pastilla circular */
 .menu.collapsed .logout-button {
-  width: 40px;
-  height: 40px;
-  padding: 10px;
-  border-radius: 50%;
-  margin: 0 auto;
+ width: 40px;
+ height: 40px;
+ padding: 10px;
+ border-radius: 50%;
+ margin: 0 auto;
 }
 
 .menu.collapsed .logout-icon {
-  margin-right: 0;
-  font-size: 1.1rem;
+ margin-right: 0;
+ font-size: 1.1rem;
 }
 
 .menu.collapsed .logout-text {
-  display: none;
+ display: none;
 }
 
-/* Contenido principal */
+/* Contenido principal (general, no específico de plots) */
 .content {
-  margin-left: var(--content-margin);
-  padding: 20px;
-  transition: var(--transition);
-  min-height: 100vh;
+ margin-left: var(--content-margin);
+ padding: 20px;
+ transition: var(--transition);
+ min-height: 100vh;
 }
 
 .menu.collapsed ~ .content {
-  margin-left: var(--content-margin-collapsed);
+ margin-left: var(--content-margin-collapsed);
 }
 
 /* ========================================
-   Sistema de Modales
-   ======================================== */
+ Sistema de Modales
+ ======================================== */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100vw;
+ height: 100vh;
+ background-color: rgba(0, 0, 0, 0.5);
+ z-index: 1000;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ padding: 20px;
 }
 
 .modal-wrapper {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: auto;
-  min-width: 400px;
+ position: relative;
+ max-width: 90vw;
+ max-height: 90vh;
+ width: auto;
+ min-width: 400px;
 }
 
 .modal-content {
-  background-color: var(--white);
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  overflow-y: auto;
-  max-height: 90vh;
+ background-color: var(--white);
+ padding: 24px;
+ border-radius: 8px;
+ box-shadow: var(--shadow);
+ overflow-y: auto; /* Permite scroll dentro del modal si el contenido excede la altura */
+ max-height: 90vh; /* Limita la altura del modal */
 }
 .modal-content .react-select__menu {
-  z-index: 9999 !important;
+ z-index: 9999 !important;
 }
 
 .modal-content .react-select__menu-portal {
-  z-index: 9999 !important;
+ z-index: 9999 !important;
 }
 
 .modal-title {
-  text-align: center;
-  margin-bottom: 24px;
-  color: var(--primary-color);
-  font-size: 1.5rem;
+ text-align: center;
+ margin-bottom: 24px;
+ color: var(--primary-color);
+ font-size: 1.5rem;
 }
 
 /* Formularios en modales */
 .modal-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 20px;
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 1rem;
+ margin-bottom: 20px;
 }
 
 .modal-form-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--primary-color);
+ display: block;
+ font-weight: 600;
+ margin-bottom: 0.5rem;
+ color: var(--primary-color);
 }
 
 .modal-form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--gray-light);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
+ width: 100%;
+ padding: 0.75rem;
+ border: 1px solid var(--gray-light);
+ border-radius: var(--border-radius);
+ font-size: 1rem;
+ transition: border-color 0.2s ease;
 }
 
 .modal-form-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(3, 17, 78, 0.1);
+ outline: none;
+ border-color: var(--primary-color);
+ box-shadow: 0 0 0 2px rgba(3, 17, 78, 0.1);
 }
 
 /* Grids específicos */
 .insumos-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 1rem;
 }
 
 .insumos-column {
-  padding: 0.5rem;
+ padding: 0.5rem;
 }
 
 /* Botones del modal */
 .modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 24px;
+ display: flex;
+ justify-content: flex-end;
+ gap: 10px;
+ margin-top: 24px;
 }
 
 /* Detalles */
 .detail-item {
-  margin-bottom: 12px;
+ margin-bottom: 12px;
 }
 
 .detail-item dt {
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--primary-color);
+ font-weight: 600;
+ margin-bottom: 4px;
+ color: var(--primary-color);
 }
 
 .detail-item dd {
-  margin-left: 0;
-  color: #555;
+ margin-left: 0;
+ color: #555;
 }
 
 .contenedor-imagen {
-  display: flex;
-  justify-content: center;
-  margin: 16px 0;
+ display: flex;
+ justify-content: center;
+ margin: 16px 0;
 }
 
 /* ========================================
-   Leaflet/Mapa
-   ======================================== */
-.leaflet-control-geocoder-form {
-  background-color: var(--white) !important;
-  border: 1px solid var(--gray-light) !important;
-  border-radius: 5px !important;
-  padding: 5px !important;
-  box-shadow: var(--shadow) !important;
-}
+ Leaflet/Mapa
+ ======================================== */
 .leaflet-container {
-  z-index: 1;
+ z-index: 1;
 }
 
+/* Estilos específicos para el mapa en PlotMapComponent si necesita leyenda o controles */
+/* Ejemplo: Si tienes una leyenda que quieres que sea fija en móvil */
+.plot-map-wrapper .leaflet-control-container {
+ /* Esto podría ser el contenedor de la leyenda si tu componente Map la expone */
+ /* Ajusta según la estructura interna de tu Map */
+ z-index: 60; /* Asegúrate de que esté por encima del contenido pero debajo de modales */
+}
+
+/* Ajustes para la leyenda dentro del mapa si es necesario */
+.leaflet-control-scale-line,
+.leaflet-control-zoom {
+ z-index: 60 !important; /* Para asegurar que sean visibles */
+}
+
+
 /* ========================================
-   Media Queries - Responsive
-   ======================================== */
+ Media Queries - Responsive
+ ======================================== */
 @media (max-width: 768px) {
-  :root {
-    --menu-width: 100%;
-    --content-margin: 0;
-    --content-margin-collapsed: 0;
-  }
-
-  /* Layout móvil - Mapa arriba, contenido abajo */
-  .Contenedor {
-    flex-direction: column;
-    padding: 10px;
-    gap: 15px;
-  }
-
-  .plot-map-wrapper {
-    position: sticky;
-    top: 0;
-    flex: none;
-    height: 300px;
-    min-width: unset;
-    max-width: unset;
-    width: 100%;
-    z-index: 50;
-    background: var(--white);
-    padding: 5px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Filtros del mapa en móvil - una sola columna */
-  .plot-map-component .filter-controls-container {
-    display: flex !important;
-    flex-direction: column !important;
-    grid-template-columns: none !important;
-    gap: 12px !important;
-  }
-
-  .plots-main-content {
-    flex: none;
-    overflow-y: visible;
-  }
-
-  .menu {
-    width: 100%;
-    height: auto;
-    position: fixed; /* Cambio: de relative a fixed */
-    bottom: 0; /* Cambio: posicionar en la parte inferior */
-    left: 0;
-    top: auto; /* Cambio: quitar top: 0 */
-    flex-direction: column;
-    align-items: stretch;
-    min-height: auto;
-    padding: 12px 8px 10px 8px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%);
-  }
-
-  .menu.collapsed {
-    width: 100%;
-  }
-
-  /* Ocultar el botón toggle en móvil */
-  .menu-toggle {
-    display: none;
-  }
-
-  .menu-items {
-    display: flex;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    gap: 4px;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-  }
-
-  .menu-items::-webkit-scrollbar {
-    display: none;
-  }
-
-  .menu-items li {
-    flex: 0 0 20%;
-    margin: 0;
-  }
-
-  .menu-link {
-    padding: 8px 4px;
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.15);
-    transition: all 0.2s ease;
-    color: var(--white) !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    min-height: 50px;
-    text-align: center;
-  }
-
-  .menu-link:hover,
-  .menu-link:visited {
-    color: var(--white) !important;
-    background-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .menu-icon {
-    margin-right: 0;
-    margin-bottom: 2px;
-    font-size: 1rem;
-    color: var(--white) !important;
-    width: auto;
-  }
-
-  .menu-text {
-    font-size: 0.65rem;
-    font-weight: 500;
-    opacity: 1;
-    width: auto;
-    color: var(--white) !important;
-    line-height: 1;
-    word-break: break-word;
-    hyphens: auto;
-  }
-
-  /* Eliminar todos los estilos de collapsed para móvil */
-  .menu.collapsed .menu-link {
-    padding: 8px 4px;
-    border-radius: 12px;
-    width: 100%;
-    height: auto;
-    flex-direction: column;
-    justify-content: center;
-    margin: 0;
-    min-height: 50px;
-  }
-
-  .menu.collapsed .menu-text {
-    opacity: 1;
-    width: auto;
-    color: var(--white) !important;
-    display: block;
-  }
-
-  .menu.collapsed .menu-icon {
-    margin-right: 0;
-    margin-bottom: 2px;
-    color: var(--white) !important;
-  }
-
-  .user-info {
-    margin-top: 8px;
-    padding: 8px 0 0 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .user-name {
-    margin-bottom: 0;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-  }
-
-  .logout-button {
-    width: auto;
-    height: auto;
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    min-width: fit-content;
-    background-color: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--white);
-    backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
-    margin: 0;
-  }
-
-  .logout-button:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
-  }
-
-  .logout-icon {
-    margin-right: 4px;
-    font-size: 0.8rem;
-    color: var(--white);
-  }
-
-  .logout-text {
-    font-size: 0.75rem;
-    color: var(--white);
-    font-weight: 500;
-  }
-
-  .menu.collapsed .user-name {
-    display: block;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .menu.collapsed .logout-button {
-    width: auto;
-    height: auto;
-    padding: 6px 12px;
-    border-radius: 15px;
-  }
-
-  .menu.collapsed .logout-text {
-    display: inline;
-  }
-
-  .menu.collapsed .logout-icon {
-    margin-right: 4px;
-  }
-
-  .content {
-    margin-left: 0;
-    padding: 10px;
-    margin-top: 0;
-    padding-bottom: 120px; /* Espacio para el menú inferior */
-  }
-
-  .modal-wrapper {
-    min-width: 300px;
-  }
-
-  .modal-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .insumos-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* Estilos responsive para filtros */
-  .filter-controls-container {
-    flex-direction: column;
-    gap: 16px;
-    padding: 12px;
-  }
+ :root {
+  /* El menú aquí se redefine en tu código original, ajustemos las variables de layout */
+  --menu-width: 100%; /* El menú ocupa todo el ancho */
+  --content-margin: 0; /* No hay margen izquierdo para el contenido */
+  --content-margin-collapsed: 0; /* Igual si está colapsado */
   
-  .control-group {
-    width: 100%;
-    min-width: unset;
-  }
-  
-  .filter-inputs {
-    flex-direction: column;
-  }
-  
-  .control-input {
-    min-width: unset;
-  }
+  /* Variables para el mapa fijo en móvil */
+  --map-height-mobile: 300px;
+  --content-padding-top-mobile: 330px; /* Altura del mapa + margen */
+ }
+
+ /* Layout móvil - Mapa ARRIBA y FIJO, contenido abajo SCROLLABLE */
+ .Contenedor {
+  flex-direction: column; /* Apila los elementos verticalmente */
+  padding: 0; /* Quitamos padding general si el mapa y contenido lo tienen */
+  gap: 0; /* Quitamos gap si los elementos se superponen o se colocan uno debajo del otro */
+  /* padding-top: var(--content-padding-top-mobile); No es necesario aquí si el contenido tiene padding-top */
+ }
+
+ .plot-map-wrapper {
+  order: -1; /* Coloca el mapa al principio del flujo visual */
+  position: fixed; /* Lo fija en la vista */
+  top: 0; /* Lo pega arriba */
+  left: 0; /* Lo pega a la izquierda */
+  width: 100%; /* Ocupa todo el ancho */
+  height: var(--map-height-mobile); /* Altura definida */
+  min-width: unset; /* Quitar min-width para que ocupe el 100% */
+  max-width: unset; /* Quitar max-width */
+  z-index: 50; /* Asegura que esté sobre el contenido principal */
+  background: var(--white); /* Fondo blanco por si hay espacios */
+  padding: 5px; /* Padding interno para el mapa */
+  border-radius: 0; /* Quitar border-radius si es fijo y ocupa todo el borde superior */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para darle profundidad */
+ }
+
+ .plot-map-wrapper > * {
+  border-radius: 0; /* Asegura que el mapa interno no tenga bordes si el wrapper no los tiene */
+ }
+
+ /* El contenido principal ahora tiene un padding-top para no ser tapado por el mapa fijo */
+ .plots-main-content {
+  order: 1; /* Ahora va después del mapa en el flujo visual */
+  flex: none; /* Ya no necesita flex grow */
+  overflow-y: visible; /* Permitir scroll normal en el contenido */
+  margin-right: 0;
+  padding-top: var(--content-padding-top-mobile); /* ¡IMPORTANTE! Espacio para el mapa fijo */
+  padding-left: 10px; /* Añadir padding si se quitó en .Contenedor */
+  padding-right: 10px; /* Añadir padding si se quitó en .Contenedor */
+ }
+
+ /* Ajustar el contenedor general si se quita padding */
+ .Contenedor {
+  padding: 0; /* Ajuste si .plots-main-content ya tiene padding */
+ }
+ 
+ /* Filtros del mapa en móvil - una sola columna */
+ .plot-map-component .filter-controls-container {
+  display: flex !important; /* Sobrescribir si es necesario */
+  flex-direction: column !important;
+  /* grid-template-columns: none !important; */ /* Ya no es grid */
+  gap: 12px !important;
+  margin-top: 10px; /* Espacio entre el mapa y los filtros */
+ }
+
+ /* Menú en móvil: se queda en la parte inferior de la pantalla */
+ .menu {
+  width: 100%;
+  height: auto; /* Altura automática para contener los items */
+  position: fixed; /* Fijo en la vista */
+  bottom: 0; /* Pegado abajo */
+  left: 0;
+  top: auto; /* Quitar top */
+  flex-direction: row; /* Items en fila */
+  align-items: center; /* Centrar verticalmente */
+  min-height: auto;
+  padding: 12px 8px 10px 8px; /* Ajustar padding */
+  background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%); /* Gradiente de fondo */
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1); /* Sombra superior */
+  z-index: 100; /* Asegura que esté sobre la mayoría de los contenidos */
+ }
+
+ .menu.collapsed { /* Si el menú colapsado tiene estilos específicos para móvil, se aplican aquí */
+  width: 100%;
+ }
+
+ /* Ocultar el botón toggle en móvil */
+ .menu-toggle {
+  display: none;
+ }
+
+ .menu-items {
+  display: flex;
+  overflow-x: auto; /* Scroll horizontal para los ítems si no caben */
+  flex-wrap: nowrap; /* Evita que los ítems salten de línea */
+  gap: 4px; /* Espacio entre ítems */
+  padding: 0;
+  margin: 0;
+  width: 100%; /* Ocupa todo el ancho disponible */
+ }
+
+ .menu-items::-webkit-scrollbar {
+  display: none; /* Oculta la barra de scroll en navegadores WebKit */
+ }
+
+ .menu-items li {
+  flex: 0 0 auto; /* Cada ítem toma su ancho necesario */
+  width: 25%; /* Ocupa 1/4 del ancho del contenedor visible, para que 4 ítems caben bien */
+  max-width: 150px; /* Límite máximo de ancho para un ítem */
+  margin: 0;
+ }
+
+ .menu-link {
+  padding: 8px 4px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+  color: var(--white) !important;
+  display: flex;
+  flex-direction: column; /* Icono arriba, texto abajo */
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 50px; /* Altura mínima para que no se colapse mucho */
+  text-align: center;
+ }
+
+ .menu-link:hover,
+ .menu-link:visited {
+  color: var(--white) !important;
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+ }
+
+ .menu-icon {
+  margin-right: 0;
+  margin-bottom: 2px; /* Espacio entre ícono y texto */
+  font-size: 1rem;
+  color: var(--white) !important;
+  width: auto;
+ }
+
+ .menu-text {
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 1; /* Asegura que el texto sea visible */
+  width: auto;
+  color: var(--white) !important;
+  line-height: 1;
+  word-break: break-word; /* Permite que el texto largo se corte */
+  hyphens: auto;
+ }
+
+ /* Eliminar todos los estilos de collapsed para móvil */
+ .menu.collapsed .menu-link {
+  padding: 8px 4px;
+  border-radius: 12px;
+  width: 100%; /* Ocupa el ancho del li */
+  height: auto;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  min-height: 50px;
+ }
+
+ .menu.collapsed .menu-text {
+  opacity: 1; /* Asegura que el texto sea visible */
+  width: auto;
+  color: var(--white) !important;
+  display: block; /* Asegura que se muestre */
+ }
+
+ .menu.collapsed .menu-icon {
+  margin-right: 0;
+  margin-bottom: 2px;
+  color: var(--white) !important;
+ }
+
+ /* User Info y Logout en móvil */
+ .user-info {
+  margin-top: 8px;
+  padding: 8px 0 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: row; /* Usuario y botón en línea */
+  align-items: center;
+  justify-content: space-between; /* Espacio entre ellos */
+  width: 100%; /* Ocupa todo el ancho */
+ }
+
+ .user-name {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  flex-shrink: 1; /* Permite que el nombre se encoja si es necesario */
+ }
+
+ .logout-button {
+  width: auto; /* Ajusta al contenido */
+  height: auto;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  min-width: fit-content; /* Ajusta al contenido */
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  margin: 0; /* Quitar margen si se usa flex */
+  flex-shrink: 0; /* Evita que el botón se encoja */
+ }
+
+ .logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+ }
+
+ .logout-icon {
+  margin-right: 4px; /* Espacio entre icono y texto */
+  font-size: 0.8rem;
+  color: var(--white);
+ }
+
+ .logout-text {
+  font-size: 0.75rem;
+  color: var(--white);
+  font-weight: 500;
+ }
+
+ /* Estilos para menú colapsado en móvil (si aplica, aunque ya se redefinió) */
+ .menu.collapsed .user-name {
+  display: block; /* Muestra el nombre */
+  color: rgba(255, 255, 255, 0.9);
+ }
+
+ .menu.collapsed .logout-button {
+  width: auto; /* Ajusta al contenido */
+  height: auto;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+ }
+
+ .menu.collapsed .logout-text {
+  display: inline; /* Muestra el texto */
+ }
+
+ .menu.collapsed .logout-icon {
+  margin-right: 4px;
+ }
+
+ /* Contenido principal en móvil */
+ .content { /* Si usas .content para el contenido general */
+  margin-left: 0; /* Quitar margen */
+  padding: 10px; /* Padding general */
+  margin-top: 0; /* Asegurar que no haya margen superior */
+  padding-bottom: 120px; /* Espacio para el menú inferior fijo */
+ }
+
+ /* Ajustes específicos de modales en móvil */
+ .modal-wrapper {
+  min-width: 300px; /* Mantener un ancho mínimo para el modal */
+  max-width: 95vw; /* Permitir que ocupe casi todo el ancho */
+ }
+
+ .modal-form-grid {
+  grid-template-columns: 1fr; /* Columnas apiladas */
+ }
+
+ .insumos-grid {
+  grid-template-columns: 1fr; /* Columnas apiladas */
+ }
+
+ /* Estilos responsive para filtros */
+ .filter-controls-container {
+  flex-direction: column; /* Apilados */
+  gap: 16px;
+  padding: 12px;
+ }
+ 
+ .control-group {
+  width: 100%; /* Ocupa todo el ancho */
+  min-width: unset; /* Quitar min-width */
+ }
+ 
+ .filter-inputs {
+  flex-direction: column; /* Apilados */
+  gap: 12px; /* Espacio entre filtros */
+ }
+ 
+ .control-input {
+  min-width: unset; /* Quitar min-width */
+ }
+ 
+ /* El `plots-main-content` debe tener el padding-top para el mapa fijo */
+ /* El padding-top se añadió previamente a .plots-main-content */
 }
 
 @media (max-width: 480px) {
-  .contenedor {
-    width: 100%;
-    padding: 10px;
-  }
+ /* Ajustes más finos para pantallas muy pequeñas */
+ :root {
+  --map-height-mobile: 250px; /* Mapa aún más pequeño */
+  --content-padding-top-mobile: 280px; /* Ajustar padding-top según el nuevo tamaño del mapa */
+ }
 
-  .modal-content {
-    padding: 16px;
-  }
+ .contenedor {
+  width: 100%;
+  padding: 10px;
+ }
 
-  .modal-buttons {
-    flex-direction: column;
-  }
+ .modal-content {
+  padding: 16px;
+ }
 
-  .btn {
-    width: 100%;
-    margin-bottom: 8px;
-  }
+ .modal-buttons {
+  flex-direction: column; /* Botones apilados */
+ }
 
-  /* Ajustes adicionales para filtros en pantallas muy pequeñas */
-  .filter-controls-container {
-    padding: 10px;
-    gap: 12px;
-  }
-  
-  .control-select, .control-input {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-  
-  .control-label {
-    font-size: 13px;
-  }
+ .btn {
+  width: 100%; /* Botones a todo el ancho */
+  margin-bottom: 8px;
+ }
 
-  /* Mapa más compacto en móviles pequeños */
-  .plot-map-wrapper {
-    height: 250px;
-  }
+ /* Ajustes adicionales para filtros en pantallas muy pequeñas */
+ .filter-controls-container {
+  padding: 10px;
+  gap: 12px;
+ }
+ 
+ .control-select, .control-input {
+  padding: 8px 10px;
+  font-size: 13px;
+ }
+ 
+ .control-label {
+  font-size: 13px;
+ }
+
+ /* Mapa más compacto en móviles pequeños */
+ .plot-map-wrapper {
+  height: var(--map-height-mobile); /* Usar variable definida */
+ }
+ 
+ /* Ajustar padding-top del contenido principal */
+ .plots-main-content {
+  padding-top: var(--content-padding-top-mobile);
+ }
 }

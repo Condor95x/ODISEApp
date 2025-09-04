@@ -65,7 +65,7 @@ const Menu = () => {
           <li>
             <Link to="/bodega" className="menu-link">
               <FaWineGlassAlt className="menu-icon" />
-              <span className="menu-text">Bodega</span>
+              <span className="menu-text">Cuaderno de Bodega</span>
             </Link>
           </li>
         )}

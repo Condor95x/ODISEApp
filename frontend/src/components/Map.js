@@ -95,11 +95,11 @@ const Map = forwardRef(({ geojson, onGeometryChange, editable = false, styleFunc
             const props = feature.properties || {};
             const popupContent = `
                 <strong>${props.name || 'Parcela'}</strong><br/>
-                Variedad: ${props.plot_var || '—'}<br/>
-                Manejo: ${props.plot_management || '—'}<br/>
-                Sector: ${props.sector_id || '—'}<br/>
-                Conducción: ${props.plot_conduction || '—'}<br/>
-                Portainjerto: ${props.plot_rootstock || '—'}
+                Variedad: ${props.plot_var_label || '—'}<br/>
+                Manejo: ${props.plot_management_label || '—'}<br/>
+                Sector: ${props.sector_id_label || '—'}<br/>
+                Conducción: ${props.plot_conduction_label || '—'}<br/>
+                Portainjerto: ${props.plot_rootstock_label || '—'}
             `;
 
             layer.bindPopup(popupContent);

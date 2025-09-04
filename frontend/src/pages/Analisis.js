@@ -17,7 +17,7 @@ function Analisis() {
   };
 
   return (
-    <div className="Contenedor">
+    <div style={{ display: 'block', width: '100%' }}>
       <div className="titulo-seccion flex gap-20">
         <h1>Análisis</h1>
         <button

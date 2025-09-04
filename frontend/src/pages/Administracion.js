@@ -3,7 +3,7 @@ import Admin from '../../maqueta/Admin.png';
 
 function Administracion() {
   return (
-    <div className="contenedor">
+    <div style={{ display: 'block', width: '100%' }}>
      <div className="titulo-seccion">
         <h1>El modulo de Administración</h1>
       </div>

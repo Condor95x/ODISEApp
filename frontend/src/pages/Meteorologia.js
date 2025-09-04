@@ -5,7 +5,7 @@ import Meteo3 from '../../maqueta/Meteo3.png';
 
 function Meteorología() {
   return (
-    <div className="contenedor">
+    <div style={{ display: 'block', width: '100%' }}>
      <div className="titulo-seccion">
         <h1>La Meteorología de tu finca</h1>
       </div>

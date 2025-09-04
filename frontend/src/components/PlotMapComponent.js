@@ -113,7 +113,14 @@ const PlotMapComponent = () => {
           type: 'Feature',
           properties: {
             name: plot.plot_name,
-            ...Object.fromEntries(filterFields.map(f => [f.key, plot[f.key]]))
+            // Incluir tanto los valores originales como los valores amigables
+            ...Object.fromEntries(filterFields.map(f => [f.key, plot[f.key]])),
+            // Agregar las versiones "amigables" de los valores
+            plot_var_label: getValueLabel('plot_var', plot.plot_var),
+            plot_management_label: getValueLabel('plot_management', plot.plot_management),
+            sector_id_label: getValueLabel('sector_id', plot.sector_id),
+            plot_conduction_label: getValueLabel('plot_conduction', plot.plot_conduction),
+            plot_rootstock_label: getValueLabel('plot_rootstock', plot.plot_rootstock)
           },
           geometry: geo
         };
@@ -135,12 +142,11 @@ const PlotMapComponent = () => {
       {/* Controles de filtros en dos columnas */}
       <div className="filter-controls-container" style={{ 
         display: 'grid', 
-        gridTemplateColumns: '1fr 1fr', 
         gap: '16px',
         alignItems: 'start',
         overflow: 'hidden' // Evita desbordamiento
       }}>
-        <div className="control-group" style={{ minWidth: 0 }}>
+        <div className="control-group" style={{ minWidth: 10 }}>
           <label htmlFor="legendField" className="control-label">Leyenda por:</label>
           <select 
             id="legendField" 
@@ -156,7 +162,7 @@ const PlotMapComponent = () => {
             ))}
           </select>
         </div>
-
+             { /* 
         <div className="control-group" style={{ minWidth: 0 }}>
           <label htmlFor="filterFieldSelect" className="control-label">
             Filtrar por:
@@ -185,7 +191,7 @@ const PlotMapComponent = () => {
               style={{ width: '100%' }}
             />
           </div>
-        </div>
+        </div>*/}
       </div>
 
       <div style={{ flex: 1, position: 'relative', minHeight: '200px' }}>

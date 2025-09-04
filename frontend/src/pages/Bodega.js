@@ -23,9 +23,9 @@ function Bodega() {
   };
 
   return (
-    <div className="Contenedor">
+    <div cstyle={{ display: 'block', width: '100%' }}>
       <div className="titulo-seccion flex gap-20">
-      <h1>Mi Bodega</h1>
+      <h1>Mi cuaderno de Bodega</h1>
         <button
           onClick={handleShowActivities}
           className={showActivities ? 'btn btn-secondary' : 'btn btn-primary'}

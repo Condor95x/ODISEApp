@@ -12,6 +12,8 @@ const Plots = () => {
   const [showSectors, setShowSectors] = useState(false);
   const [showFincas, setShowFincas] = useState(false);
 
+  // El Spacer puede seguir siendo útil para espaciar elementos,
+  // pero para el layout principal usaremos Grid/Flexbox.
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const handleShowArchivedPlots = () => {
@@ -31,28 +33,24 @@ const Plots = () => {
   };
 
   const handlePlotActivatedFromArchive = () => {
-    // Esta función no necesita hacer nada por ahora
+    // No necesita hacer nada por ahora
   };
 
   return (
-    <div className="Contenedor">
-      {/* Mapa fijo a la derecha en desktop, arriba en móvil */}
-      <div className="plot-map-wrapper">
-        <PlotMapComponent />
-      </div>
+    <div className="page-container"> {/* Contenedor principal de la página */}
 
-      {/* Contenido principal */}
-      <div className="plots-main-content">
+      {/* Contenido principal: tablas y gestiones */}
+      <div className="main-content-area">
         <div className="titulo-seccion">
           <h1>Mis parcelas</h1>
         </div>
 
-        <div className="titulo-seccion">
+        <div className="button-group"> {/* Agrupamos los botones para mejor control */}
           <button
             onClick={handleShowActivePlots}
             className={showActivePlots ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showActivePlots ? 'Ocultar parcelas' : 'Ver parcelas'}
+            {showActivePlots ? 'Ocultar Parcelas' : 'Parcelas'}
           </button>
 
           <Spacer width={0.5} />
@@ -61,7 +59,7 @@ const Plots = () => {
             onClick={handleShowArchivedPlots}
             className={showArchivedPlots ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showArchivedPlots ? 'Ocultar parcelas archivadas' : 'Ver parcelas archivadas'}
+            {showArchivedPlots ? 'Ocultar Parcelas Archivadas' : 'Parcelas Archivadas'}
           </button>
 
           <Spacer width={0.5} />
@@ -70,16 +68,16 @@ const Plots = () => {
             onClick={handleShowSectors}
             className={showSectors ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showSectors ? 'Ocultar sectores' : 'Ver sectores'}
+            {showSectors ? 'Ocultar Sectores' : 'Sectores'}
           </button>
-          
+
           <Spacer width={0.5} />
-          
+
           <button
             onClick={handleShowFincas}
             className={showFincas ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showFincas ? 'Ocultar fincas' : 'Ver fincas'}
+            {showFincas ? 'Ocultar Fincas' : 'Fincas'}
           </button>
         </div>
 
@@ -129,6 +127,12 @@ const Plots = () => {
           />
         </div>
       </div>
+
+      {/* Mapa fijo y colapsable en móviles */}
+      <div className="plot-map-fixed-wrapper">
+        <PlotMapComponent />
+      </div>
+
     </div>
   );
 };

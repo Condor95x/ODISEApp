@@ -367,7 +367,6 @@ const TablePlots = () => {
     }
     
     const transformedData = selectedData.map(plot => ({
-      ID: plot.plot_id,
       Nombre: plot.plot_name,
       Sector: metadata.sectors.find(s => s.sector_id === plot.sector_id)?.etiqueta || 'Sin sector',
       Variedad: metadata.varieties.find(v => v.gv_id === plot.plot_var)?.name || 'No especificada',
@@ -853,7 +852,7 @@ const TablePlots = () => {
             </div>
         ))}
 
-    {/* Modal para crear parcela */}
+    {/* Modal para crear parcela - Con tu lógica y nuevo estilo */}
       <Modal
         isOpen={showForm}
         onRequestClose={() => setShowForm(false)}
@@ -864,228 +863,252 @@ const TablePlots = () => {
         <div className="modal-wrapper">
           <div className="modal-content">
             <h2 className="modal-title">Crear una Nueva Parcela</h2>
-            <div className="mb-4">
-              <label className="modal-form-label" htmlFor="NewPlotName">Nombre:</label>
-              <input
-                id="NewPlotName"
-                type="text"
-                value={newPlot.plot_name}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_name: e.target.value })}
-                className="modal-form-input"
-                required
-              />
-              
-              <label className="modal-form-label" htmlFor="NewPlotSector">Sector:</label>
-              <Select
-                inputId="NewPlotSector"
-                value={newPlot.sector_id ? { value: newPlot.sector_id, label: metadata.sectors.find(s => s.sector_id === newPlot.sector_id)?.etiqueta || newPlot.sector_id } : null}
-                onChange={(selectedOption) => {
-                  setNewPlot({ ...newPlot, sector_id: selectedOption?.value || "" });
-                }}
-                options={metadata.sectors.map((sector) => ({
-                  value: sector.sector_id,
-                  label: sector.etiqueta,
-                }))}
-                isSearchable
-                isClearable
-                placeholder="Seleccionar sector..."
-                className="modal-form-input"
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  })
-                }}
-              />
-              
-              <label className="modal-form-label" htmlFor="NewPlotVar">Variedad:</label>
-              <Select
-                inputId="NewPlotVar"
-                value={newPlot.plot_var ? { value: newPlot.plot_var, label: newPlot.plot_var } : null}
-                onChange={(selectedOption) => {
-                  setNewPlot({ ...newPlot, plot_var: selectedOption?.value || "" });
-                }}
-                options={metadata.varieties.map((variety) => ({
-                  value: variety.name,
-                  label: variety.name,
-                }))}
-                isSearchable
-                placeholder="Seleccionar variedad..."
-                className="modal-form-input"
-                required
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  })
-                }}
-              />
 
-              <label className="modal-form-label" htmlFor="NewPlotRoots">Portainjerto:</label>
-              <Select
-                inputId="NewPlotRoots"
-                value={newPlot.plot_rootstock ? { value: newPlot.plot_rootstock, label: newPlot.plot_rootstock } : null}
-                onChange={(selectedOption) => {
-                  setNewPlot({ ...newPlot, plot_rootstock: selectedOption?.value || "" });
-                }}
-                options={metadata.rootstocks.map((rootstock) => ({
-                  value: rootstock.name,
-                  label: rootstock.name,
-                }))}
-                isSearchable
-                isClearable
-                placeholder="Seleccionar portainjerto..."
-                className="modal-form-input"
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  })
-                }}
-              />
-
-              <label className="modal-form-label" htmlFor="NewPlotPlantaY">Año de implantación:</label>
-              <input
-                id="NewPlotPlantaY"
-                type="number"
-                value={newPlot.plot_implant_year}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_implant_year: e.target.value })}
-                className="modal-form-input"
-                min="1900"
-                max={new Date().getFullYear()}
-              />
-
-              <label className="modal-form-label" htmlFor="NewPlotCreatY">Año de creación:</label>
-              <input
-                id="NewPlotCreatY"
-                type="number"
-                value={newPlot.plot_creation_year}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_creation_year: e.target.value })}
-                className="modal-form-input"
-                min="1900"
-                max={new Date().getFullYear()}
-              />
-
-              <label className="modal-form-label" htmlFor="NewPlotConduc">Sistema de conducción:</label>
-              <Select
-                inputId="NewPlotConduc"
-                value={newPlot.plot_conduction ? { value: newPlot.plot_conduction, label: metadata.conduction.find(c => c.vy_id === newPlot.plot_conduction)?.value || newPlot.plot_conduction } : null}
-                onChange={(selectedOption) => {
-                  setNewPlot({ ...newPlot, plot_conduction: selectedOption?.value || "" });
-                }}
-                options={metadata.conduction.map((conduction) => ({
-                  value: conduction.vy_id,
-                  label: conduction.value,
-                }))}
-                isSearchable
-                isClearable
-                placeholder="Seleccionar sistema de conducción..."
-                className="modal-form-input"
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  })
-                }}
-              />
-
-              <label className="modal-form-label" htmlFor="NewPlotManagement">Tipo de manejo:</label>
-              <Select
-                inputId="NewPlotManagement"
-                value={newPlot.plot_management ? { value: newPlot.plot_management, label: metadata.management.find(m => m.vy_id === newPlot.plot_management)?.value || newPlot.plot_management} : null}
-                onChange={(selectedOption) => {
-                  setNewPlot({ ...newPlot, plot_management: selectedOption?.value || "" });
-                }}
-                options={metadata.management.map((management) => ({
-                  value: management.vy_id,
-                  label: management.value,
-                }))}
-                isSearchable
-                isClearable
-                placeholder="Seleccionar tipo de manejo..."
-                className="modal-form-input"
-                menuPortalTarget={document.body}
-                styles={{
-                  menuPortal: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 10000
-                  })
-                }}
-              />
-
-              <label className="modal-form-label" htmlFor="NewPlotDescript">Descripción:</label>
-              <textarea
-                id="NewPlotDescript"
-                value={newPlot.plot_description}
-                onChange={(e) => setNewPlot({ ...newPlot, plot_description: e.target.value })}
-                className="modal-form-input h-24"
-                placeholder="Descripción opcional de la parcela..."
-              />
-
-              <div className="map-details-container">
-                <label className="modal-form-label">Ubicación en el mapa:</label>
-                <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
-                  <Map 
-                    ref={createMapRef}
-                    onGeometryChange={handleCreateGeometryChange}
-                    geojson={plotGeoJSON}
-                    editable={true}
+            <div className="modal-form-grid"> {/* Contenedor para las columnas */}
+              <div className="modal-column"> {/* Columna 1 */}
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotName">Nombre:</label>
+                  <input
+                    id="NewPlotName"
+                    type="text"
+                    value={newPlot.plot_name}
+                    onChange={(e) => setNewPlot({ ...newPlot, plot_name: e.target.value })}
+                    className="modal-form-input"
+                    required
                   />
                 </div>
+
                 <div className="mb-4">
-                  <button
-                    onClick={handleClearCreateMap}
-                    className="btn btn-danger mr-2"
-                    type="button"
-                  >
-                    Limpiar Mapa
-                  </button>
-                  {plotGeoJSON && (
-                    <span className="text-green-600 text-sm">
-                      ✓ Geometría definida
-                    </span>
-                  )}
+                  <label className="modal-form-label" htmlFor="NewPlotSector">Sector:</label>
+                  <Select
+                    inputId="NewPlotSector"
+                    value={newPlot.sector_id ? { value: newPlot.sector_id, label: metadata.sectors.find(s => s.sector_id === newPlot.sector_id)?.etiqueta || newPlot.sector_id } : null}
+                    onChange={(selectedOption) => {
+                      setNewPlot({ ...newPlot, sector_id: selectedOption?.value || "" });
+                    }}
+                    options={metadata.sectors.map((sector) => ({
+                      value: sector.sector_id,
+                      label: sector.etiqueta,
+                    }))}
+                    isSearchable
+                    isClearable
+                    placeholder="Seleccionar sector..."
+                    className="modal-form-input"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      })
+                    }}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotVar">Variedad:</label>
+                  <Select
+                    inputId="NewPlotVar"
+                    value={newPlot.plot_var ? { value: newPlot.plot_var, label: newPlot.plot_var } : null}
+                    onChange={(selectedOption) => {
+                      setNewPlot({ ...newPlot, plot_var: selectedOption?.value || "" });
+                    }}
+                    options={metadata.varieties.map((variety) => ({
+                      value: variety.name,
+                      label: variety.name,
+                    }))}
+                    isSearchable
+                    placeholder="Seleccionar variedad..."
+                    className="modal-form-input"
+                    required
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      })
+                    }}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotRoots">Portainjerto:</label>
+                  <Select
+                    inputId="NewPlotRoots"
+                    value={newPlot.plot_rootstock ? { value: newPlot.plot_rootstock, label: newPlot.plot_rootstock } : null}
+                    onChange={(selectedOption) => {
+                      setNewPlot({ ...newPlot, plot_rootstock: selectedOption?.value || "" });
+                    }}
+                    options={metadata.rootstocks.map((rootstock) => ({
+                      value: rootstock.name,
+                      label: rootstock.name,
+                    }))}
+                    isSearchable
+                    isClearable
+                    placeholder="Seleccionar portainjerto..."
+                    className="modal-form-input"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      })
+                    }}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotPlantaY">Año de implantación:</label>
+                  <input
+                    id="NewPlotPlantaY"
+                    type="number"
+                    value={newPlot.plot_implant_year}
+                    onChange={(e) => setNewPlot({ ...newPlot, plot_implant_year: e.target.value })}
+                    className="modal-form-input"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                  />
                 </div>
               </div>
 
-              <div className="modal-buttons mt-4">
-                <button onClick={handleCancelCreate} className="btn btn-secondary" type="button">
-                  Cancelar
-                </button>
-                <button onClick={handleCreatePlot} className="btn btn-primary" type="button">
-                  Crear Parcela
-                </button>
+              <div className="modal-column"> {/* Columna 2 */}
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotCreatY">Año de creación:</label>
+                  <input
+                    id="NewPlotCreatY"
+                    type="number"
+                    value={newPlot.plot_creation_year}
+                    onChange={(e) => setNewPlot({ ...newPlot, plot_creation_year: e.target.value })}
+                    className="modal-form-input"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotConduc">Sistema de conducción:</label>
+                  <Select
+                    inputId="NewPlotConduc"
+                    value={newPlot.plot_conduction ? { value: newPlot.plot_conduction, label: metadata.conduction.find(c => c.vy_id === newPlot.plot_conduction)?.value || newPlot.plot_conduction } : null}
+                    onChange={(selectedOption) => {
+                      setNewPlot({ ...newPlot, plot_conduction: selectedOption?.value || "" });
+                    }}
+                    options={metadata.conduction.map((conduction) => ({
+                      value: conduction.vy_id,
+                      label: conduction.value,
+                    }))}
+                    isSearchable
+                    isClearable
+                    placeholder="Seleccionar sistema de conducción..."
+                    className="modal-form-input"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      })
+                    }}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotManagement">Tipo de manejo:</label>
+                  <Select
+                    inputId="NewPlotManagement"
+                    value={newPlot.plot_management ? { value: newPlot.plot_management, label: metadata.management.find(m => m.vy_id === newPlot.plot_management)?.value || newPlot.plot_management} : null}
+                    onChange={(selectedOption) => {
+                      setNewPlot({ ...newPlot, plot_management: selectedOption?.value || "" });
+                    }}
+                    options={metadata.management.map((management) => ({
+                      value: management.vy_id,
+                      label: management.value,
+                    }))}
+                    isSearchable
+                    isClearable
+                    placeholder="Seleccionar tipo de manejo..."
+                    className="modal-form-input"
+                    menuPortalTarget={document.body}
+                    styles={{
+                      menuPortal: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 10000
+                      })
+                    }}
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="modal-form-label" htmlFor="NewPlotDescript">Descripción:</label>
+                  <textarea
+                    id="NewPlotDescript"
+                    value={newPlot.plot_description}
+                    onChange={(e) => setNewPlot({ ...newPlot, plot_description: e.target.value })}
+                    className="modal-form-input h-24"
+                    placeholder="Descripción opcional de la parcela..."
+                  />
+                </div>
               </div>
+            </div>
+
+            {/* Sección del mapa - Ancho completo */}
+            <div className="mb-4">
+              <label className="modal-form-label">Ubicación en el mapa:</label>
+              <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
+                <Map 
+                  ref={createMapRef}
+                  onGeometryChange={handleCreateGeometryChange}
+                  geojson={plotGeoJSON}
+                  editable={true}
+                />
+              </div>
+              <div className="mb-4">
+                <button
+                  onClick={handleClearCreateMap}
+                  className="btn btn-danger mr-2"
+                  type="button"
+                >
+                  Limpiar Mapa
+                </button>
+                {plotGeoJSON && (
+                  <span className="text-green-600 text-sm">
+                    ✓ Geometría definida
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-buttons mt-4">
+              <button onClick={handleCancelCreate} className="btn btn-secondary" type="button">
+                Cancelar
+              </button>
+              <button onClick={handleCreatePlot} className="btn btn-primary" type="button">
+                Crear Parcela
+              </button>
             </div>
           </div>
         </div>
       </Modal>
 
-    {/* Modal para ver/editar la parcela */}
+    {/* Modal de visualizacion/edicion de parcelas */}
       <Modal
         isOpen={showMapModal}
         onRequestClose={() => {
@@ -1099,180 +1122,317 @@ const TablePlots = () => {
       >
         <div className="modal-wrapper">
           <div className="modal-content">
-            <h2 className="modal-title">Detalles de la Parcela</h2>
+            <h2 className="modal-title text-center mb-4">{plotDetails?.plot_name || 'Detalles de la Parcela'}</h2>
+
+            {/* Sección del mapa - Ancho completo, arriba */}
             <div className="mb-4">
-              <div className="map-details-container">
-                <div className="leaflet-container" style={{ height: '300px', marginBottom: '20px' }}>
-                  {mapToDisplay && (
-                    <Map 
-                      ref={viewEditMapRef}
-                      geojson={mapToDisplay} 
-                      onGeometryChange={handleGeometryChange}
-                      showPopup={false}
-                      editable={isEditingDetails}
-                      key={`edit-${plotDetails?.plot_id}-${isEditingDetails}`}
-                    />
-                  )}
-                </div>
-                {isEditingDetails && (
-                  <div className="mb-4">
-                    <button
-                      onClick={() => {
-                        if (viewEditMapRef.current?.clearMap) {
-                          viewEditMapRef.current.clearMap();
-                        }
-                      }}
-                      className="btn btn-danger mr-2"
-                      type="button"
-                    >
-                      Limpiar Geometría
-                    </button>
-                  </div>
+              <label className="modal-form-label">Ubicación en el mapa:</label>
+              <div className="leaflet-container" style={{ height: '400px', marginBottom: '10px' }}>
+                {mapToDisplay && (
+                  <Map
+                    ref={viewEditMapRef}
+                    geojson={mapToDisplay}
+                    onGeometryChange={handleGeometryChange}
+                    showPopup={false}
+                    editable={isEditingDetails}
+                    key={`edit-${plotDetails?.plot_id}-${isEditingDetails}`}
+                  />
                 )}
               </div>
+              {isEditingDetails && (
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => {
+                      if (viewEditMapRef.current?.clearMap) {
+                        viewEditMapRef.current.clearMap();
+                      }
+                    }}
+                    className="btn btn-danger mr-2"
+                    type="button"
+                  >
+                    Limpiar Geometría
+                  </button>
+                  {plotDetails?.plot_geojson && (
+                    <span className="text-green-600 text-sm flex items-center">
+                      ✓ Geometría definida
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
 
-              {plotDetails && (
-                <div className="map-details-container">
-                  <h3 className="text-xl font-semibold mb-4">Información de la Parcela:</h3>
-                  <dl className="space-y-4">
-                    {fieldConfig.map((field) => (
-                      <div key={field.key} className="grid grid-cols-3 gap-4 items-center">
-                        <dt className="col-span-1 font-medium">{field.label}:</dt>
-                        <dd className="col-span-2">
-                          {isEditingDetails ? (
-                            field.type === 'select' ? (
-                        <Select
-                          inputId={`edit-${field.key}`}
-                          name={field.key}
-                          value={getSafeSelectValue(field.key, plotDetails, metadata)}
-                          onChange={(selectedOption) => handleSelectChange(field.key, selectedOption)}
-                          options={
-                            field.options === 'varieties' 
-                              ? metadata.varieties.map(option => ({ value: option.name, label: option.name }))
-                              : field.options === 'rootstocks' 
-                              ? metadata.rootstocks.map(option => ({ value: option.name, label: option.name }))
-                              : field.options === 'sectors' 
-                              ? metadata.sectors.map(option => ({ value: option.sector_id, label: option.etiqueta }))
-                              : field.options === 'conduction' 
-                              ? metadata.conduction.map(option => ({ value: option.vy_id, label: option.value }))
-                              : field.options === 'management' 
-                              ? metadata.management.map(option => ({ value: option.vy_id, label: option.value }))
-                              : []
-                          }
-                          isSearchable
-                          isClearable={!field.required}
-                          placeholder={`Seleccionar ${field.label}...`}
-                          className="w-full"
-                          menuPortalTarget={document.body}
-                          styles={{
-                            menuPortal: (provided) => ({
-                              ...provided,
-                              zIndex: 10000
-                            }),
-                            menu: (provided) => ({
-                              ...provided,
-                              zIndex: 10000
-                            })
-                          }}
-                        />
-                            ) : field.type === 'textarea' ? (
-                              <textarea
-                                id={`edit-${field.key}`}
-                                name={field.key}
-                                value={plotDetails[field.key] || ''}
-                                onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                disabled={field.disabled}
-                                rows={3}
-                              />
-                            ) : (
-                              <input
-                                id={`edit-${field.key}`}
-                                name={field.key}
-                                type={field.type}
-                                value={plotDetails[field.key] || ''}
-                                onChange={(e) => setPlotDetails({ ...plotDetails, [field.key]: e.target.value })}
-                                className="w-full p-2 border rounded"
-                                disabled={field.disabled}
-                                min={field.type === 'number' ? "1900" : undefined}
-                                max={field.type === 'number' ? new Date().getFullYear() : undefined}
-                              />
-                            )
-                          ) : (
-                            <span className="text-gray-800">
-                              {field.key === 'plot_var'
-                                ? metadata.varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || plotDetails.plot_var || 'Sin especificar'
-                                : field.key === 'plot_rootstock'
-                                ? metadata.rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || plotDetails.plot_rootstock || 'Sin especificar'
-                                : field.key === 'sector_id'
-                                ? metadata.sectors.find(s => s.sector_id === plotDetails.sector_id)?.etiqueta || plotDetails.sector_id || 'Sin especificar'
-                                : field.key === 'plot_conduction'
-                                ? metadata.conduction.find(c => c.vy_id === plotDetails.plot_conduction)?.value || plotDetails.plot_conduction || 'Sin especificar'
-                                : field.key === 'plot_management'
-                                ? metadata.management.find(m => m.vy_id === plotDetails.plot_management)?.value || plotDetails.plot_management || 'Sin especificar'
-                                : field.key === 'plot_area'
-                                ? `${plotDetails[field.key] || 'No calculada'} ${plotDetails[field.key] ? 'm²' : ''}`
-                                : plotDetails[field.key] || 'Sin especificar'
-                              }
-                            </span>
-                          )}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                  
-                  <div className="modal-buttons mt-6">
+            {plotDetails && (
+              <div className="modal-form-grid mt-4"> {/* Contenedor para las columnas */}
+                {/* Columna 1 */}
+                <div className="modal-column">
+                  {/* Nombre */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotName">Nombre:</label>
                     {isEditingDetails ? (
-                      <>
-                        <button
-                          onClick={() => setIsEditingDetails(false)}
-                          className="btn btn-secondary"
-                          type="button"
-                        >
-                          Cancelar Edición
-                        </button>
-                        <button
-                          onClick={handleUpdatePlot}
-                          className="btn btn-primary"
-                          type="button"
-                        >
-                          Guardar Cambios
-                        </button>
-                      </>
+                      <input
+                        id="editPlotName"
+                        type="text"
+                        value={plotDetails.plot_name}
+                        onChange={(e) => setPlotDetails({ ...plotDetails, plot_name: e.target.value })}
+                        className="modal-form-input"
+                        required
+                      />
                     ) : (
-                      <>
-                        <button
-                          onClick={() => {
-                            setShowMapModal(false);
-                            setPlotDetails(null);
-                            setIsEditingDetails(false);
-                          }}
-                          className="btn btn-secondary"
-                          type="button"
-                        >
-                          Cerrar
-                        </button>
-                        <button
-                          onClick={() => {
-                            setPlotToArchive(plotDetails);
-                            setShowArchiveModal(true);
-                          }}
-                          className="btn btn-warning"
-                          type="button"
-                        >
-                          Archivar
-                        </button>
-                        <button
-                          onClick={handleEditDetails}
-                          className="btn btn-primary"
-                          type="button"
-                        >
-                          Editar Parcela
-                        </button>
-                      </>
+                      <p className="modal-form-input-static">{plotDetails.plot_name}</p>
+                    )}
+                  </div>
+                  
+                  {/* Sector */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotSector">Sector:</label>
+                    {isEditingDetails ? (
+                      <Select
+                        inputId="editPlotSector"
+                        value={getSafeSelectValue('sector_id', plotDetails, metadata)}
+                        onChange={(selectedOption) => handleSelectChange('sector_id', selectedOption)}
+                        options={metadata.sectors.map(option => ({ value: option.sector_id, label: option.etiqueta }))}
+                        isSearchable
+                        isClearable
+                        placeholder="Seleccionar sector..."
+                        className="modal-form-input"
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+                          menu: (provided) => ({ ...provided, zIndex: 10000 })
+                        }}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {metadata.sectors.find(s => s.sector_id === plotDetails.sector_id)?.etiqueta || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Variedad */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotVar">Variedad:</label>
+                    {isEditingDetails ? (
+                      <Select
+                        inputId="editPlotVar"
+                        value={getSafeSelectValue('plot_var', plotDetails, metadata)}
+                        onChange={(selectedOption) => handleSelectChange('plot_var', selectedOption)}
+                        options={metadata.varieties.map(option => ({ value: option.name, label: option.name }))}
+                        isSearchable
+                        isClearable
+                        placeholder="Seleccionar variedad..."
+                        className="modal-form-input"
+                        required
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+                          menu: (provided) => ({ ...provided, zIndex: 10000 })
+                        }}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {plotDetails.plot_var || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Portainjerto */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotRoots">Portainjerto:</label>
+                    {isEditingDetails ? (
+                      <Select
+                        inputId="editPlotRoots"
+                        value={getSafeSelectValue('plot_rootstock', plotDetails, metadata)}
+                        onChange={(selectedOption) => handleSelectChange('plot_rootstock', selectedOption)}
+                        options={metadata.rootstocks.map(option => ({ value: option.name, label: option.name }))}
+                        isSearchable
+                        isClearable
+                        placeholder="Seleccionar portainjerto..."
+                        className="modal-form-input"
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+                          menu: (provided) => ({ ...provided, zIndex: 10000 })
+                        }}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {plotDetails.plot_rootstock || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Año de implantación */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotPlantaY">Año de implantación:</label>
+                    {isEditingDetails ? (
+                      <input
+                        id="editPlotPlantaY"
+                        type="number"
+                        value={plotDetails.plot_implant_year}
+                        onChange={(e) => setPlotDetails({ ...plotDetails, plot_implant_year: e.target.value })}
+                        className="modal-form-input"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {plotDetails.plot_implant_year || 'Sin especificar'}
+                      </p>
                     )}
                   </div>
                 </div>
+
+                {/* Columna 2 */}
+                <div className="modal-column">
+                  {/* Año de creación */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotCreatY">Año de creación:</label>
+                    {isEditingDetails ? (
+                      <input
+                        id="editPlotCreatY"
+                        type="number"
+                        value={plotDetails.plot_creation_year}
+                        onChange={(e) => setPlotDetails({ ...plotDetails, plot_creation_year: e.target.value })}
+                        className="modal-form-input"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {plotDetails.plot_creation_year || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Sistema de conducción */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotConduc">Sistema de conducción:</label>
+                    {isEditingDetails ? (
+                      <Select
+                        inputId="editPlotConduc"
+                        value={getSafeSelectValue('plot_conduction', plotDetails, metadata)}
+                        onChange={(selectedOption) => handleSelectChange('plot_conduction', selectedOption)}
+                        options={metadata.conduction.map(option => ({ value: option.vy_id, label: option.value }))}
+                        isSearchable
+                        isClearable
+                        placeholder="Seleccionar sistema de conducción..."
+                        className="modal-form-input"
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+                          menu: (provided) => ({ ...provided, zIndex: 10000 })
+                        }}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {metadata.conduction.find(c => c.vy_id === plotDetails.plot_conduction)?.value || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Tipo de manejo */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotManagement">Tipo de manejo:</label>
+                    {isEditingDetails ? (
+                      <Select
+                        inputId="editPlotManagement"
+                        value={getSafeSelectValue('plot_management', plotDetails, metadata)}
+                        onChange={(selectedOption) => handleSelectChange('plot_management', selectedOption)}
+                        options={metadata.management.map(option => ({ value: option.vy_id, label: option.value }))}
+                        isSearchable
+                        isClearable
+                        placeholder="Seleccionar tipo de manejo..."
+                        className="modal-form-input"
+                        menuPortalTarget={document.body}
+                        styles={{
+                          menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+                          menu: (provided) => ({ ...provided, zIndex: 10000 })
+                        }}
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">
+                        {metadata.management.find(m => m.vy_id === plotDetails.plot_management)?.value || 'Sin especificar'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Descripción */}
+                  <div className="mb-4">
+                    <label className="modal-form-label" htmlFor="editPlotDescript">Descripción:</label>
+                    {isEditingDetails ? (
+                      <textarea
+                        id="editPlotDescript"
+                        value={plotDetails.plot_description || ''}
+                        onChange={(e) => setPlotDetails({ ...plotDetails, plot_description: e.target.value })}
+                        className="modal-form-input h-24"
+                        placeholder="Descripción opcional de la parcela..."
+                      />
+                    ) : (
+                      <p className="modal-form-input-static">{plotDetails.plot_description || 'Sin especificar'}</p>
+                    )}
+                  </div>
+                  
+                  {/* Área */}
+                  <div className="mb-4">
+                    <label className="modal-form-label">Área:</label>
+                    <p className="modal-form-input-static">
+                      {plotDetails.plot_area ? `${plotDetails.plot_area} m²` : 'No calculada'}
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            <div className="modal-buttons mt-4">
+              {isEditingDetails ? (
+                <>
+                  <button
+                    onClick={() => setIsEditingDetails(false)}
+                    className="btn btn-secondary"
+                    type="button"
+                  >
+                    Cancelar Edición
+                  </button>
+                  <button
+                    onClick={handleUpdatePlot}
+                    className="btn btn-primary"
+                    type="button"
+                  >
+                    Guardar Cambios
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowMapModal(false);
+                      setPlotDetails(null);
+                      setIsEditingDetails(false);
+                    }}
+                    className="btn btn-secondary"
+                    type="button"
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPlotToArchive(plotDetails);
+                      setShowArchiveModal(true);
+                    }}
+                    className="btn btn-warning"
+                    type="button"
+                  >
+                    Archivar
+                  </button>
+                  <button
+                    onClick={handleEditDetails}
+                    className="btn btn-primary"
+                    type="button"
+                  >
+                    Editar Parcela
+                  </button>
+                </>
               )}
             </div>
           </div>

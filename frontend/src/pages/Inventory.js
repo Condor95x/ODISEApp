@@ -16,7 +16,7 @@ const Inventory = () => {
   };
 
   return (
-    <div className="Contenedor">
+    <div style={{ display: 'block', width: '100%' }}>
       <div className="titulo-seccion">
         <h1>Mis Inventarios</h1>
         <button onClick={handleShowStocks} className={showStocks ? 'btn btn-secondary' : 'btn btn-primary'}>

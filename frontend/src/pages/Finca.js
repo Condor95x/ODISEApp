@@ -11,7 +11,7 @@ const Finca = () => {
     setShowOperaciones(!showOperaciones);
   };
   return (
-    <div className="Contenedor">
+    <div style={{ display: 'block', width: '100%' }}>
       <div className="titulo-seccion">
         <h1>Mi Cuaderno de Campo</h1>
         <button
