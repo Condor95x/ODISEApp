@@ -1,0 +1,26 @@
+[project]
+name = "odiseamvp"
+
+[languages.python]
+path = "backend"
+version = "3.11"
+
+[languages.nodejs]
+path = "frontend"
+version = "18.x"
+
+[phases.install]
+commands = [
+  "cd backend && pip install -r requirements.txt",
+  "cd frontend && npm ci"
+]
+
+[phases.build]
+commands = [
+  "cd frontend && npm run build"
+]
+
+[phases.start]
+commands = [
+  "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+]
