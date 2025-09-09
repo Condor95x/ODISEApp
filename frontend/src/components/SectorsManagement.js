@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSectors, createSector, updateSector, deleteSector } from '../services/api'; // Asegúrate de que la ruta sea correcta
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 Modal.setAppElement('#root');
 
@@ -270,7 +270,7 @@ function SectorsManagement() {
   return (
     <div className="container mx-auto p-4">
       <div className="table-header">
-        <button onClick={() => handleOpenSectorForm()} className="btn btn-primary">Crear Sector</button>
+        <button onClick={() => handleOpenSectorForm()} className="btn btn-primary"><FontAwesomeIcon icon={faPlus} /> Crear Sector</button>
         <Spacer width={0.5} />
         {Object.values(selectedSectors).flat().length > 0 && (
           <button

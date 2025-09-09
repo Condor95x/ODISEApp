@@ -12,8 +12,6 @@ const Plots = () => {
   const [showSectors, setShowSectors] = useState(false);
   const [showFincas, setShowFincas] = useState(false);
 
-  // El Spacer puede seguir siendo útil para espaciar elementos,
-  // pero para el layout principal usaremos Grid/Flexbox.
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const handleShowArchivedPlots = () => {
@@ -33,19 +31,23 @@ const Plots = () => {
   };
 
   const handlePlotActivatedFromArchive = () => {
-    // No necesita hacer nada por ahora
+    // Esta función no necesita hacer nada por ahora
   };
 
   return (
-    <div className="page-container"> {/* Contenedor principal de la página */}
+    <div className="Contenedor">
+      {/* Mapa fijo a la derecha en desktop, arriba en móvil */}
+      <div className="plot-map-wrapper">
+        <PlotMapComponent />
+      </div>
 
-      {/* Contenido principal: tablas y gestiones */}
-      <div className="main-content-area">
+      {/* Contenido principal */}
+      <div className="plots-main-content">
         <div className="titulo-seccion">
           <h1>Mis parcelas</h1>
         </div>
 
-        <div className="button-group"> {/* Agrupamos los botones para mejor control */}
+        <div className="titulo-seccion">
           <button
             onClick={handleShowActivePlots}
             className={showActivePlots ? 'btn btn-secondary' : 'btn btn-primary'}
@@ -70,9 +72,9 @@ const Plots = () => {
           >
             {showSectors ? 'Ocultar Sectores' : 'Sectores'}
           </button>
-
+          
           <Spacer width={0.5} />
-
+          
           <button
             onClick={handleShowFincas}
             className={showFincas ? 'btn btn-secondary' : 'btn btn-primary'}
@@ -127,12 +129,6 @@ const Plots = () => {
           />
         </div>
       </div>
-
-      {/* Mapa fijo y colapsable en móviles */}
-      <div className="plot-map-fixed-wrapper">
-        <PlotMapComponent />
-      </div>
-
     </div>
   );
 };

@@ -233,25 +233,31 @@ function StockManagement() {
         <button className="btn btn-secondary" onClick={generateCSV}>Descargar CSV</button>
       )}
         </div>
-      <div className="flex gap-2 mb-4">
-        <label htmlFor="groupingFieldStock" className="mr-2">Agrupar por:</label>
-          <Spacer width={0.2} />
+      <div className="filter-controls-container">
+        <div className="control-group">
+          <label htmlFor="groupingFieldstock" className="control-label">
+            Agrupar por:
+          </label>
           <select
             id="groupingFieldStock"
             value={groupBy || "none"}
             onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
-            className="border p-2 rounded"
+            className="control-select"
           >
             <option value="none">Sin Agrupación</option>
             <option value="input">Insumo</option>
             <option value="warehouse">Almacén</option>
           </select>
-        <Spacer width={2} />
-        <select
+      </div>
+      <div className="control-group">
+        <label htmlFor="FilterFieldstock" className="control-label">
+          Filtrar por:
+        </label>
+        <div className="filter-inputs">        <select
           id="FilterFieldStock"
           value={filterField}
           onChange={(e) => setFilterField(e.target.value)}
-          className="border p-2 rounded"
+          className="control-select filter-field"
         >
           <option value="input.name">Nombre del Insumo</option>
           <option value="warehouse.name">Nombre del Almacén</option>
@@ -263,10 +269,11 @@ function StockManagement() {
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
           placeholder={`Buscar por ${filterField}...`}
-          className="border p-2 rounded w-64"
+          className="control-input"
         />   
-        
       </div>
+    </div>        
+  </div>
 
       {Object.entries(groupedStocks).map(([group, stocks]) => (
       <div key={group} className="mb-4">

@@ -180,7 +180,7 @@ const Map = forwardRef(({ geojson, onGeometryChange, editable = false, styleFunc
     return (
         <div>
             <div id="map" ref={mapRef} style={{ height: '400px', width: '100%' }}></div>
-            {/* Botón opcional para limpiar el mapa */}
+            {/* Botón opcional para limpiar el mapa 
             {currentGeometry && (
                 <div style={{ marginTop: '10px' }}>
                     <button 
@@ -197,7 +197,7 @@ const Map = forwardRef(({ geojson, onGeometryChange, editable = false, styleFunc
                         Limpiar Parcela
                     </button>
                 </div>
-            )}
+            )}*/}
         </div>
     );
 });

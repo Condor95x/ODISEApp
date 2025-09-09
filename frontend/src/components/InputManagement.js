@@ -31,8 +31,7 @@ function InputManagement({ onInputCreated }) {
   const [allSelected, setAllSelected] = useState({});
   const [categories, setCategories] = useState([]);
   const [warehouses, setWarehouses] = useState([]); // Estado para los almacenes
-  const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
-
+  
   useEffect(() => {
     const fetchInputs = async () => {
       setLoading(true);
@@ -282,27 +281,53 @@ function InputManagement({ onInputCreated }) {
     <div className="container mx-auto p-4">
       <div className="table-header">
         <button onClick={() => handleOpenInputForm()} className="btn btn-primary">Crear Input</button>
-        <Spacer width={0.5} />
+        
         {Object.values(selectedInputs).flat().length > 0 && (
         <button className="btn btn-secondary" onClick={generateCSV}>Descargar CSV</button>
         )}
       </div>
-      <div className="flex gap-2 mb-4">
-      <label htmlFor="groupingFieldInput" className="mr-2">Agrupar por:</label>
-        <Spacer width={0.2} />
-        <select id="groupingFieldInput" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="border p-2 rounded">
+
+      <div className="filter-controls-container">
+        <div className="control-group">
+          <label htmlFor="groupingFieldinput" className="control-label">
+            Agrupar por:
+          </label>
+        <select
+          id="groupingFieldInput"
+          value={groupBy || "none"}
+          onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)}
+          className="control-select"
+        >
           <option value="none">Sin Agrupación</option>
           <option value="category_id">Categoría</option>
           <option value="brand">Marca</option>
         </select>
-        <Spacer width={2} />
-        <select id="FilterFieldInput" value={filterField} onChange={(e) => setFilterField(e.target.value)} className="border p-2 rounded">
-            <option value="name">Nombre</option>
-            <option value="category_id">Categoría</option>
-            <option value="brand">Marca</option>
-        </select>
-        <Spacer width={0.2} />
-        <input id="FilterValueInput" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${filterField}...`} className="border p-2 rounded w-64" />
+      </div>
+      <div className="control-group">
+        <label htmlFor="FilterFieldinput" className="control-label">
+          Filtrar por:
+        </label>
+        <div className="filter-inputs">
+          <select
+            id="FilterFieldInput"
+            value={filterField}
+            onChange={(e) => setFilterField(e.target.value)}
+            className="control-select filter-field"
+          >
+              <option value="name">Nombre</option>
+              <option value="category_id">Categoría</option>
+              <option value="brand">Marca</option>
+          </select>
+          <input
+            id="FilterValueInput"
+            type="text"
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            placeholder={`Buscar por ${filterField}...`}
+            className="control-input"
+          />
+        </div>
+      </div>
       </div>
 
       {Object.entries(groupedInputs).map(([group, inputs]) => (

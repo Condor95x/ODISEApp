@@ -492,6 +492,17 @@ export const deleteOperacion = async (id) => {
   return response.data;
 };
 
+export const getOperacionDetailed = async (operacionId) => {
+    try {
+        // Usando la misma instancia API
+        const response = await API.get(`/operaciones/${operacionId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error al obtener detalles de operación:', error);
+        throw error;
+    }
+};
+
 //USERS
 export const getUsers = async () => {
   const response = await API.get('/users/users/');

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getFincas, createFinca, updateFinca, deleteFinca } from '../services/api'; // Asegúrate de que la ruta sea correcta
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 Modal.setAppElement('#root');
 
@@ -262,7 +262,7 @@ function FincaManagement() {
   return (
     <div className="container mx-auto p-4">
       <div className="table-header">
-        <button onClick={() => handleOpenFincaForm()} className="btn btn-primary">Crear Finca</button>
+        <button onClick={() => handleOpenFincaForm()} className="btn btn-primary"><FontAwesomeIcon icon={faPlus} /> Crear Finca</button>
         <Spacer width={0.5} />
         {Object.values(selectedFincas).flat().length > 0 && (
           <button

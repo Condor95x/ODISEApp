@@ -26,17 +26,18 @@ class VineyardInfoData(BaseModel):
 
 class FincaInfo(BaseModel):
     """Info base de la finca"""
-    id: int
+    finca_id: int
     value: str
     description: Optional[str]
 
 class FincaInfoData(BaseModel):
     """Info base de la finca"""
+    finca_id: int
     value: Optional[str]
 
 class SectorInfo(BaseModel):
     """Informacion del sector y su finca"""
-    id: int
+    sector_id: int
     value: str
     finca: int
     etiqueta: str
@@ -59,7 +60,7 @@ class PlotResponseOptimized(BaseModel):
     plot_implant_year: Optional[int] = None
     plot_creation_year: Optional[int] = None
     plot_description: Optional[str] = None
-    #sector_id: Optional[int]
+    sector_id: Optional[int]
     active: bool = True
     
     # Objetos anidados en lugar de IDs

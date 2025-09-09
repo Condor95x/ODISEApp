@@ -523,14 +523,14 @@ async def get_metadata(db: AsyncSession) -> PlotMetadata:
                 description=m.description
             ) for m in management_types],
             sectores=[SectorInfo(
-                id=s.sector_id,
+                sector_id=s.sector_id,
                 value=s.value,
                 finca=s.finca_id,
                 etiqueta=s.etiqueta,
                 description =s.description
             ) for s in sector_data],
             fincas=[FincaInfo(
-                id=f.finca_id,
+                finca_id=f.finca_id,
                 value=f.value,
                 description=f.description            
             ) for f in finca_data],
@@ -646,7 +646,7 @@ async def get_plots_optimized(
                 rootstock=GrapevineInfoData(gv_id=rootstock_data.gv_id, name=rootstock_data.name) if rootstock_data else None,
                 conduction=VineyardInfoData(vy_id=conduction_data.vy_id, value=conduction_data.value) if conduction_data else None,
                 management=VineyardInfoData(vy_id=management_data.vy_id, value=management_data.value) if management_data else None,
-                sector=SectorInfoData(id=sector_data.sector_id, etiqueta=sector_data.etiqueta)
+                sector=SectorInfoData(sector_id=sector_data.sector_id, etiqueta=sector_data.etiqueta)
             ))
 
         metadata = await get_metadata(db)

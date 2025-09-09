@@ -1,4 +1,3 @@
-'NEW TABLE PLOTS'
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { 
   getPlotsWithData, 
@@ -14,7 +13,7 @@ import Modal from 'react-modal';
 import 'leaflet/dist/leaflet.css';
 import Map from './Map';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Terraformer from 'terraformer-wkt-parser';
 import Select from 'react-select';
 
@@ -719,7 +718,7 @@ const TablePlots = () => {
     <div className="container mx-auto p-4">
       <div className="table-header">
         <button onClick={() => setShowForm(true)} className="btn btn-primary">
-          Crear Nueva Parcela
+          <FontAwesomeIcon icon={faPlus} /> Crear Nueva Parcela
         </button>
         {selectedPlots.length > 0 && (
           <button onClick={handleDownloadCSV} className="btn btn-secondary">
@@ -806,7 +805,7 @@ const TablePlots = () => {
                     <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("plot_area")}>
                       Área
                     </th>
-                    <th className="border border-gray-300 p-2">Acciones</th>
+                    <th className="border border-gray-300 p-2">Detalles</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1230,7 +1229,8 @@ const TablePlots = () => {
                       />
                     ) : (
                       <p className="modal-form-input-static">
-                        {plotDetails.plot_var || 'Sin especificar'}
+                        {metadata.varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || 
+                        plotDetails.plot_var || 'Sin especificar'}
                       </p>
                     )}
                   </div>
@@ -1256,7 +1256,8 @@ const TablePlots = () => {
                       />
                     ) : (
                       <p className="modal-form-input-static">
-                        {plotDetails.plot_rootstock || 'Sin especificar'}
+                        {metadata.rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || 
+                          plotDetails.plot_rootstock || 'Sin especificar'}
                       </p>
                     )}
                   </div>

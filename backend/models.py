@@ -4,32 +4,57 @@ from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Computed
+from sqlalchemy import Computed, Index
 
 class Operacion(Base):
     __tablename__ = "operaciones"
+    
     id = Column(Integer, primary_key=True, index=True)
     parcela_id = Column(Integer, ForeignKey("plot.plot_id"))
-    tipo_operacion = Column(String, ForeignKey("task_list.task_name"),nullable=False)
+    tipo_operacion = Column(String, ForeignKey("task_list.task_name"), nullable=False)
     fecha_inicio = Column(Date, nullable=True)
     fecha_fin = Column(Date, nullable=True)
-    estado = Column(String, nullable=True)
+    estado = Column(String, nullable=True, default="planned")
     responsable_id = Column(Integer, ForeignKey("usuarios.id"))
-    nota = Column(Text, nullable=True)
-    comentario = Column(Text, nullable=True)
+    nota = Column(Text, nullable=True, default="")
+    comentario = Column(Text, nullable=True, default="")
 
-    # Nuevos campos
-    creation_date = Column(Date, default=func.current_date())
-    jornales = Column(Numeric(8,2), nullable=True)  # Permite decimales
-    personas = Column(Integer, nullable=True)
-    # Agregar campo faltante:
-    porcentaje_avance = Column(Integer)
+    # Campos automáticos y de recursos humanos
+    creation_date = Column(DateTime, default=func.now(), nullable=False)  # Automático
+    jornales = Column(Numeric(8,2), nullable=True, default=0)  # Permite decimales para medios jornales
+    personas = Column(Integer, nullable=True, default=0)
+    porcentaje_avance = Column(Integer, nullable=True, default=0)
+    
+    # Campo calculado para costo por jornal (si tienes tabla de costos)
+    @hybrid_property
+    def costo_total_jornales(self):
+        """Calcula el costo total de jornales si tienes una tarifa por jornal"""
+        if self.jornales:
+            # Aquí podrías hacer join con tabla de tarifas por fecha/tipo
+            tarifa_jornal = 50.0  # Ejemplo: $50 por jornal
+            return float(self.jornales) * tarifa_jornal
+        return 0.0
 
-    inputs = relationship("TaskInput", back_populates="operation")
+    # Relaciones
+    inputs = relationship("TaskInput", back_populates="operation", cascade="all, delete-orphan")
     responsable = relationship("Usuario", back_populates="operaciones")
     plot = relationship("Plot", back_populates="operaciones")
     task = relationship("TaskList")
     
+    # Índices para optimización
+    __table_args__ = (
+        Index('idx_operacion_parcela_tipo', 'parcela_id', 'tipo_operacion'),
+        Index('idx_operacion_estado_fecha', 'estado', 'fecha_inicio'),
+        Index('idx_operacion_responsable', 'responsable_id'),
+        Index('idx_operacion_creation_date', 'creation_date'),
+        # Constraint para asegurar que porcentaje esté entre 0 y 100
+        CheckConstraint('porcentaje_avance >= 0 AND porcentaje_avance <= 100', 
+                       name='check_porcentaje_avance_range'),
+        # Constraint para asegurar valores positivos
+        CheckConstraint('jornales >= 0', name='check_jornales_positive'),
+        CheckConstraint('personas >= 0', name='check_personas_positive'),
+    )
+
 class TaskList(Base):
     __tablename__ = "task_list"
 

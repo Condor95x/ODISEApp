@@ -1,152 +1,81 @@
-from ..models import Operacion, TaskInput, InputStock, TaskList
-from ..schemas.operaciones_schemas import OperacionCreate, OperacionUpdate, OperacionResponse, TaskInputUpdate
+from ..models import Operacion, TaskInput, InputStock, TaskList, Plot
+from ..schemas.operaciones_schemas import (
+    OperacionCreate, OperacionUpdate, OperacionResponse, 
+    OperacionListItem, TaskInputUpdate, TaskInputCreate
+)
+from ..schemas.schemas_plot import PlotForOPS
 from .crud_inventory import create_inventory_movement
-from passlib.context import CryptContext
-from sqlalchemy import delete
+from sqlalchemy import delete, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
-from typing import List, Dict, Any
+from sqlalchemy.orm import selectinload, joinedload
+from typing import List, Optional
 from fastapi import HTTPException
 from datetime import datetime
-from ..schemas.schemas_inventory import InventoryMovementCreate, TaskInputCreate
+from ..schemas.schemas_inventory import InventoryMovementCreate
 import logging
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  # Para encriptar contraseñas
-
-
-async def create_operacion(db: AsyncSession, operacion: OperacionCreate):
-    db_operaciones = Operacion(parcela_id=operacion.parcela_id,tipo_operacion=operacion.tipo_operacion,fecha_inicio=operacion.fecha_inicio,fecha_fin=operacion.fecha_fin,estado=operacion.estado,responsable_id=operacion.responsable_id,nota=operacion.nota,comentario=operacion.comentario)
-    db.add(db_operaciones)
-    await db.commit()
-    await db.refresh(db_operaciones)
-    return {"status": 201, "message": "Added successfully"}
-
-async def get_operaciones(db: AsyncSession):
-    """Obtiene todas las operaciones cargando también la relación de inputs."""
-    result = await db.execute(select(Operacion).options(selectinload(Operacion.inputs)))
-    operaciones = result.scalars().all()
-    return operaciones
-
-async def get_operacion(db: AsyncSession, id: int):
-    """Obtiene una operación por su ID cargando también la relación de inputs."""
-    result = await db.execute(select(Operacion).where(Operacion.id == id).options(selectinload(Operacion.inputs)))
-    operacion_db = result.scalars().first()
-    return operacion_db
-
-async def get_vineyard_operaciones(db: AsyncSession):
-    """Obtiene todas las operaciones de tipo 'vineyard' cargando también la relación de inputs."""
-    result = await db.execute(
-        select(Operacion)
-        .join(TaskList, Operacion.tipo_operacion == TaskList.task_name)
-        .where(TaskList.task_type == "vineyard")
-        .options(selectinload(Operacion.inputs))
-    )
-    operaciones = result.scalars().all()
-    return operaciones
-
-async def get_winery_operaciones(db: AsyncSession):
-    """Obtiene todas las operaciones de tipo 'winery' cargando también la relación de inputs."""
-    result = await db.execute(
-        select(Operacion)
-        .join(TaskList, Operacion.tipo_operacion == TaskList.task_name)
-        .where(TaskList.task_type == "winery")
-        .options(selectinload(Operacion.inputs))
-    )
-    operaciones = result.scalars().all()
-    return operaciones
-
-async def update_operacion(db: AsyncSession, operacion_id: int, parcela_update: OperacionUpdate):
-    existing_operacion = await db.get(Operacion, operacion_id)
-    if existing_operacion is None:
-        return None # Retorna None si no existe
-
-    for key, value in parcela_update.dict(exclude_unset=True).items():
-        setattr(existing_operacion,key,value)
-
-    await db.commit()
-    await db.refresh(existing_operacion)
-    return existing_operacion # Retorna el modelo actualizado
-
-async def delete_operacion(db: AsyncSession, operacion_id: int):
-    operacion = await db.get(Operacion, operacion_id)
-    if operacion is None:
-        return False  # Indica que no se encontró la parcela
-    await db.delete(operacion)
-    await db.commit()
-    return True  # Indica que la eliminación fue exitosa
+logger = logging.getLogger(__name__)
 
 async def create_operation_with_inputs(
     db: AsyncSession,
-    operation: OperacionCreate,
-    inputs: list[TaskInputCreate]
+    operation: OperacionCreate
 ) -> OperacionResponse:
+    """
+    Crea una operación con sus insumos de forma optimizada
+    """
     try:
-        logging.info("Iniciando create_operation_with_inputs")
-        logging.info(f"Operacion: {operation}")
-        logging.info(f"Inputs: {inputs}")
-
-        # Crear la operación
+        # Crear la operación principal
         db_operation = Operacion(
             parcela_id=operation.parcela_id,
             tipo_operacion=operation.tipo_operacion,
             fecha_inicio=operation.fecha_inicio,
             fecha_fin=operation.fecha_fin,
-            estado=operation.estado,
+            estado=operation.estado or "planned",
             responsable_id=operation.responsable_id,
-            nota=operation.nota,
-            comentario=operation.comentario,
-            inputs=[] # Inicializa la lista de inputs
+            nota=operation.nota or "",
+            comentario=operation.comentario or ""
         )
 
         db.add(db_operation)
-        await db.flush() # Es importante hacer un flush para obtener el ID de db_operation
+        await db.flush()  # Obtener el ID sin hacer commit
+        
+        # Procesar insumos si existen
+        task_inputs = []
+        if operation.inputs:
+            for input_data in operation.inputs:
+                # Crear movimiento de inventario
+                movement = InventoryMovementCreate(
+                    input_id=input_data.input_id,
+                    warehouse_id=input_data.warehouse_id,
+                    quantity=input_data.used_quantity,
+                    movement_type="exit",
+                    movement_date=datetime.now(),
+                    operation_id=db_operation.id,
+                    description=f"Consumo para operación {db_operation.id}"
+                )
+                await create_inventory_movement(db, movement)
 
-        # Crear y consumir los insumos
-        inputs_response = []
-        for input_data in inputs:
-            logging.info(f"Procesando input_data: {input_data}")
-
-            # Crear el movimiento de inventario
-            movement = InventoryMovementCreate(
-                input_id=input_data.input_id,
-                warehouse_id=input_data.warehouse_id,
-                quantity=input_data.used_quantity,
-                movement_type="exit",
-                movement_date=datetime.now(),
-                operation_id=db_operation.id,
-                description=f"Consumo de insumo para operación {db_operation.id}"
-            )
-            logging.info(f"Creando movimiento de inventario: {movement}")
-            await create_inventory_movement(db, movement)
-            logging.info("Movimiento de inventario creado")
-
-            # Crear la instancia del modelo TaskInput
-            db_task_input = TaskInput(
-                input_id=input_data.input_id,
-                used_quantity=input_data.used_quantity,
-                warehouse_id=input_data.warehouse_id,
-                status=input_data.status,
-                operation_id=db_operation.id
-            )
-            db_operation.inputs.append(db_task_input) # Asocia el TaskInput a la Operacion
-
-            input_response = TaskInputCreate( # Esto es para la respuesta
-                input_id=input_data.input_id,
-                used_quantity=input_data.used_quantity,
-                warehouse_id=input_data.warehouse_id,
-                status=input_data.status,
-                operation_id=db_operation.id
-            )
-            logging.info(f"Creando input_response: {input_response}")
-            inputs_response.append(input_response)
+                # Crear TaskInput
+                db_task_input = TaskInput(
+                    input_id=input_data.input_id,
+                    used_quantity=input_data.used_quantity,
+                    warehouse_id=input_data.warehouse_id,
+                    status=input_data.status or "planned",
+                    operation_id=db_operation.id
+                )
+                db.add(db_task_input)
+                task_inputs.append(db_task_input)
 
         await db.commit()
-        await db.refresh(db_operation)
-
-        logging.info(f"inputs_response: {inputs_response}")
-        logging.info(f"db_operation: {db_operation.__dict__}")
-
+        
+        # Obtener información de la parcela
+        plot_result = await db.execute(
+            select(Plot.plot_id, Plot.plot_name)
+            .where(Plot.plot_id == operation.parcela_id)
+        )
+        plot_data = plot_result.first()
+        
         return OperacionResponse(
             id=db_operation.id,
             parcela_id=db_operation.parcela_id,
@@ -157,29 +86,329 @@ async def create_operation_with_inputs(
             responsable_id=db_operation.responsable_id,
             nota=db_operation.nota,
             comentario=db_operation.comentario,
-            inputs=inputs_response # Aquí estás devolviendo los TaskInputCreate, no los TaskInput de la DB
+            inputs=[
+                {
+                    "id": ti.id,
+                    "input_id": ti.input_id,
+                    "used_quantity": ti.used_quantity,
+                    "warehouse_id": ti.warehouse_id,
+                    "status": ti.status,
+                    "operation_id": ti.operation_id,
+                    "planned_quantity": ti.planned_quantity  # Agregar este campo
+                } for ti in task_inputs
+            ],
+            parcela=PlotForOPS(
+                plot_id=plot_data.plot_id,
+                plot_name=plot_data.plot_name
+            ) if plot_data else None
         )
-    except HTTPException as e:
-        logging.error(f"HTTPException: {e}")
-        await db.rollback()
-        raise e
-    except Exception as e:
-        logging.exception("Error al crear operación y consumir insumos")
-        await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al crear operación y consumir insumos: {str(e)}")
-  
-async def update_operacion_inputs(db: AsyncSession, operacion_id: int, inputs_data: List[TaskInputUpdate]):
-    # Eliminar los insumos existentes para esta operacion
-    await db.execute(delete(TaskInput).where(TaskInput.operation_id == operacion_id))
 
-    # Crear y agregar los nuevos insumos
-    for input_item in inputs_data:
-        new_input = TaskInput(
-            operation_id=operacion_id,
-            input_id=input_item.input_id,
-            used_quantity=input_item.used_quantity
-            # Otros campos de TaskInput si los tienes
+    except Exception as e:
+        logger.error(f"Error creando operación: {e}")
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al crear operación: {str(e)}")
+
+async def get_operaciones_optimized(db: AsyncSession) -> List[OperacionListItem]:
+    """
+    Obtiene todas las operaciones con información optimizada para listados
+    """
+    result = await db.execute(
+        select(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name.label("parcela_name"),
+            Operacion.estado,
+            Operacion.fecha_inicio,
+            Operacion.responsable_id,
+            Operacion.creation_date,
+            Operacion.jornales,
+            Operacion.personas,
+            Operacion.porcentaje_avance,
+            func.count(TaskInput.id).label("inputs_count")
         )
-        db.add(new_input)
+        .outerjoin(Plot, Operacion.parcela_id == Plot.plot_id)
+        .outerjoin(TaskInput, Operacion.id == TaskInput.operation_id)
+        .group_by(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name,
+            Operacion.estado,
+            Operacion.fecha_inicio,
+            Operacion.responsable_id,
+            Operacion.creation_date,
+            Operacion.jornales,
+            Operacion.personas,
+            Operacion.porcentaje_avance
+        )
+        .order_by(Operacion.creation_date.desc())  # Más recientes primero
+    )
+    
+    operaciones_data = result.all()
+    return [
+        OperacionListItem(
+            id=row.id,
+            tipo_operacion=row.tipo_operacion,
+            parcela_id=row.parcela_id,
+            parcela_name=row.parcela_name,
+            estado=row.estado,
+            fecha_inicio=row.fecha_inicio,
+            responsable_id=row.responsable_id,
+            creation_date=row.creation_date,
+            jornales=row.jornales,
+            personas=row.personas,
+            porcentaje_avance=row.porcentaje_avance,
+            inputs_count=row.inputs_count
+        )
+        for row in operaciones_data
+    ]
+
+async def get_operacion_detailed(db: AsyncSession, operacion_id: int) -> Optional[OperacionResponse]:
+    """
+    Obtiene una operación específica con todos sus detalles
+    """
+    result = await db.execute(
+        select(Operacion)
+        .options(selectinload(Operacion.inputs))
+        .where(Operacion.id == operacion_id)
+    )
+    
+    operacion = result.scalar_one_or_none()
+    if not operacion:
+        return None
+    
+    # Obtener información de la parcela
+    plot_result = await db.execute(
+        select(Plot.plot_id, Plot.plot_name)
+        .where(Plot.plot_id == operacion.parcela_id)
+    )
+    plot_data = plot_result.first()
+    
+    return OperacionResponse(
+        id=operacion.id,
+        parcela_id=operacion.parcela_id,
+        tipo_operacion=operacion.tipo_operacion,
+        fecha_inicio=operacion.fecha_inicio,
+        fecha_fin=operacion.fecha_fin,
+        estado=operacion.estado,
+        responsable_id=operacion.responsable_id,
+        jornales=operacion.jornales,
+        personas=operacion.personas,
+        porcentaje_avance=operacion.porcentaje_avance,
+        nota=operacion.nota,
+        comentario=operacion.comentario,
+        inputs=[
+            {
+                "id": inp.id,
+                "input_id": inp.input_id,
+                "used_quantity": inp.used_quantity,
+                "warehouse_id": inp.warehouse_id,
+                "status": inp.status,
+                "operation_id": inp.operation_id
+            }
+            for inp in operacion.inputs
+        ],
+        parcela=PlotForOPS(
+            plot_id=plot_data.plot_id,
+            plot_name=plot_data.plot_name
+        ) if plot_data else None
+    )
+
+async def get_vineyard_operaciones_optimized(db: AsyncSession) -> List[OperacionListItem]:
+    """
+    Obtiene operaciones de viñedo optimizadas para listados
+    """
+    result = await db.execute(
+        select(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name.label("parcela_name"),
+            Operacion.estado,
+            Operacion.jornales,
+            Operacion.personas,
+            Operacion.porcentaje_avance,
+            Operacion.fecha_inicio,
+            Operacion.creation_date,
+            Operacion.responsable_id,
+            func.count(TaskInput.id).label("inputs_count")
+        )
+        .join(TaskList, Operacion.tipo_operacion == TaskList.task_name)
+        .outerjoin(Plot, Operacion.parcela_id == Plot.plot_id)
+        .outerjoin(TaskInput, Operacion.id == TaskInput.operation_id)
+        .where(TaskList.task_type == "vineyard")
+        .group_by(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name,
+            Operacion.estado,
+            Operacion.jornales,
+            Operacion.personas,
+            Operacion.porcentaje_avance,
+            Operacion.fecha_inicio,
+            Operacion.creation_date,
+            Operacion.responsable_id
+        )
+    )
+    
+    operaciones_data = result.all()
+    return [
+        OperacionListItem(
+            id=row.id,
+            tipo_operacion=row.tipo_operacion,
+            parcela_id=row.parcela_id,
+            parcela_name=row.parcela_name,
+            estado=row.estado,
+            jornales=row.jornales,
+            personas=row.personas,
+            porcentaje_avance=row.porcentaje_avance,
+            creation_date=row.creation_date,
+            fecha_inicio=row.fecha_inicio,
+            responsable_id=row.responsable_id,
+            inputs_count=row.inputs_count
+        )
+        for row in operaciones_data
+    ]
+
+async def get_winery_operaciones_optimized(db: AsyncSession) -> List[OperacionListItem]:
+    """
+    Obtiene operaciones de bodega optimizadas para listados
+    """
+    result = await db.execute(
+        select(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name.label("parcela_name"),
+            Operacion.estado,
+            Operacion.fecha_inicio,
+            Operacion.responsable_id,
+            func.count(TaskInput.id).label("inputs_count")
+        )
+        .join(TaskList, Operacion.tipo_operacion == TaskList.task_name)
+        .outerjoin(Plot, Operacion.parcela_id == Plot.plot_id)
+        .outerjoin(TaskInput, Operacion.id == TaskInput.operation_id)
+        .where(TaskList.task_type == "winery")
+        .group_by(
+            Operacion.id,
+            Operacion.tipo_operacion,
+            Operacion.parcela_id,
+            Plot.plot_name,
+            Operacion.estado,
+            Operacion.fecha_inicio,
+            Operacion.responsable_id
+        )
+    )
+    
+    operaciones_data = result.all()
+    return [
+        OperacionListItem(
+            id=row.id,
+            tipo_operacion=row.tipo_operacion,
+            parcela_id=row.parcela_id,
+            parcela_name=row.parcela_name,
+            estado=row.estado,
+            fecha_inicio=row.fecha_inicio,
+            responsable_id=row.responsable_id,
+            inputs_count=row.inputs_count
+        )
+        for row in operaciones_data
+    ]
+
+async def update_operacion_optimized(
+    db: AsyncSession, 
+    operacion_id: int, 
+    operacion_update: OperacionUpdate
+) -> Optional[OperacionResponse]:
+    """
+    Actualiza una operación de forma optimizada
+    """
+    existing_operacion = await db.get(Operacion, operacion_id)
+    if not existing_operacion:
+        return None
+
+    # Actualizar solo campos que no son None
+    update_data = operacion_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(existing_operacion, key, value)
 
     await db.commit()
+    
+    # Retornar la operación actualizada con detalles completos
+    return await get_operacion_detailed(db, operacion_id)
+
+async def update_operacion_inputs_optimized(
+    db: AsyncSession, 
+    operacion_id: int, 
+    inputs_data: List[TaskInputUpdate]
+) -> bool:
+    """
+    Actualiza los insumos de una operación de forma optimizada
+    """
+    try:
+        # Eliminar insumos existentes
+        await db.execute(
+            delete(TaskInput).where(TaskInput.operation_id == operacion_id)
+        )
+        
+        # Agregar nuevos insumos
+        for input_item in inputs_data:
+            new_input = TaskInput(
+                operation_id=operacion_id,
+                input_id=input_item.input_id,
+                used_quantity=input_item.used_quantity,
+                warehouse_id=7,  # Valor por defecto
+                status="planned"
+            )
+            db.add(new_input)
+        
+        await db.commit()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error actualizando inputs: {e}")
+        await db.rollback()
+        return False
+
+async def delete_operacion_optimized(db: AsyncSession, operacion_id: int) -> bool:
+    """
+    Elimina una operación y sus insumos asociados
+    """
+    try:
+        # Eliminar insumos primero (por la relación de clave foránea)
+        await db.execute(
+            delete(TaskInput).where(TaskInput.operation_id == operacion_id)
+        )
+        
+        # Eliminar operación
+        operacion = await db.get(Operacion, operacion_id)
+        if not operacion:
+            return False
+            
+        await db.delete(operacion)
+        await db.commit()
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error eliminando operación: {e}")
+        await db.rollback()
+        return False
+
+# Funciones de compatibilidad hacia atrás (si necesitas mantenerlas)
+async def get_operaciones(db: AsyncSession):
+    """Función de compatibilidad - usa la versión optimizada"""
+    return await get_operaciones_optimized(db)
+
+async def get_operacion(db: AsyncSession, id: int):
+    """Función de compatibilidad - usa la versión optimizada"""
+    return await get_operacion_detailed(db, id)
+
+async def get_vineyard_operaciones(db: AsyncSession):
+    """Función de compatibilidad - usa la versión optimizada"""
+    return await get_vineyard_operaciones_optimized(db)
+
+async def get_winery_operaciones(db: AsyncSession):
+    """Función de compatibilidad - usa la versión optimizada"""
+    return await get_winery_operaciones_optimized(db)

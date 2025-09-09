@@ -1,6 +1,7 @@
 /* ========================================
  Variables CSS y Reset Básico
  ======================================== */
+
 :root {
  --primary-color: #03114e;
  --white: #ffffff;
@@ -17,10 +18,6 @@
  --content-margin: 220px;
  --content-margin-collapsed: 70px;
  --transition: all 0.5s ease-in-out;
- 
- /* Nuevas variables para el mapa fijo en móvil */
- --map-height-mobile: 300px;
- --content-padding-top-mobile: 330px; /* Espacio para el mapa + un poco de margen */
 }
 
 * {
@@ -73,7 +70,7 @@ body {
 .plots-main-content {
  flex: 2;
  min-width: 0;
- /* overflow-y: auto; */ /* Dejar que el body maneje el scroll principal */
+ overflow-y: auto;
  order: 1; /* Contenido a la izquierda */
 }
 
@@ -81,20 +78,18 @@ body {
  flex: 1;
  position: sticky;
  top: 20px;
- height: calc(100vh - 40px); /* Altura total menos el padding superior e inferior */
+ height: calc(100vh - 40px);
  min-width: 300px;
  max-width: 400px;
  z-index: 10;
  order: 2; /* Mapa a la derecha */
- border-radius: 8px; /* Añadido para consistencia con el contenido */
- overflow: hidden; /* Para que el border-radius funcione */
- box-shadow: var(--shadow); /* Sombra para el contenedor del mapa */
 }
 
 .plot-map-wrapper > * {
- height: 100%; /* Asegura que el componente Map ocupe todo el wrapper */
- border-radius: 8px; /* Aplica border-radius al contenido interno del mapa si es necesario */
+ height: 100%;
+ border-radius: 8px;
  overflow: hidden;
+ box-shadow: var(--shadow);
 }
 
 /* ========================================
@@ -145,6 +140,7 @@ body {
 
 .control-select:hover, .control-input:hover {
  border-color: var(--primary-color);
+
 }
 
 .filter-inputs {
@@ -210,7 +206,318 @@ body {
  background-color: #f0ad4e;
  color: var(--white);
 }
+/* ========================================
+ Optimizaciones para PlotMapComponent - Reducir Espacios
+ ======================================== */
 
+/* Contenedor principal del mapa sin espacios extra */
+.plot-map-component {
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ gap: 0 !important; /* Eliminar cualquier gap */
+ margin: 0;
+ padding: 0;
+ overflow: hidden;
+}
+
+/* Controles de filtro compactos */
+.plot-map-component .filter-controls-container {
+ background: #f8f9fa;
+ border: 1px solid #e5e5e5;
+ border-radius: 8px 8px 0 0; /* Solo redondear arriba */
+ padding: 10px 12px; /* Reducir padding */
+ margin: 0; /* Eliminar margen */
+ display: flex;
+ gap: 16px;
+ align-items: flex-start;
+ flex-wrap: wrap;
+ box-shadow: 0 1px 3px rgba(3, 17, 78, 0.05);
+ border-bottom: none; /* Eliminar borde inferior para conectar con el mapa */
+}
+
+/* Contenedor del mapa pegado a los controles */
+.plot-map-component > div:nth-child(2) {
+ flex: 1;
+ position: relative;
+ margin: 0 !important;
+ padding: 0 !important;
+ border: 1px solid #e5e5e5;
+ border-top: none; /* Conectar con los filtros */
+ border-bottom: none; /* Conectar con la leyenda */
+}
+
+/* Leyenda pegada al mapa */
+.plot-map-component .legend-panel {
+ padding: 6px 12px; /* Reducir aún más el padding */
+ border: 1px solid #e5e5e5;
+ border-top: none; /* Conectar con el mapa */
+ border-radius: 0 0 8px 8px; /* Solo redondear abajo */
+ background-color: #f8f9fa;
+ margin: 0;
+ max-height: 100px; /* Reducir altura máxima */
+ overflow-y: auto;
+}
+
+/* Título de la leyenda más compacto */
+.plot-map-component .legend-panel h4 {
+ margin: 0 0 4px 0 !important;
+ font-size: 13px !important;
+ font-weight: 600;
+ color: var(--primary-color);
+ line-height: 1.2;
+}
+
+/* Lista de leyenda más compacta */
+.plot-map-component .legend-panel ul {
+ list-style: none;
+ padding: 0;
+ margin: 0;
+ display: flex;
+ flex-direction: column;
+ gap: 2px; /* Reducir gap entre items */
+}
+
+/* Items de leyenda más compactos */
+.plot-map-component .legend-panel li {
+ display: flex;
+ align-items: center;
+ font-size: 11px !important; /* Reducir tamaño de fuente */
+ line-height: 1.2;
+ padding: 1px 0;
+}
+
+/* Indicadores de color más pequeños */
+.plot-map-component .legend-panel li span {
+ width: 12px !important;
+ height: 12px !important;
+ margin-right: 6px !important;
+ border-radius: 2px;
+ border: 1px solid rgba(0,0,0,0.2);
+ flex-shrink: 0;
+}
+
+/* Contador de parcelas más compacto */
+.plot-map-component .legend-panel > div:last-child {
+ margin-top: 4px !important;
+ font-size: 10px !important;
+ color: #666;
+ border-top: 1px solid #e5e5e5;
+ padding-top: 3px !important;
+ line-height: 1.2;
+}
+
+/* Eliminar cualquier margen/padding del componente Map de Leaflet */
+.plot-map-component .leaflet-container {
+ margin: 0 !important;
+ padding: 0 !important;
+ display: block;
+}
+
+/* Asegurar que no hay espacios en el wrapper del mapa */
+.plot-map-wrapper .plot-map-component {
+ height: 100%;
+ border-radius: 8px;
+ overflow: hidden;
+ box-shadow: var(--shadow);
+}
+
+/* ========================================
+ Optimizaciones para PlotMapComponent - Reducir Espacios
+ ======================================== */
+
+/* Contenedor principal del mapa sin espacios extra */
+.plot-map-component {
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ gap: 0 !important; /* Eliminar cualquier gap */
+ margin: 0;
+ padding: 0;
+ overflow: hidden;
+}
+
+/* Controles de filtro compactos */
+.plot-map-component .filter-controls-container {
+ background: #f8f9fa;
+ border: 1px solid #e5e5e5;
+ border-radius: 8px 8px 0 0; /* Solo redondear arriba */
+ padding: 10px 12px; /* Reducir padding */
+ margin: 0; /* Eliminar margen */
+ display: flex;
+ gap: 16px;
+ align-items: flex-start;
+ flex-wrap: wrap;
+ box-shadow: 0 1px 3px rgba(3, 17, 78, 0.05);
+ border-bottom: none; /* Eliminar borde inferior para conectar con el mapa */
+}
+
+/* Contenedor del mapa pegado a los controles */
+.plot-map-component > div:nth-child(2) {
+ flex: 1;
+ position: relative;
+ margin: 0 !important;
+ padding: 0 !important;
+ border: 1px solid #e5e5e5;
+ border-top: none; /* Conectar con los filtros */
+ border-bottom: none; /* Conectar con la leyenda */
+}
+
+/* Leyenda pegada al mapa */
+.plot-map-component .legend-panel {
+ padding: 6px 12px; /* Reducir aún más el padding */
+ border: 1px solid #e5e5e5;
+ border-top: none; /* Conectar con el mapa */
+ border-radius: 0 0 8px 8px; /* Solo redondear abajo */
+ background-color: #f8f9fa;
+ margin: 0;
+ max-height: 100px; /* Reducir altura máxima */
+ overflow-y: auto;
+}
+
+/* Título de la leyenda más compacto */
+.plot-map-component .legend-panel h4 {
+ margin: 0 0 4px 0 !important;
+ font-size: 13px !important;
+ font-weight: 600;
+ color: var(--primary-color);
+ line-height: 1.2;
+}
+
+/* Lista de leyenda más compacta */
+.plot-map-component .legend-panel ul {
+ list-style: none;
+ padding: 0;
+ margin: 0;
+ display: flex;
+ flex-direction: column;
+ gap: 2px; /* Reducir gap entre items */
+}
+
+/* Items de leyenda más compactos */
+.plot-map-component .legend-panel li {
+ display: flex;
+ align-items: center;
+ font-size: 11px !important; /* Reducir tamaño de fuente */
+ line-height: 1.2;
+ padding: 1px 0;
+}
+
+/* Indicadores de color más pequeños */
+.plot-map-component .legend-panel li span {
+ width: 12px !important;
+ height: 12px !important;
+ margin-right: 6px !important;
+ border-radius: 2px;
+ border: 1px solid rgba(0,0,0,0.2);
+ flex-shrink: 0;
+}
+
+/* Contador de parcelas más compacto */
+.plot-map-component .legend-panel > div:last-child {
+ margin-top: 4px !important;
+ font-size: 10px !important;
+ color: #666;
+ border-top: 1px solid #e5e5e5;
+ padding-top: 3px !important;
+ line-height: 1.2;
+}
+
+/* Eliminar cualquier margen/padding del componente Map de Leaflet */
+.plot-map-component .leaflet-container {
+ margin: 0 !important;
+ padding: 0 !important;
+ display: block;
+}
+
+/* Asegurar que no hay espacios en el wrapper del mapa */
+.plot-map-wrapper .plot-map-component {
+ height: 100%;
+ border-radius: 8px;
+ overflow: hidden;
+ box-shadow: var(--shadow);
+}
+
+/* Optimizaciones para móvil - mapa aún más compacto */
+@media (max-width: 768px) {
+ .plot-map-component .filter-controls-container {
+  padding: 8px 10px;
+  gap: 12px;
+ }
+ 
+ .plot-map-component .legend-panel {
+  padding: 4px 10px;
+  max-height: 80px;
+ }
+ 
+ .plot-map-component .legend-panel h4 {
+  font-size: 12px !important;
+  margin: 0 0 3px 0 !important;
+ }
+ 
+ .plot-map-component .legend-panel li {
+  font-size: 10px !important;
+ }
+ 
+ .plot-map-component .legend-panel li span {
+  width: 10px !important;
+  height: 10px !important;
+  margin-right: 5px !important;
+ }
+ 
+ .plot-map-component .legend-panel > div:last-child {
+  font-size: 9px !important;
+  margin-top: 3px !important;
+  padding-top: 2px !important;
+ }
+}
+
+/* Forzar que el contenedor del mapa ocupe todo el espacio disponible */
+.plot-map-component > div:nth-child(2) > * {
+ height: 100% !important;
+ width: 100% !important;
+}
+
+
+/* Optimizaciones para móvil - mapa aún más compacto */
+@media (max-width: 768px) {
+ .plot-map-component .filter-controls-container {
+  padding: 8px 10px;
+  gap: 12px;
+ }
+ 
+ .plot-map-component .legend-panel {
+  padding: 4px 10px;
+  max-height: 80px;
+ }
+ 
+ .plot-map-component .legend-panel h4 {
+  font-size: 12px !important;
+  margin: 0 0 3px 0 !important;
+ }
+ 
+ .plot-map-component .legend-panel li {
+  font-size: 10px !important;
+ }
+ 
+ .plot-map-component .legend-panel li span {
+  width: 10px !important;
+  height: 10px !important;
+  margin-right: 5px !important;
+ }
+ 
+ .plot-map-component .legend-panel > div:last-child {
+  font-size: 9px !important;
+  margin-top: 3px !important;
+  padding-top: 2px !important;
+ }
+}
+
+/* Forzar que el contenedor del mapa ocupe todo el espacio disponible */
+.plot-map-component > div:nth-child(2) > * {
+ height: 100% !important;
+ width: 100% !important;
+}
 /* ========================================
  Componente App (React)
  ======================================== */
@@ -231,6 +538,7 @@ body {
   animation: App-logo-spin infinite 20s linear;
  }
 }
+
 
 .App-header {
  background-color: #282c34;
@@ -270,6 +578,7 @@ body {
  color: var(--white);
  z-index: 100;
 }
+
 
 .menu.collapsed {
  width: var(--menu-collapsed-width);
@@ -386,6 +695,7 @@ body {
 }
 
 .logout-button {
+
  width: 100%;
  padding: 10px 12px;
  background-color: rgba(255, 255, 255, 0.1);
@@ -436,7 +746,7 @@ body {
  display: none;
 }
 
-/* Contenido principal (general, no específico de plots) */
+/* Contenido principal */
 .content {
  margin-left: var(--content-margin);
  padding: 20px;
@@ -478,8 +788,8 @@ body {
  padding: 24px;
  border-radius: 8px;
  box-shadow: var(--shadow);
- overflow-y: auto; /* Permite scroll dentro del modal si el contenido excede la altura */
- max-height: 90vh; /* Limita la altura del modal */
+ overflow-y: auto;
+ max-height: 90vh;
 }
 .modal-content .react-select__menu {
  z-index: 9999 !important;
@@ -518,432 +828,749 @@ body {
  border-radius: var(--border-radius);
  font-size: 1rem;
  transition: border-color 0.2s ease;
+
 }
+
+
 
 .modal-form-input:focus {
+
  outline: none;
+
  border-color: var(--primary-color);
+
  box-shadow: 0 0 0 2px rgba(3, 17, 78, 0.1);
+
 }
+
+
 
 /* Grids específicos */
+
 .insumos-grid {
+
  display: grid;
+
  grid-template-columns: 1fr 1fr;
+
  gap: 1rem;
+
 }
+
+
 
 .insumos-column {
+
  padding: 0.5rem;
+
 }
+
+
 
 /* Botones del modal */
+
 .modal-buttons {
+
  display: flex;
+
  justify-content: flex-end;
+
  gap: 10px;
+
  margin-top: 24px;
+
 }
+
+
 
 /* Detalles */
+
 .detail-item {
+
  margin-bottom: 12px;
+
 }
+
+
 
 .detail-item dt {
+
  font-weight: 600;
+
  margin-bottom: 4px;
+
  color: var(--primary-color);
+
 }
+
+
 
 .detail-item dd {
+
  margin-left: 0;
+
  color: #555;
+
 }
+
+
 
 .contenedor-imagen {
+
  display: flex;
+
  justify-content: center;
+
  margin: 16px 0;
+
 }
 
+
+
 /* ========================================
+
  Leaflet/Mapa
+
  ======================================== */
+
+.leaflet-control-geocoder-form {
+
+ background-color: var(--white) !important;
+
+ border: 1px solid var(--gray-light) !important;
+
+ border-radius: 5px !important;
+
+ padding: 5px !important;
+
+ box-shadow: var(--shadow) !important;
+
+}
+
 .leaflet-container {
+
  z-index: 1;
+
 }
 
-/* Estilos específicos para el mapa en PlotMapComponent si necesita leyenda o controles */
-/* Ejemplo: Si tienes una leyenda que quieres que sea fija en móvil */
-.plot-map-wrapper .leaflet-control-container {
- /* Esto podría ser el contenedor de la leyenda si tu componente Map la expone */
- /* Ajusta según la estructura interna de tu Map */
- z-index: 60; /* Asegúrate de que esté por encima del contenido pero debajo de modales */
-}
-
-/* Ajustes para la leyenda dentro del mapa si es necesario */
-.leaflet-control-scale-line,
-.leaflet-control-zoom {
- z-index: 60 !important; /* Para asegurar que sean visibles */
-}
 
 
 /* ========================================
+
  Media Queries - Responsive
+
  ======================================== */
+
 @media (max-width: 768px) {
+
  :root {
-  /* El menú aquí se redefine en tu código original, ajustemos las variables de layout */
-  --menu-width: 100%; /* El menú ocupa todo el ancho */
-  --content-margin: 0; /* No hay margen izquierdo para el contenido */
-  --content-margin-collapsed: 0; /* Igual si está colapsado */
-  
-  /* Variables para el mapa fijo en móvil */
-  --map-height-mobile: 300px;
-  --content-padding-top-mobile: 330px; /* Altura del mapa + margen */
+
+  --menu-width: 100%;
+
+  --content-margin: 0;
+
+  --content-margin-collapsed: 0;
+
  }
 
- /* Layout móvil - Mapa ARRIBA y FIJO, contenido abajo SCROLLABLE */
+
+
+ /* Layout móvil - Mapa arriba, contenido abajo */
+
  .Contenedor {
-  flex-direction: column; /* Apila los elementos verticalmente */
-  padding: 0; /* Quitamos padding general si el mapa y contenido lo tienen */
-  gap: 0; /* Quitamos gap si los elementos se superponen o se colocan uno debajo del otro */
-  /* padding-top: var(--content-padding-top-mobile); No es necesario aquí si el contenido tiene padding-top */
+
+  flex-direction: column;
+
+  padding: 10px;
+
+  gap: 15px;
+
+  padding-top: 320px;
+
  }
+
+
 
  .plot-map-wrapper {
-  order: -1; /* Coloca el mapa al principio del flujo visual */
-  position: fixed; /* Lo fija en la vista */
-  top: 0; /* Lo pega arriba */
-  left: 0; /* Lo pega a la izquierda */
-  width: 100%; /* Ocupa todo el ancho */
-  height: var(--map-height-mobile); /* Altura definida */
-  min-width: unset; /* Quitar min-width para que ocupe el 100% */
-  max-width: unset; /* Quitar max-width */
-  z-index: 50; /* Asegura que esté sobre el contenido principal */
-  background: var(--white); /* Fondo blanco por si hay espacios */
-  padding: 5px; /* Padding interno para el mapa */
-  border-radius: 0; /* Quitar border-radius si es fijo y ocupa todo el borde superior */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para darle profundidad */
+
+  order: -1;
+
+  position: fixed;
+
+  top: 0;
+
+  flex: none;
+
+  height: 300px;
+
+  min-width: unset;
+
+  max-width: unset;
+
+  width: 100%;
+
+  z-index: 50;
+
+  background: var(--white);
+
+  padding: 5px;
+
+  border-radius: 8px;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
  }
 
- .plot-map-wrapper > * {
-  border-radius: 0; /* Asegura que el mapa interno no tenga bordes si el wrapper no los tiene */
- }
 
- /* El contenido principal ahora tiene un padding-top para no ser tapado por el mapa fijo */
- .plots-main-content {
-  order: 1; /* Ahora va después del mapa en el flujo visual */
-  flex: none; /* Ya no necesita flex grow */
-  overflow-y: visible; /* Permitir scroll normal en el contenido */
-  margin-right: 0;
-  padding-top: var(--content-padding-top-mobile); /* ¡IMPORTANTE! Espacio para el mapa fijo */
-  padding-left: 10px; /* Añadir padding si se quitó en .Contenedor */
-  padding-right: 10px; /* Añadir padding si se quitó en .Contenedor */
- }
 
- /* Ajustar el contenedor general si se quita padding */
- .Contenedor {
-  padding: 0; /* Ajuste si .plots-main-content ya tiene padding */
- }
- 
  /* Filtros del mapa en móvil - una sola columna */
+
  .plot-map-component .filter-controls-container {
-  display: flex !important; /* Sobrescribir si es necesario */
+
+  display: flex !important;
+
   flex-direction: column !important;
-  /* grid-template-columns: none !important; */ /* Ya no es grid */
+
+  grid-template-columns: none !important;
+
   gap: 12px !important;
-  margin-top: 10px; /* Espacio entre el mapa y los filtros */
+
  }
 
- /* Menú en móvil: se queda en la parte inferior de la pantalla */
+
+
+ .plots-main-content {
+
+  order: 1;
+
+  flex: none;
+
+  overflow-y: visible;
+
+  margin-right: 0;
+
+ }
+
+
+
  .menu {
+
   width: 100%;
-  height: auto; /* Altura automática para contener los items */
-  position: fixed; /* Fijo en la vista */
-  bottom: 0; /* Pegado abajo */
+
+  height: auto;
+
+  position: fixed; /* Cambio: de relative a fixed */
+
+  bottom: 0; /* Cambio: posicionar en la parte inferior */
+
   left: 0;
-  top: auto; /* Quitar top */
-  flex-direction: row; /* Items en fila */
-  align-items: center; /* Centrar verticalmente */
+
+  top: auto; /* Cambio: quitar top: 0 */
+
+  flex-direction: column;
+
+  align-items: stretch;
+
   min-height: auto;
-  padding: 12px 8px 10px 8px; /* Ajustar padding */
-  background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%); /* Gradiente de fondo */
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1); /* Sombra superior */
-  z-index: 100; /* Asegura que esté sobre la mayoría de los contenidos */
+
+  padding: 12px 8px 10px 8px;
+
+  background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%);
+
  }
 
- .menu.collapsed { /* Si el menú colapsado tiene estilos específicos para móvil, se aplican aquí */
+
+
+ .menu.collapsed {
+
   width: 100%;
+
  }
+
+
 
  /* Ocultar el botón toggle en móvil */
+
  .menu-toggle {
+
   display: none;
+
  }
+
+
 
  .menu-items {
+
   display: flex;
-  overflow-x: auto; /* Scroll horizontal para los ítems si no caben */
-  flex-wrap: nowrap; /* Evita que los ítems salten de línea */
-  gap: 4px; /* Espacio entre ítems */
+
+  overflow-x: auto;
+
+  flex-wrap: nowrap;
+
+  gap: 4px;
+
   padding: 0;
+
   margin: 0;
-  width: 100%; /* Ocupa todo el ancho disponible */
+
+  width: 100%;
+
  }
+
+
 
  .menu-items::-webkit-scrollbar {
-  display: none; /* Oculta la barra de scroll en navegadores WebKit */
+
+  display: none;
+
  }
+
+
 
  .menu-items li {
-  flex: 0 0 auto; /* Cada ítem toma su ancho necesario */
-  width: 25%; /* Ocupa 1/4 del ancho del contenedor visible, para que 4 ítems caben bien */
-  max-width: 150px; /* Límite máximo de ancho para un ítem */
+
+  flex: 0 0 20%;
+
   margin: 0;
+
  }
+
+
 
  .menu-link {
+
   padding: 8px 4px;
+
   border-radius: 12px;
+
   background-color: rgba(255, 255, 255, 0.15);
+
   transition: all 0.2s ease;
+
   color: var(--white) !important;
+
   display: flex;
-  flex-direction: column; /* Icono arriba, texto abajo */
+
+  flex-direction: column;
+
   align-items: center;
+
   justify-content: center;
+
   text-decoration: none;
+
   border: 1px solid rgba(255, 255, 255, 0.1);
+
   backdrop-filter: blur(10px);
+
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-height: 50px; /* Altura mínima para que no se colapse mucho */
+
+  min-height: 50px;
+
   text-align: center;
+
  }
+
+
 
  .menu-link:hover,
+
  .menu-link:visited {
+
   color: var(--white) !important;
+
   background-color: rgba(255, 255, 255, 0.25);
+
   transform: translateY(-2px);
+
   text-decoration: none;
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
  }
+
+
 
  .menu-icon {
+
   margin-right: 0;
-  margin-bottom: 2px; /* Espacio entre ícono y texto */
+
+  margin-bottom: 2px;
+
   font-size: 1rem;
+
   color: var(--white) !important;
+
   width: auto;
+
  }
+
+
 
  .menu-text {
+
   font-size: 0.65rem;
+
   font-weight: 500;
-  opacity: 1; /* Asegura que el texto sea visible */
+
+  opacity: 1;
+
   width: auto;
+
   color: var(--white) !important;
+
   line-height: 1;
-  word-break: break-word; /* Permite que el texto largo se corte */
+
+  word-break: break-word;
+
   hyphens: auto;
+
  }
+
+
 
  /* Eliminar todos los estilos de collapsed para móvil */
+
  .menu.collapsed .menu-link {
+
   padding: 8px 4px;
+
   border-radius: 12px;
-  width: 100%; /* Ocupa el ancho del li */
+
+  width: 100%;
+
   height: auto;
+
   flex-direction: column;
+
   justify-content: center;
+
   margin: 0;
+
   min-height: 50px;
+
  }
+
+
 
  .menu.collapsed .menu-text {
-  opacity: 1; /* Asegura que el texto sea visible */
+
+  opacity: 1;
+
   width: auto;
+
   color: var(--white) !important;
-  display: block; /* Asegura que se muestre */
+
+  display: block;
+
  }
+
+
 
  .menu.collapsed .menu-icon {
+
   margin-right: 0;
+
   margin-bottom: 2px;
+
   color: var(--white) !important;
+
  }
 
- /* User Info y Logout en móvil */
+
+
  .user-info {
+
   margin-top: 8px;
+
   padding: 8px 0 0 0;
+
   border-top: 1px solid rgba(255, 255, 255, 0.2);
+
   display: flex;
-  flex-direction: row; /* Usuario y botón en línea */
+
+  flex-direction: row;
+
   align-items: center;
-  justify-content: space-between; /* Espacio entre ellos */
-  width: 100%; /* Ocupa todo el ancho */
+
+  justify-content: space-between;
+
  }
+
+
 
  .user-name {
+
   margin-bottom: 0;
+
   font-size: 0.8rem;
+
   color: rgba(255, 255, 255, 0.9);
+
   font-weight: 500;
-  flex-shrink: 1; /* Permite que el nombre se encoja si es necesario */
+
  }
+
+
 
  .logout-button {
-  width: auto; /* Ajusta al contenido */
+
+  width: auto;
+
   height: auto;
+
   padding: 6px 12px;
+
   border-radius: 15px;
+
   font-size: 0.75rem;
-  min-width: fit-content; /* Ajusta al contenido */
+
+  min-width: fit-content;
+
   background-color: rgba(255, 255, 255, 0.15);
+
   border: 1px solid rgba(255, 255, 255, 0.1);
+
   color: var(--white);
+
   backdrop-filter: blur(10px);
+
   transition: all 0.2s ease;
-  margin: 0; /* Quitar margen si se usa flex */
-  flex-shrink: 0; /* Evita que el botón se encoja */
+
+  margin: 0;
+
  }
+
+
 
  .logout-button:hover {
+
   background-color: rgba(255, 255, 255, 0.25);
+
   transform: translateY(-1px);
+
  }
+
+
 
  .logout-icon {
-  margin-right: 4px; /* Espacio entre icono y texto */
+
+  margin-right: 4px;
+
   font-size: 0.8rem;
+
   color: var(--white);
+
  }
+
+
 
  .logout-text {
+
   font-size: 0.75rem;
+
   color: var(--white);
+
   font-weight: 500;
+
  }
 
- /* Estilos para menú colapsado en móvil (si aplica, aunque ya se redefinió) */
+
+
  .menu.collapsed .user-name {
-  display: block; /* Muestra el nombre */
+
+  display: block;
+
   color: rgba(255, 255, 255, 0.9);
+
  }
+
+
 
  .menu.collapsed .logout-button {
-  width: auto; /* Ajusta al contenido */
+
+  width: auto;
+
   height: auto;
+
   padding: 6px 12px;
+
   border-radius: 15px;
-  font-size: 0.75rem;
+
  }
+
+
 
  .menu.collapsed .logout-text {
-  display: inline; /* Muestra el texto */
+
+  display: inline;
+
  }
+
+
 
  .menu.collapsed .logout-icon {
+
   margin-right: 4px;
+
  }
 
- /* Contenido principal en móvil */
- .content { /* Si usas .content para el contenido general */
-  margin-left: 0; /* Quitar margen */
-  padding: 10px; /* Padding general */
-  margin-top: 0; /* Asegurar que no haya margen superior */
-  padding-bottom: 120px; /* Espacio para el menú inferior fijo */
+
+
+ .content {
+
+  margin-left: 0;
+
+  padding: 10px;
+
+  margin-top: 0;
+
+  padding-bottom: 120px; /* Espacio para el menú inferior */
+
  }
 
- /* Ajustes específicos de modales en móvil */
+
+
  .modal-wrapper {
-  min-width: 300px; /* Mantener un ancho mínimo para el modal */
-  max-width: 95vw; /* Permitir que ocupe casi todo el ancho */
+
+  min-width: 300px;
+
  }
+
+
 
  .modal-form-grid {
-  grid-template-columns: 1fr; /* Columnas apiladas */
+
+  grid-template-columns: 1fr;
+
  }
+
+
 
  .insumos-grid {
-  grid-template-columns: 1fr; /* Columnas apiladas */
+
+  grid-template-columns: 1fr;
+
  }
+
+
 
  /* Estilos responsive para filtros */
+
  .filter-controls-container {
-  flex-direction: column; /* Apilados */
+
+  flex-direction: column;
+
   gap: 16px;
+
   padding: 12px;
+
  }
- 
+
+
+
  .control-group {
-  width: 100%; /* Ocupa todo el ancho */
-  min-width: unset; /* Quitar min-width */
+
+  width: 100%;
+
+  min-width: unset;
+
  }
- 
+
+
+
  .filter-inputs {
-  flex-direction: column; /* Apilados */
-  gap: 12px; /* Espacio entre filtros */
+
+  flex-direction: column;
+
  }
- 
+
+
+
  .control-input {
-  min-width: unset; /* Quitar min-width */
+
+  min-width: unset;
+
  }
- 
- /* El `plots-main-content` debe tener el padding-top para el mapa fijo */
- /* El padding-top se añadió previamente a .plots-main-content */
+
 }
 
+
+
 @media (max-width: 480px) {
- /* Ajustes más finos para pantallas muy pequeñas */
- :root {
-  --map-height-mobile: 250px; /* Mapa aún más pequeño */
-  --content-padding-top-mobile: 280px; /* Ajustar padding-top según el nuevo tamaño del mapa */
- }
 
  .contenedor {
+
   width: 100%;
+
   padding: 10px;
+
  }
+
+
 
  .modal-content {
+
   padding: 16px;
+
  }
+
+
 
  .modal-buttons {
-  flex-direction: column; /* Botones apilados */
+
+  flex-direction: column;
+
  }
+
+
 
  .btn {
-  width: 100%; /* Botones a todo el ancho */
+
+  width: 100%;
+
   margin-bottom: 8px;
+
  }
+
+
 
  /* Ajustes adicionales para filtros en pantallas muy pequeñas */
+
  .filter-controls-container {
+
   padding: 10px;
+
   gap: 12px;
- }
- 
- .control-select, .control-input {
-  padding: 8px 10px;
-  font-size: 13px;
- }
- 
- .control-label {
-  font-size: 13px;
+
  }
 
+
+
+ .control-select, .control-input {
+
+  padding: 8px 10px;
+
+  font-size: 13px;
+
+ }
+
+
+
+ .control-label {
+
+  font-size: 13px;
+
+ }
+
+
+
  /* Mapa más compacto en móviles pequeños */
+
  .plot-map-wrapper {
-  height: var(--map-height-mobile); /* Usar variable definida */
+
+  height: 250px;
+
  }
- 
- /* Ajustar padding-top del contenido principal */
- .plots-main-content {
-  padding-top: var(--content-padding-top-mobile);
- }
+
 }
