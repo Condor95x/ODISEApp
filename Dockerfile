@@ -1,4 +1,4 @@
-# Usar Python 3.9 como imagen base
+# Usar Python 3.11 como imagen base
 FROM python:3.11-slim
 
 # Establecer el directorio de trabajo
