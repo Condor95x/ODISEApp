@@ -21,7 +21,8 @@ commands = [
 ]
 
 [phases.start]
+# Aquí solo ejecutas uvicorn, asumiendo que está instalado
+# Nota: El nombre del módulo a menudo es `main` si tu archivo principal es `main.py`
 commands = [
-  "cd backend && pip install uvicorn", # Add uvicorn installation here
   "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
 ]
