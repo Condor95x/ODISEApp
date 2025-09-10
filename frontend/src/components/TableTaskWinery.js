@@ -536,6 +536,7 @@ const TableWineryTask = () => {
     }
 
     return (
+        <div className="max-w-screen-lg mx-auto px-4">
         <div className="table-container">
             <div className="table-header">
                 <button 
@@ -1201,6 +1202,7 @@ const TableWineryTask = () => {
                 </div>
             </Modal>
 
+        </div>
         </div>
     );
 };
