@@ -56,7 +56,7 @@ const Menu = () => {
           <li>
             <Link to="/finca" className="menu-link">
               <MdAgriculture className="menu-icon" />
-              <span className="menu-text">Finca</span>
+              <span className="menu-text">Cuaderno de Campo</span>
             </Link>
           </li>
         )}
@@ -65,7 +65,7 @@ const Menu = () => {
           <li>
             <Link to="/bodega" className="menu-link">
               <FaWineGlassAlt className="menu-icon" />
-              <span className="menu-text">Bodega</span>
+              <span className="menu-text">Cuaderno de Bodega</span>
             </Link>
           </li>
         )}
