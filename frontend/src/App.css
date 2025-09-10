@@ -53,9 +53,8 @@ body {
  font-size: 1.5em;
  margin: 0;
 }
-
 /* ========================================
- Layout Principal - Plots con Mapa
+ Layout Principal - Plots con Mapa - DESKTOP
  ======================================== */
 .Contenedor {
  display: flex;
@@ -90,6 +89,109 @@ body {
  border-radius: 8px;
  overflow: hidden;
  box-shadow: var(--shadow);
+}
+
+/* ========================================
+ Optimizaciones para PlotMapComponent - DESKTOP
+ ======================================== */
+.plot-map-component {
+ height: 100%;
+ display: flex;
+ flex-direction: column;
+ gap: 0 !important;
+ margin: 0;
+ padding: 0;
+ overflow: hidden;
+}
+
+/* Controles de filtro compactos */
+.plot-map-component .filter-controls-container {
+ background: #f8f9fa;
+ border: 1px solid #e5e5e5;
+ border-radius: 8px 8px 0 0;
+ padding: 10px 12px;
+ margin: 0;
+ display: flex;
+ gap: 16px;
+ align-items: flex-start;
+ flex-wrap: wrap;
+ box-shadow: 0 1px 3px rgba(3, 17, 78, 0.05);
+ border-bottom: none;
+}
+
+/* Contenedor del mapa pegado a los controles */
+.plot-map-component > div:nth-child(2) {
+ flex: 1;
+ position: relative;
+ margin: 0 !important;
+ padding: 0 !important;
+ border: 1px solid #e5e5e5;
+ border-top: none;
+ border-bottom: none;
+}
+
+/* Leyenda pegada al mapa */
+.plot-map-component .legend-panel {
+ padding: 6px 12px;
+ border: 1px solid #e5e5e5;
+ border-top: none;
+ border-radius: 0 0 8px 8px;
+ background-color: #f8f9fa;
+ margin: 0;
+ max-height: 100px;
+ overflow-y: auto;
+}
+
+/* Título de la leyenda más compacto */
+.plot-map-component .legend-panel h4 {
+ margin: 0 0 4px 0 !important;
+ font-size: 13px !important;
+ font-weight: 600;
+ color: var(--primary-color);
+ line-height: 1.2;
+}
+
+/* Lista de leyenda más compacta */
+.plot-map-component .legend-panel ul {
+ list-style: none;
+ padding: 0;
+ margin: 0;
+ display: flex;
+ flex-direction: column;
+ gap: 2px;
+}
+
+/* Items de leyenda más compactos */
+.plot-map-component .legend-panel li {
+ display: flex;
+ align-items: center;
+ font-size: 11px !important;
+ line-height: 1.2;
+ padding: 1px 0;
+}
+
+/* Indicadores de color más pequeños */
+.plot-map-component .legend-panel li span {
+ width: 12px !important;
+ height: 12px !important;
+ margin-right: 6px !important;
+ border-radius: 2px;
+ border: 1px solid rgba(0,0,0,0.2);
+ flex-shrink: 0;
+}
+
+/* Contador de parcelas más compacto */
+.plot-map-component .legend-panel > div:last-child {
+ margin-top: 4px !important;
+ font-size: 10px !important;
+ color: #666;
+ border-top: 1px solid #e5e5e5;
+ padding-top: 3px !important;
+ line-height: 1.2;
+}
+/* Contenedor especial para el mapa en móvil */
+.mobile-map-container {
+ display: none; /* Oculto por defecto en desktop */
 }
 
 /* ========================================
@@ -440,76 +542,166 @@ body {
 
 /* Optimizaciones para móvil - mapa aún más compacto */
 @media (max-width: 768px) {
- .plot-map-component .filter-controls-container {
-  padding: 8px 10px;
-  gap: 12px;
+ /* Layout móvil - Sin posicionamiento fijo */
+ .Contenedor {
+  flex-direction: column;
+  padding: 10px;
+  gap: 15px;
+  padding-top: 20px; /* Quitar el espacio extra para mapa fijo */
  }
- 
- .plot-map-component .legend-panel {
-  padding: 4px 10px;
-  max-height: 80px;
- }
- 
- .plot-map-component .legend-panel h4 {
-  font-size: 12px !important;
-  margin: 0 0 3px 0 !important;
- }
- 
- .plot-map-component .legend-panel li {
-  font-size: 10px !important;
- }
- 
- .plot-map-component .legend-panel li span {
-  width: 10px !important;
-  height: 10px !important;
-  margin-right: 5px !important;
- }
- 
- .plot-map-component .legend-panel > div:last-child {
-  font-size: 9px !important;
-  margin-top: 3px !important;
-  padding-top: 2px !important;
- }
-}
 
-/* Forzar que el contenedor del mapa ocupe todo el espacio disponible */
-.plot-map-component > div:nth-child(2) > * {
- height: 100% !important;
- width: 100% !important;
-}
+ /* Ocultar el mapa wrapper original en móvil */
+ .plot-map-wrapper {
+  display: none;
+ }
 
+ /* Mostrar el contenedor móvil */
+ .mobile-map-container {
+  display: block;
+  margin: 20px 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+ }
 
-/* Optimizaciones para móvil - mapa aún más compacto */
-@media (max-width: 768px) {
- .plot-map-component .filter-controls-container {
-  padding: 8px 10px;
-  gap: 12px;
+ /* Layout interno del mapa móvil: izquierda controles, derecha mapa */
+ .mobile-map-layout {
+  display: flex;
+  height: 300px;
+  gap: 0;
  }
- 
- .plot-map-component .legend-panel {
-  padding: 4px 10px;
-  max-height: 80px;
+
+ /* Panel izquierdo: selector + leyenda */
+ .mobile-map-sidebar {
+  order: 2;
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+  border-right: 1px solid #e5e5e5;
  }
- 
- .plot-map-component .legend-panel h4 {
-  font-size: 12px !important;
-  margin: 0 0 3px 0 !important;
+
+ /* Selector de leyenda en la parte superior del sidebar */
+ .mobile-legend-selector {
+  padding: 12px;
+  border-bottom: 1px solid #e5e5e5;
+  background: white;
  }
- 
- .plot-map-component .legend-panel li {
-  font-size: 10px !important;
+
+ .mobile-legend-selector .control-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--primary-color);
+  margin-bottom: 6px;
+  display: block;
  }
- 
- .plot-map-component .legend-panel li span {
-  width: 10px !important;
-  height: 10px !important;
-  margin-right: 5px !important;
+
+ .mobile-legend-selector .control-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
  }
- 
- .plot-map-component .legend-panel > div:last-child {
-  font-size: 9px !important;
-  margin-top: 3px !important;
-  padding-top: 2px !important;
+
+ /* Leyenda debajo del selector */
+ .mobile-legend-panel {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+ }
+
+ .mobile-legend-panel h4 {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-color);
+  line-height: 1.2;
+ }
+
+ .mobile-legend-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+ }
+
+ .mobile-legend-panel li {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px 0;
+ }
+
+ .mobile-legend-panel li span {
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.2);
+  flex-shrink: 0;
+ }
+
+ .mobile-legend-panel .legend-stats {
+  margin-top: 6px;
+  font-size: 9px;
+  color: #666;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 4px;
+  line-height: 1.2;
+ }
+
+ /* Panel derecho: solo el mapa */
+ .mobile-map-area {
+  order: 1;
+  flex: 1;
+  position: relative;
+  background: white;
+ }
+
+ /* Ocultar los controles originales del componente en móvil */
+ .mobile-map-container .plot-map-component .filter-controls-container {
+  display: none !important;
+ }
+
+ /* Ocultar la leyenda original del componente en móvil */
+ .mobile-map-container .plot-map-component .legend-panel {
+  display: none !important;
+ }
+
+ /* El mapa ocupa todo el espacio en su contenedor */
+ .mobile-map-container .plot-map-component {
+  height: 100%;
+  display: block; /* Cambiar de flex a block */
+ }
+
+ .mobile-map-container .plot-map-component > div:nth-child(2) {
+  height: 100% !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+ }
+
+ /* Contenido principal sin márgenes especiales */
+ .plots-main-content {
+  order: 1;
+  flex: none;
+  overflow-y: visible;
+  margin: 0;
+ }
+
+ /* El resto del layout móvil se mantiene igual para el menú */
+ .content {
+  margin-left: 0;
+  padding: 10px;
+  margin-top: 0;
+  padding-bottom: 120px;
  }
 }
 
@@ -828,749 +1020,413 @@ body {
  border-radius: var(--border-radius);
  font-size: 1rem;
  transition: border-color 0.2s ease;
-
 }
-
-
 
 .modal-form-input:focus {
-
  outline: none;
-
  border-color: var(--primary-color);
-
  box-shadow: 0 0 0 2px rgba(3, 17, 78, 0.1);
-
 }
-
-
 
 /* Grids específicos */
-
 .insumos-grid {
-
  display: grid;
-
  grid-template-columns: 1fr 1fr;
-
  gap: 1rem;
-
 }
-
-
 
 .insumos-column {
-
  padding: 0.5rem;
-
 }
-
-
 
 /* Botones del modal */
-
 .modal-buttons {
-
  display: flex;
-
  justify-content: flex-end;
-
  gap: 10px;
-
  margin-top: 24px;
-
 }
-
-
 
 /* Detalles */
-
 .detail-item {
-
  margin-bottom: 12px;
-
 }
-
-
 
 .detail-item dt {
-
  font-weight: 600;
-
  margin-bottom: 4px;
-
  color: var(--primary-color);
-
 }
-
-
 
 .detail-item dd {
-
  margin-left: 0;
-
  color: #555;
-
 }
-
-
 
 .contenedor-imagen {
-
  display: flex;
-
  justify-content: center;
-
  margin: 16px 0;
-
 }
 
-
-
 /* ========================================
-
  Leaflet/Mapa
-
  ======================================== */
-
 .leaflet-control-geocoder-form {
-
  background-color: var(--white) !important;
-
  border: 1px solid var(--gray-light) !important;
-
  border-radius: 5px !important;
-
  padding: 5px !important;
-
  box-shadow: var(--shadow) !important;
-
 }
-
 .leaflet-container {
-
  z-index: 1;
-
 }
-
-
 
 /* ========================================
-
  Media Queries - Responsive
-
  ======================================== */
-
 @media (max-width: 768px) {
-
  :root {
-
   --menu-width: 100%;
-
   --content-margin: 0;
-
   --content-margin-collapsed: 0;
-
  }
-
-
 
  /* Layout móvil - Mapa arriba, contenido abajo */
-
  .Contenedor {
-
   flex-direction: column;
-
   padding: 10px;
-
   gap: 15px;
-
-  padding-top: 320px;
-
+  padding-top: 0px;
  }
-
-
 
  .plot-map-wrapper {
-
   order: -1;
-
   position: fixed;
-
   top: 0;
-
   flex: none;
-
   height: 300px;
-
   min-width: unset;
-
   max-width: unset;
-
   width: 100%;
-
   z-index: 50;
-
   background: var(--white);
-
   padding: 5px;
-
   border-radius: 8px;
-
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
  }
-
-
 
  /* Filtros del mapa en móvil - una sola columna */
-
  .plot-map-component .filter-controls-container {
-
   display: flex !important;
-
   flex-direction: column !important;
-
   grid-template-columns: none !important;
-
   gap: 12px !important;
-
  }
-
-
 
  .plots-main-content {
-
   order: 1;
-
   flex: none;
-
   overflow-y: visible;
-
   margin-right: 0;
-
  }
-
-
 
  .menu {
-
   width: 100%;
-
   height: auto;
-
   position: fixed; /* Cambio: de relative a fixed */
-
   bottom: 0; /* Cambio: posicionar en la parte inferior */
-
   left: 0;
-
   top: auto; /* Cambio: quitar top: 0 */
-
   flex-direction: column;
-
   align-items: stretch;
-
   min-height: auto;
-
   padding: 12px 8px 10px 8px;
-
   background: linear-gradient(135deg, var(--primary-color) 0%, #041a5c 100%);
-
  }
-
-
 
  .menu.collapsed {
-
   width: 100%;
-
  }
-
-
 
  /* Ocultar el botón toggle en móvil */
-
  .menu-toggle {
-
   display: none;
-
  }
-
-
 
  .menu-items {
-
   display: flex;
-
   overflow-x: auto;
-
   flex-wrap: nowrap;
-
   gap: 4px;
-
   padding: 0;
-
   margin: 0;
-
   width: 100%;
-
  }
-
-
 
  .menu-items::-webkit-scrollbar {
-
   display: none;
-
  }
-
-
 
  .menu-items li {
-
   flex: 0 0 20%;
-
   margin: 0;
-
  }
-
-
 
  .menu-link {
-
   padding: 8px 4px;
-
   border-radius: 12px;
-
   background-color: rgba(255, 255, 255, 0.15);
-
   transition: all 0.2s ease;
-
   color: var(--white) !important;
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
-
   text-decoration: none;
-
   border: 1px solid rgba(255, 255, 255, 0.1);
-
   backdrop-filter: blur(10px);
-
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
   min-height: 50px;
-
   text-align: center;
-
  }
-
-
 
  .menu-link:hover,
-
  .menu-link:visited {
-
   color: var(--white) !important;
-
   background-color: rgba(255, 255, 255, 0.25);
-
   transform: translateY(-2px);
-
   text-decoration: none;
-
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
  }
-
-
 
  .menu-icon {
-
   margin-right: 0;
-
   margin-bottom: 2px;
-
   font-size: 1rem;
-
   color: var(--white) !important;
-
   width: auto;
-
  }
-
-
 
  .menu-text {
-
   font-size: 0.65rem;
-
   font-weight: 500;
-
   opacity: 1;
-
   width: auto;
-
   color: var(--white) !important;
-
   line-height: 1;
-
   word-break: break-word;
-
   hyphens: auto;
-
  }
-
-
 
  /* Eliminar todos los estilos de collapsed para móvil */
-
  .menu.collapsed .menu-link {
-
   padding: 8px 4px;
-
   border-radius: 12px;
-
   width: 100%;
-
   height: auto;
-
   flex-direction: column;
-
   justify-content: center;
-
   margin: 0;
-
   min-height: 50px;
-
  }
-
-
 
  .menu.collapsed .menu-text {
-
   opacity: 1;
-
   width: auto;
-
   color: var(--white) !important;
-
   display: block;
-
  }
-
-
 
  .menu.collapsed .menu-icon {
-
   margin-right: 0;
-
   margin-bottom: 2px;
-
   color: var(--white) !important;
-
  }
-
-
 
  .user-info {
-
   margin-top: 8px;
-
   padding: 8px 0 0 0;
-
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-
   display: flex;
-
   flex-direction: row;
-
   align-items: center;
-
   justify-content: space-between;
-
  }
-
-
 
  .user-name {
-
   margin-bottom: 0;
-
   font-size: 0.8rem;
-
   color: rgba(255, 255, 255, 0.9);
-
   font-weight: 500;
-
  }
-
-
 
  .logout-button {
-
   width: auto;
-
   height: auto;
-
   padding: 6px 12px;
-
   border-radius: 15px;
-
   font-size: 0.75rem;
-
   min-width: fit-content;
-
   background-color: rgba(255, 255, 255, 0.15);
-
   border: 1px solid rgba(255, 255, 255, 0.1);
-
   color: var(--white);
-
   backdrop-filter: blur(10px);
-
   transition: all 0.2s ease;
-
   margin: 0;
-
  }
-
-
 
  .logout-button:hover {
-
   background-color: rgba(255, 255, 255, 0.25);
-
   transform: translateY(-1px);
-
  }
-
-
 
  .logout-icon {
-
   margin-right: 4px;
-
   font-size: 0.8rem;
-
   color: var(--white);
-
  }
-
-
 
  .logout-text {
-
   font-size: 0.75rem;
-
   color: var(--white);
-
   font-weight: 500;
-
  }
-
-
 
  .menu.collapsed .user-name {
-
   display: block;
-
   color: rgba(255, 255, 255, 0.9);
-
  }
-
-
 
  .menu.collapsed .logout-button {
-
   width: auto;
-
   height: auto;
-
   padding: 6px 12px;
-
   border-radius: 15px;
-
  }
-
-
 
  .menu.collapsed .logout-text {
-
   display: inline;
-
  }
-
-
 
  .menu.collapsed .logout-icon {
-
   margin-right: 4px;
-
  }
-
-
 
  .content {
-
   margin-left: 0;
-
   padding: 10px;
-
   margin-top: 0;
-
   padding-bottom: 120px; /* Espacio para el menú inferior */
-
  }
-
-
 
  .modal-wrapper {
-
   min-width: 300px;
-
  }
-
-
 
  .modal-form-grid {
-
   grid-template-columns: 1fr;
-
  }
-
-
 
  .insumos-grid {
-
   grid-template-columns: 1fr;
-
  }
-
-
 
  /* Estilos responsive para filtros */
-
  .filter-controls-container {
-
   flex-direction: column;
-
   gap: 16px;
-
   padding: 12px;
-
  }
-
-
 
  .control-group {
-
   width: 100%;
-
   min-width: unset;
-
  }
-
-
 
  .filter-inputs {
-
   flex-direction: column;
-
  }
-
-
 
  .control-input {
-
   min-width: unset;
-
  }
-
 }
 
-
-
 @media (max-width: 480px) {
-
  .contenedor {
-
   width: 100%;
-
   padding: 10px;
-
  }
-
-
-
  .modal-content {
-
   padding: 16px;
-
  }
-
-
-
  .modal-buttons {
-
   flex-direction: column;
-
  }
-
-
-
  .btn {
-
   width: 100%;
-
   margin-bottom: 8px;
-
  }
-
-
-
  /* Ajustes adicionales para filtros en pantallas muy pequeñas */
-
  .filter-controls-container {
-
   padding: 10px;
-
   gap: 12px;
-
  }
-
-
-
  .control-select, .control-input {
-
   padding: 8px 10px;
-
   font-size: 13px;
-
  }
-
-
-
  .control-label {
-
   font-size: 13px;
-
+ }
+ /* Mapa en móviles pequeños */
+ .mobile-map-sidebar {
+  order: 2;  
+  flex: 0 0 45%;
  }
 
-
-
- /* Mapa más compacto en móviles pequeños */
-
- .plot-map-wrapper {
-
-  height: 250px;
-
+ .mobile-map-layout {
+  height: 250px; /* Altura menor en móviles pequeños */
  }
 
+ .mobile-legend-selector {
+  padding: 8px;
+ }
+
+ .mobile-legend-selector .control-label {
+  font-size: 11px;
+  margin-bottom: 4px;
+ }
+
+ .mobile-legend-selector .control-select {
+  padding: 6px;
+  font-size: 11px;
+ }
+
+ .mobile-legend-panel {
+  padding: 6px 8px;
+ }
+
+ .mobile-legend-panel h4 {
+  font-size: 11px;
+  margin: 0 0 4px 0;
+ }
+
+ .mobile-legend-panel li {
+  font-size: 9px;
+ }
+
+ .mobile-legend-panel li span {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+ }
+
+ .mobile-legend-panel .legend-stats {
+  font-size: 8px;
+  margin-top: 4px;
+  padding-top: 3px;
+ }
 }

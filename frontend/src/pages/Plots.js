@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TablePlots from '../components/TablePlots';
 import ArchivedPlotsTable from '../components/TableArchivedPlots';
 import SectorsManagement from '../components/SectorsManagement';
 import FincaManagement from '../components/FincaManagement';
 import PlotMapComponent from '../components/PlotMapComponent';
+import MobilePlotMapComponent from '../components/MobilePlotMapComponent';
 import Cuervo from '../../public/Cuervo.png';
 
 const Plots = () => {
@@ -36,7 +37,7 @@ const Plots = () => {
 
   return (
     <div className="Contenedor">
-      {/* Mapa fijo a la derecha en desktop, arriba en móvil */}
+      {/* Mapa fijo a la derecha en desktop, oculto en móvil */}
       <div className="plot-map-wrapper">
         <PlotMapComponent />
       </div>
@@ -45,6 +46,11 @@ const Plots = () => {
       <div className="plots-main-content">
         <div className="titulo-seccion">
           <h1>Mis parcelas</h1>
+        </div>
+
+        {/* Mapa móvil - solo visible en dispositivos móviles */}
+        <div className="mobile-map-container">
+          <MobilePlotMapComponent/>
         </div>
 
         <div className="titulo-seccion">

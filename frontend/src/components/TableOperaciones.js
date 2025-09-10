@@ -608,7 +608,7 @@ function TableOperaciones() {
     };
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="table-container">
             {/* Header con botones */}
             <div className="table-header flex items-center mb-4">
                 <button
@@ -627,17 +627,16 @@ function TableOperaciones() {
             </div>
 
             {/* Controles de filtros y agrupación */}
-            <div className="filter-controls-container mb-4 p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="filter-controls-container">
                     <div className="control-group">
-                        <label htmlFor="groupingFieldOperaciones" className="control-label block text-sm font-medium mb-2">
+                        <label htmlFor="groupingFieldOperaciones" className="control-label">
                             Agrupar por:
                         </label>
                         <select
                             id="groupingFieldOperaciones"
                             value={groupBy || "none"}
                             onChange={handleGroupByChange}
-                            className="control-select w-full p-2 border border-gray-300 rounded"
+                            className="control-select"
                         >
                             <option value="none">Sin Agrupación</option>
                             <option value="tipo_operacion">Tipo de Operación</option>
@@ -648,15 +647,15 @@ function TableOperaciones() {
                     </div>
                     
                     <div className="control-group">
-                        <label htmlFor="FilterFieldOperaciones" className="control-label block text-sm font-medium mb-2">
+                        <label htmlFor="FilterFieldOperaciones" className="control-label">
                             Filtrar por:
                         </label>
-                        <div className="filter-inputs flex space-x-2">
+                        <div className="filter-inputs">
                             <select
                                 id="FilterFieldOperaciones"
                                 value={filterField}
                                 onChange={(e) => setFilterField(e.target.value)}
-                                className="control-select flex-1 p-2 border border-gray-300 rounded"
+                                className="control-select filter-field"
                             >
                                 <option value="id">ID</option>
                                 <option value="tipo_operacion">Tipo de Operación</option>
@@ -674,12 +673,12 @@ function TableOperaciones() {
                                 value={filterValue}
                                 onChange={(e) => setFilterValue(e.target.value)}
                                 placeholder={`Buscar por ${filterField}...`}
-                                className="control-input flex-1 p-2 border border-gray-300 rounded"
+                                className="control-input"
                             />
                         </div>
                     </div>
                 </div>
-            </div>
+            
 
             {/* Tabla de operaciones */}
             {Object.entries(groupedOperaciones).map(([group, operacionesGroup]) => (
@@ -744,13 +743,6 @@ function TableOperaciones() {
                                         )}
                                     </th>
                                     <th className="border border-gray-300 p-3 cursor-pointer hover:bg-gray-100" 
-                                        onClick={() => handleSort("personas")}>
-                                        Personas
-                                        {sortConfig.key === "personas" && (
-                                            <span className="ml-1">{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
-                                        )}
-                                    </th>
-                                    <th className="border border-gray-300 p-3 cursor-pointer hover:bg-gray-100" 
                                         onClick={() => handleSort("porcentaje_avance")}>
                                         % Avance
                                         {sortConfig.key === "porcentaje_avance" && (
@@ -792,9 +784,6 @@ function TableOperaciones() {
                                             </td>
                                             <td className="border border-gray-300 p-3 text-center">
                                                 {operacion.jornales || '-'}
-                                            </td>
-                                            <td className="border border-gray-300 p-3 text-center">
-                                                {operacion.personas || '-'}
                                             </td>
                                             <td className="border border-gray-300 p-3 text-center">
                                                 {operacion.porcentaje_avance ? `${operacion.porcentaje_avance}%` : '-'}

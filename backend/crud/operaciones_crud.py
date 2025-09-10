@@ -377,20 +377,14 @@ async def delete_operacion_optimized(db: AsyncSession, operacion_id: int) -> boo
     Elimina una operación y sus insumos asociados
     """
     try:
-        # Eliminar insumos primero (por la relación de clave foránea)
-        await db.execute(
-            delete(TaskInput).where(TaskInput.operation_id == operacion_id)
-        )
-        
-        # Eliminar operación
         operacion = await db.get(Operacion, operacion_id)
         if not operacion:
             return False
-            
+
         await db.delete(operacion)
-        await db.commit()
+        await db.commit()  # Cascade borra TaskInputs automáticamente
         return True
-        
+
     except Exception as e:
         logger.error(f"Error eliminando operación: {e}")
         await db.rollback()

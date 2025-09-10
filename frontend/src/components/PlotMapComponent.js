@@ -194,7 +194,7 @@ const PlotMapComponent = () => {
         </div>*/}
       </div>
 
-      <div style={{ flex: 1, position: 'relative', minHeight: '200px' }}>
+      <div style={{ flex: 1, position: 'relative', minHeight: '100px' }}>
         <Map
           ref={mapRef}
           geojson={generateGeoJSON()}
@@ -217,7 +217,7 @@ const PlotMapComponent = () => {
         padding: '12px', 
         borderTop: '1px solid #e5e5e5', 
         backgroundColor: '#f8f9fa',
-        maxHeight: '150px',
+        maxHeight: '300px',
         overflowY: 'auto'
       }}>
         <h4 style={{ 

@@ -3,7 +3,6 @@ NOTEBOOK ODISEA
 ISSUES
 Estilo
 Parcelas
-  Mapa gral
 Probar todo
   Parcelas
     Plots
@@ -11,6 +10,8 @@ Probar todo
   OperacioneFinca
     Operaciones
       eliminar operacion
+      cuando edito el input no impacta mi inventario
+------------------------------------------------------------
   TareasBodega
     Tasks
     Vessels

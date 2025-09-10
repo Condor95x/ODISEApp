@@ -303,7 +303,7 @@ function FincaManagement() {
                 <th className="border border-gray-300 p-2">
                   <input id="CheckBoxFinca" type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
                 </th>
-                <th className="border border-gray-300 p-2" onClick={() => handleSort('value')}>Valor</th>
+                <th className="border border-gray-300 p-2" onClick={() => handleSort('value')}>Finca</th>
                 <th className="border border-gray-300 p-2" onClick={() => handleSort('description')}>Descripción</th>
                 <th className="border border-gray-300 p-2">Acciones</th>
               </tr>
@@ -337,7 +337,7 @@ function FincaManagement() {
             <div className="modal-form-grid">
               <div className="modal-column">
                 <div className="mb-4">
-                  <label className="modal-form-label" htmlFor='NewFincaValue'>Valor:</label>
+                  <label className="modal-form-label" htmlFor='NewFincaValue'>Nombre:</label>
                   <input type="text" id='NewFincaValue' value={newFinca.value} onChange={(e) => setNewFinca({ ...newFinca, value: e.target.value })} className="modal-form-input" />
                 </div>
               </div>

@@ -16,10 +16,10 @@ const Map = forwardRef(({ geojson, onGeometryChange, editable = false, styleFunc
     useEffect(() => {
         if (!mapInstanceRef.current && mapRef.current) {
             // Inicializar el mapa
-            mapInstanceRef.current = L.map(mapRef.current).setView([-31.65394, -68.49125], 13);
+            mapInstanceRef.current = L.map(mapRef.current).setView([-31.672636659379208, -68.49962097319181], 14);
             L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 attribution: '© <a href="https://www.google.com/maps">Google Maps</a>',
-                maxZoom: 20
+                maxZoom: 200
             }).addTo(mapInstanceRef.current);
 
             mapInstanceRef.current.addLayer(drawnItemsRef.current);
