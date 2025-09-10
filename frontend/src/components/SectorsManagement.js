@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getSectors, createSector, updateSector, deleteSector } from '../services/api'; // Asegúrate de que la ruta sea correcta
+import { getSectors, createSector, updateSector, deleteSector, getFincas } from '../services/api'; // Asegúrate de que la ruta sea correcta
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -8,7 +8,9 @@ Modal.setAppElement('#root');
 
 function SectorsManagement() {
   const [sectors, setSectors] = useState([]);
+  const [fincas, setFincas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingFincas, setLoadingFincas] = useState(false);
   const [error, setError] = useState(null);
   const [showSectorForm, setShowSectorForm] = useState(false);
   const [editingSector, setEditingSector] = useState(null);
@@ -31,12 +33,32 @@ function SectorsManagement() {
     finca_id: 'ID Finca',
     value: 'Valor',
     description: 'Descripción',
-    etiqueta: 'Etiqueta'
+    etiqueta: 'Etiqueta',
+    finca_name: 'Nombre de Finca'
   };
 
   // Función para obtener la etiqueta amigable del campo
   const getFieldLabel = (fieldName) => {
     return fieldLabels[fieldName] || fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace("_", " ");
+  };
+
+  // Función para obtener las fincas
+  const fetchFincas = async () => {
+    setLoadingFincas(true);
+    try {
+      const response = await getFincas();
+      if (response && Array.isArray(response.data)) {
+        setFincas(response.data);
+      } else {
+        console.error('Error: La respuesta de fincas no es un array válido');
+        setFincas([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar fincas:', error);
+      setFincas([]);
+    } finally {
+      setLoadingFincas(false);
+    }
   };
 
   useEffect(() => {
@@ -58,13 +80,19 @@ function SectorsManagement() {
         setLoading(false);
       }
     };
+    
     fetchSectors();
+    fetchFincas(); // Cargar las fincas cuando el componente se monta
   }, []);
 
   const handleOpenSectorForm = (sector = null) => {
     setEditingSector(sector);
     if (sector) {
-      setNewSector({ ...sector });
+      setNewSector({ 
+        finca_id: sector.finca_id?.toString() || '',
+        value: sector.value || '',
+        description: sector.description || ''
+      });
     } else {
       setNewSector({ finca_id: '', value: '', description: '' });
     }
@@ -103,23 +131,32 @@ function SectorsManagement() {
   };
 
   const handleDeleteSector = async (id) => {
-    try {
-      await deleteSector(id);
-      const response = await getSectors();
-      if (response && Array.isArray(response.data)) {
-        setSectors(response.data);
-      } else {
-        setError("La respuesta de la API no es un array válido.");
-        setSectors([]);
+    if (window.confirm('¿Estás seguro de que deseas eliminar este sector?')) {
+      try {
+        await deleteSector(id);
+        const response = await getSectors();
+        if (response && Array.isArray(response.data)) {
+          setSectors(response.data);
+        } else {
+          setError("La respuesta de la API no es un array válido.");
+          setSectors([]);
+        }
+      } catch (err) {
+        setError(err);
       }
-    } catch (err) {
-      setError(err);
     }
   };
 
   const filteredSectors = sectors.filter((sector) => {
-    const fieldValue = sector[filterField];
     const searchValue = filterValue.toLowerCase();
+    
+    // Si el filtro es por finca_name, buscar en el nombre de la finca
+    if (filterField === 'finca_name') {
+      const fincaName = sector.finca?.value || '';
+      return fincaName.toLowerCase().includes(searchValue);
+    }
+    
+    const fieldValue = sector[filterField];
     
     // Si el campo es numérico, convertir a string para el filtro
     if (typeof fieldValue === 'number') {
@@ -144,8 +181,16 @@ function SectorsManagement() {
 
   const sortedSectors = [...filteredSectors].sort((a, b) => {
     if (!sortConfig.key) return 0;
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
+    
+    let aValue = a[sortConfig.key];
+    let bValue = b[sortConfig.key];
+    
+    // Si estamos ordenando por finca_name, usar el valor de la finca
+    if (sortConfig.key === 'finca_name') {
+      aValue = a.finca?.value || '';
+      bValue = b.finca?.value || '';
+    }
+    
     if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
     return 0;
@@ -153,7 +198,13 @@ function SectorsManagement() {
 
   const groupSectors = (data, groupBy) => {
     return data.reduce((acc, sector) => {
-      const key = sector[groupBy];
+      let key;
+      if (groupBy === 'finca_name') {
+        key = sector.finca?.value || 'Sin Finca';
+      } else {
+        key = sector[groupBy];
+      }
+      
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -204,6 +255,7 @@ function SectorsManagement() {
     const columnConfig = [
       { key: 'sector_id', header: 'ID Sector' },
       { key: 'finca_id', header: 'ID Finca' },
+      { key: 'finca_name', header: 'Nombre Finca' },
       { key: 'value', header: 'Valor' },
       { key: 'description', header: 'Descripción' },
       { key: 'etiqueta', header: 'Etiqueta' }
@@ -224,7 +276,12 @@ function SectorsManagement() {
     
     selectedData.forEach((sector) => {
       const row = columnConfig.map(col => {
-        let value = sector[col.key];
+        let value;
+        if (col.key === 'finca_name') {
+          value = sector.finca?.value || '';
+        } else {
+          value = sector[col.key];
+        }
         return escapeCSVValue(value);
       });
       csvRows.push(row.join(','));
@@ -270,7 +327,9 @@ function SectorsManagement() {
   return (
     <div className="container mx-auto p-4">
       <div className="table-header">
-        <button onClick={() => handleOpenSectorForm()} className="btn btn-primary"><FontAwesomeIcon icon={faPlus} /> Crear Sector</button>
+        <button onClick={() => handleOpenSectorForm()} className="btn btn-primary">
+          <FontAwesomeIcon icon={faPlus} /> Crear Sector
+        </button>
         <Spacer width={0.5} />
         {Object.values(selectedSectors).flat().length > 0 && (
           <button
@@ -280,25 +339,46 @@ function SectorsManagement() {
           </button>
         )}
       </div>
+      
       <div className="filter-controls-container">
         <div className="control-group">
           <label htmlFor="groupingFieldSector" className="control-label">Agrupar por:</label>
-          <select id="groupingFieldSector" value={groupBy || "none"} onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} className="control-select">
+          <select 
+            id="groupingFieldSector" 
+            value={groupBy || "none"} 
+            onChange={(e) => setGroupBy(e.target.value === "none" ? null : e.target.value)} 
+            className="control-select"
+          >
             <option value="none">Sin Agrupación</option>
             <option value="finca_id">ID Finca</option>
+            <option value="finca_name">Nombre de Finca</option>
           </select>
         </div>
+        
         <div className="control-group">
           <label htmlFor="FilterFieldSector" className="control-label">
             Filtrar por:
           </label>
           <div className="filter-inputs">
-            <select id="FilterFieldSector" value={filterField} onChange={(e) => setFilterField(e.target.value)} className="control-select filter-field">
+            <select 
+              id="FilterFieldSector" 
+              value={filterField} 
+              onChange={(e) => setFilterField(e.target.value)} 
+              className="control-select filter-field"
+            >
               <option value="value">Valor</option>
               <option value="description">Descripción</option>
               <option value="etiqueta">Etiqueta</option>
+              <option value="finca_name">Nombre de Finca</option>
             </select>
-            <input id="FilterValueSector" type="text" value={filterValue} onChange={(e) => setFilterValue(e.target.value)} placeholder={`Buscar por ${getFieldLabel(filterField)}...`} className="control-input" />
+            <input 
+              id="FilterValueSector" 
+              type="text" 
+              value={filterValue} 
+              onChange={(e) => setFilterValue(e.target.value)} 
+              placeholder={`Buscar por ${getFieldLabel(filterField)}...`} 
+              className="control-input" 
+            />
           </div>
         </div>
       </div>
@@ -310,12 +390,25 @@ function SectorsManagement() {
             <thead>
               <tr>
                 <th className="border border-gray-300 p-2">
-                  <input id="CheckBoxSector" type="checkbox" checked={allSelected[group] || false} onChange={(e) => handleSelectAll(e, group)} />
+                  <input 
+                    id="CheckBoxSector" 
+                    type="checkbox" 
+                    checked={allSelected[group] || false} 
+                    onChange={(e) => handleSelectAll(e, group)} 
+                  />
                 </th>
-                <th className="border border-gray-300 p-2" onClick={() => handleSort('value')}>Valor</th>
-                <th className="border border-gray-300 p-2" onClick={() => handleSort('description')}>Descripción</th>
-                <th className="border border-gray-300 p-2" onClick={() => handleSort('finca_id')}>ID Finca</th>
-                <th className="border border-gray-300 p-2" onClick={() => handleSort('etiqueta')}>Etiqueta</th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort('value')}>
+                  Valor {sortConfig.key === 'value' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort('description')}>
+                  Descripción {sortConfig.key === 'description' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort('finca_name')}>
+                  Finca {sortConfig.key === 'finca_name' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                </th>
+                <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort('etiqueta')}>
+                  Etiqueta {sortConfig.key === 'etiqueta' && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                </th>
                 <th className="border border-gray-300 p-2">Acciones</th>
               </tr>
             </thead>
@@ -323,18 +416,34 @@ function SectorsManagement() {
               {sectors.map((sector) => (
                 <tr key={sector.sector_id}>
                   <td className="border border-gray-300 p-2">
-                    <input id={`checkboxSector-${group}-${sector.sector_id}`} type="checkbox" checked={selectedSectors[group]?.includes(sector.sector_id) || false} onChange={(e) => handleSelectSector(e, sector, group)} />
+                    <input 
+                      id={`checkboxSector-${group}-${sector.sector_id}`} 
+                      type="checkbox" 
+                      checked={selectedSectors[group]?.includes(sector.sector_id) || false} 
+                      onChange={(e) => handleSelectSector(e, sector, group)} 
+                    />
                   </td>
                   <td className="border border-gray-300 p-2">{sector.value}</td>
                   <td className="border border-gray-300 p-2">{sector.description}</td>
-                  <td className="border border-gray-300 p-2">{sector.finca_id}</td>
+                  <td className="border border-gray-300 p-2">
+                    {sector.finca ? sector.finca.value : 'Sin finca'}
+                  </td>
                   <td className="border border-gray-300 p-2">{sector.etiqueta}</td>
                   <td className="border border-gray-300 p-2">
-                    <button onClick={() => handleOpenSectorForm(sector)}
-                      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mr-2">
+                    <button 
+                      onClick={() => handleOpenSectorForm(sector)}
+                      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 mr-2"
+                      title="Editar"
+                    >
                       <FontAwesomeIcon icon={faSearch} />
                     </button>
-                    <button onClick={() => handleDeleteSector(sector.sector_id)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600">Eliminar</button>
+                    <button 
+                      onClick={() => handleDeleteSector(sector.sector_id)} 
+                      className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                      title="Eliminar"
+                    >
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -343,15 +452,38 @@ function SectorsManagement() {
         </div>
       ))}
   
-      <Modal isOpen={showSectorForm} onRequestClose={handleCloseSectorForm} className="modal-content" overlayClassName="modal-overlay" contentLabel="Crear/Editar Sector">
+      <Modal 
+        isOpen={showSectorForm} 
+        onRequestClose={handleCloseSectorForm} 
+        className="modal-content" 
+        overlayClassName="modal-overlay" 
+        contentLabel="Crear/Editar Sector"
+      >
         <div className="modal-wrapper">
           <div className="modal-content">
             <h2 className="modal-title">{editingSector ? 'Editar Sector' : 'Crear Sector'}</h2>
             <div className="modal-form-grid">
               <div className="modal-column">
                 <div className="mb-4">
-                  <label className="modal-form-label" htmlFor='NewSectorFincaId'>ID Finca:</label>
-                  <input type="number" id='NewSectorFincaId' value={newSector.finca_id} onChange={(e) => setNewSector({ ...newSector, finca_id: e.target.value })} className="modal-form-input" />
+                  <label className="modal-form-label" htmlFor='NewSectorFincaId'>Finca:</label>
+                  {loadingFincas ? (
+                    <div className="modal-form-input">Cargando fincas...</div>
+                  ) : (
+                    <select 
+                      id='NewSectorFincaId'
+                      value={newSector.finca_id} 
+                      onChange={(e) => setNewSector({ ...newSector, finca_id: e.target.value })} 
+                      className="modal-form-input"
+                      required
+                    >
+                      <option value="">Seleccionar finca...</option>
+                      {fincas.map((finca) => (
+                        <option key={finca.finca_id} value={finca.finca_id}>
+                          {finca.value} - {finca.description || 'Sin descripción'}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div className="mb-4">
                   <label className="modal-form-label" htmlFor='NewSectorValue'>Valor:</label>

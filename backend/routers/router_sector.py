@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from ..database import get_db  # Ajusta la ruta según tu estructura
-from ..crud import crud_sector
-from ..crud.crud_sector import SectorCreate, SectorUpdate, SectorResponse
+from ..crud import crud_sector, crud_finca
+from ..crud.crud_sector import SectorCreate, SectorUpdate, SectorResponse, SectorWithFincaResponse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,16 +31,35 @@ async def create_sector(
             detail="Error interno al crear el sector"
         )
 
-# GET - Obtener todos los sectores
-@router.get("/", response_model=List[SectorResponse])
+# GET - Obtener todos los sectores con información de finca
+@router.get("/", response_model=List[SectorWithFincaResponse])
 async def get_sectores(
     skip: int = Query(0, ge=0, description="Número de registros a omitir"),
     limit: int = Query(100, ge=1, le=1000, description="Máximo número de registros a retornar"),
     db: AsyncSession = Depends(get_db)
 ):
-    """Obtener lista de sectores con paginación"""
+    """Obtener lista de sectores con paginación e información de finca"""
     try:
-        return await crud_sector.get_sectores(db=db, skip=skip, limit=limit)
+        sectores = await crud_sector.get_sectores(db=db, skip=skip, limit=limit)
+        
+        # Convertir a response con información de finca
+        sectores_response = []
+        for sector in sectores:
+            sector_dict = {
+                "sector_id": sector.sector_id,
+                "finca_id": sector.finca_id,
+                "value": sector.value,
+                "description": sector.description,
+                "etiqueta": sector.etiqueta,
+                "finca": {
+                    "finca_id": sector.finca.finca_id,
+                    "value": sector.finca.value,
+                    "description": sector.finca.description
+                } if sector.finca else None
+            }
+            sectores_response.append(sector_dict)
+        
+        return sectores_response
     except HTTPException:
         raise
     except Exception as e:
@@ -51,14 +70,30 @@ async def get_sectores(
         )
 
 # GET - Obtener sector por ID
-@router.get("/{sector_id}", response_model=SectorResponse)
+@router.get("/{sector_id}", response_model=SectorWithFincaResponse)
 async def get_sector(
     sector_id: int, 
     db: AsyncSession = Depends(get_db)
 ):
-    """Obtener un sector específico por ID"""
+    """Obtener un sector específico por ID con información de finca"""
     try:
-        return await crud_sector.get_sector(db=db, sector_id=sector_id)
+        sector = await crud_sector.get_sector(db=db, sector_id=sector_id)
+        
+        # Convertir a response con información de finca
+        sector_response = {
+            "sector_id": sector.sector_id,
+            "finca_id": sector.finca_id,
+            "value": sector.value,
+            "description": sector.description,
+            "etiqueta": sector.etiqueta,
+            "finca": {
+                "finca_id": sector.finca.finca_id,
+                "value": sector.finca.value,
+                "description": sector.finca.description
+            } if sector.finca else None
+        }
+        
+        return sector_response
     except HTTPException:
         raise
     except Exception as e:
@@ -66,24 +101,6 @@ async def get_sector(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno al obtener el sector"
-        )
-
-# GET - Obtener sectores por finca
-@router.get("/finca/{finca_id}", response_model=List[SectorResponse])
-async def get_sectores_by_finca(
-    finca_id: int = Path(..., description="ID de la finca"),
-    db: AsyncSession = Depends(get_db)
-):
-    """Obtener todos los sectores de una finca específica"""
-    try:
-        return await crud_sector.get_sectores_by_finca(db=db, finca_id=finca_id)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error al obtener sectores de finca {finca_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno al obtener los sectores de la finca"
         )
 
 # PUT - Actualizar sector
@@ -124,15 +141,52 @@ async def delete_sector(
             detail="Error interno al eliminar el sector"
         )
 
+# GET - Obtener sectores por finca
+@router.get("/finca/{finca_id}", response_model=List[SectorResponse])
+async def get_sectores_by_finca(
+    finca_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Obtener todos los sectores de una finca específica"""
+    try:
+        return await crud_sector.get_sectores_by_finca(db=db, finca_id=finca_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al obtener sectores de finca {finca_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno al obtener sectores de la finca"
+        )
+
 # GET - Buscar sectores
-@router.get("/search/", response_model=List[SectorResponse])
+@router.get("/search/", response_model=List[SectorWithFincaResponse])
 async def search_sectores(
     q: str = Query(..., min_length=1, description="Término de búsqueda"),
     db: AsyncSession = Depends(get_db)
 ):
     """Buscar sectores por value, description o etiqueta"""
     try:
-        return await crud_sector.search_sectores(db=db, search_term=q)
+        sectores = await crud_sector.search_sectores(db=db, search_term=q)
+        
+        # Convertir a response con información de finca
+        sectores_response = []
+        for sector in sectores:
+            sector_dict = {
+                "sector_id": sector.sector_id,
+                "finca_id": sector.finca_id,
+                "value": sector.value,
+                "description": sector.description,
+                "etiqueta": sector.etiqueta,
+                "finca": {
+                    "finca_id": sector.finca.finca_id,
+                    "value": sector.finca.value,
+                    "description": sector.finca.description
+                } if sector.finca else None
+            }
+            sectores_response.append(sector_dict)
+        
+        return sectores_response
     except HTTPException:
         raise
     except Exception as e:
@@ -142,26 +196,7 @@ async def search_sectores(
             detail="Error interno al buscar sectores"
         )
 
-# GET - Contar sectores por finca
-@router.get("/finca/{finca_id}/count")
-async def count_sectores_by_finca(
-    finca_id: int = Path(..., description="ID de la finca"),
-    db: AsyncSession = Depends(get_db)
-):
-    """Contar sectores de una finca específica"""
-    try:
-        count = await crud_sector.count_sectores_by_finca(db=db, finca_id=finca_id)
-        return {"finca_id": finca_id, "total_sectores": count}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error al contar sectores de finca {finca_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno al contar sectores"
-        )
-
-# GET - Contar todos los sectores
+# GET - Contar sectores
 @router.get("/statistics/count")
 async def count_sectores(
     db: AsyncSession = Depends(get_db)
@@ -177,4 +212,23 @@ async def count_sectores(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno al contar sectores"
+        )
+
+# GET - Contar sectores por finca
+@router.get("/statistics/count-by-finca/{finca_id}")
+async def count_sectores_by_finca(
+    finca_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Obtener el total de sectores de una finca específica"""
+    try:
+        total = await crud_sector.count_sectores_by_finca(db=db, finca_id=finca_id)
+        return {"total_sectores": total, "finca_id": finca_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error al contar sectores de finca {finca_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno al contar sectores de la finca"
         )

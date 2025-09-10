@@ -6,7 +6,9 @@ Parcelas
 Probar todo
   Parcelas
     Plots
+      Actualizacion automatica al crear parcelas (tabla y mapas)
     ParcelasArchivadas
+    Fincas y Sectores
   OperacioneFinca
     Operaciones
       eliminar operacion

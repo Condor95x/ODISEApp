@@ -313,10 +313,21 @@ export const getRootstocks = async () => {
 
 export const getSectors = async () => {
   try {
-    const response = await axios.get(`${API_URL}/sectores/`);
-    return response;
+    const response = await fetch(`${API_URL}/sectores/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return { data };
   } catch (error) {
-    console.error('Error fetching sectors:', error);
+    console.error('Error al obtener sectores:', error);
     throw error;
   }
 };
