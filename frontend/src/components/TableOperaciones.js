@@ -564,14 +564,14 @@ function TableOperaciones() {
                     </label>
                     <select
                         id="groupingFieldOperaciones"
-                        value={groupBy || "parcela"}
+                        value={groupBy || "none"}
                         onChange={handleGroupByChange}
                         className="control-select"
                     >
+                        <option value="none">Sin Agrupación</option>
                         <option value="parcela">Parcela</option>
                         <option value="estado">Estado</option>
                         <option value="tipo_operacion">Tipo de Operación</option>
-                        <option value="none">Sin Agrupación</option>
                     </select>
                 </div>
                 <div className="control-group">
