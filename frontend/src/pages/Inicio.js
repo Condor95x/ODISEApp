@@ -5,7 +5,7 @@ import Resumen from '../../maqueta/Resumen.png';
 
 function Inicio() {
   return (
-    <div className="contenedor">
+    <div className="max-w-screen-lg mx-auto px-4">
      <div className="titulo-seccion">
         <h1>Bienvenido</h1>
         <img src={odiseaLogo} alt="Logo de Odisea" className="logo-app" />
