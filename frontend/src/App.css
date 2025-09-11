@@ -231,9 +231,9 @@
   /* Styles for smaller screens if needed */
   @media (max-width: 768px) {
     .menu {
-      width: 100%; /* Take full width on smaller screens */
+      width: 100%;
       height: auto;
-      position: relative; /* No longer fixed */
+      position: fixed;
     }
 
     .content {
