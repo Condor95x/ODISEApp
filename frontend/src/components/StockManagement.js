@@ -235,9 +235,9 @@ function StockManagement() {
         </div>
       <div className="filter-controls-container">
         <div className="control-group">
-          <label htmlFor="groupingFieldstock" className="control-label">
+          <span htmlFor="groupingFieldstock" className="control-label">
             Agrupar por:
-          </label>
+          </span>
           <select
             id="groupingFieldStock"
             value={groupBy || "none"}
@@ -250,9 +250,9 @@ function StockManagement() {
           </select>
       </div>
       <div className="control-group">
-        <label htmlFor="FilterFieldstock" className="control-label">
+        <span htmlFor="FilterFieldstock" className="control-label">
           Filtrar por:
-        </label>
+        </span>
         <div className="filter-inputs">        <select
           id="FilterFieldStock"
           value={filterField}

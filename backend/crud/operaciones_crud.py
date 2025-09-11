@@ -1,4 +1,4 @@
-from ..models import Operacion, TaskInput, InputStock, TaskList, Plot
+from ..models import Operacion, TaskInput, InputStock, TaskList, Plot, InventoryMovement
 from ..schemas.operaciones_schemas import (
     OperacionCreate, OperacionUpdate, OperacionResponse, 
     OperacionListItem, TaskInputUpdate, TaskInputCreate
@@ -374,19 +374,67 @@ async def update_operacion_inputs_optimized(
 
 async def delete_operacion_optimized(db: AsyncSession, operacion_id: int) -> bool:
     """
-    Elimina una operación y sus insumos asociados
+    Elimina una operación y sus registros relacionados de forma segura
     """
     try:
-        operacion = await db.get(Operacion, operacion_id)
+        logger.info(f"[CRUD] Iniciando eliminación de operación ID: {operacion_id}")
+        
+        # Verificar que la operación existe
+        result = await db.execute(
+            select(Operacion).where(Operacion.id == operacion_id)
+        )
+        operacion = result.scalar_one_or_none()
+        
         if not operacion:
+            logger.warning(f"[CRUD] Operación {operacion_id} no encontrada")
             return False
 
+        logger.info(f"[CRUD] Operación encontrada - Tipo: {operacion.tipo_operacion}")
+
+        # PASO 1: Verificar movimientos de inventario relacionados
+        inventory_result = await db.execute(
+            select(func.count()).select_from(InventoryMovement)
+            .where(InventoryMovement.operation_id == operacion_id)
+        )
+        inventory_count = inventory_result.scalar()
+        logger.info(f"[CRUD] Encontrados {inventory_count} movimientos de inventario asociados")
+
+        # PASO 2: Eliminar movimientos de inventario primero
+        if inventory_count > 0:
+            logger.info(f"[CRUD] Eliminando {inventory_count} movimientos de inventario...")
+            await db.execute(
+                delete(InventoryMovement).where(InventoryMovement.operation_id == operacion_id)
+            )
+            logger.info("[CRUD] Movimientos de inventario eliminados")
+
+        # PASO 3: Verificar TaskInputs relacionados
+        task_inputs_result = await db.execute(
+            select(func.count()).select_from(TaskInput)
+            .where(TaskInput.operation_id == operacion_id)
+        )
+        task_inputs_count = task_inputs_result.scalar()
+        logger.info(f"[CRUD] Encontrados {task_inputs_count} task inputs asociados")
+
+        # PASO 4: Eliminar TaskInputs si existen
+        if task_inputs_count > 0:
+            logger.info(f"[CRUD] Eliminando {task_inputs_count} task inputs...")
+            await db.execute(
+                delete(TaskInput).where(TaskInput.operation_id == operacion_id)
+            )
+            logger.info("[CRUD] Task inputs eliminados")
+
+        # PASO 5: Finalmente eliminar la operación
+        logger.info(f"[CRUD] Eliminando la operación {operacion_id}...")
         await db.delete(operacion)
-        await db.commit()  # Cascade borra TaskInputs automáticamente
+        
+        # PASO 6: Commit de todos los cambios
+        await db.commit()
+        
+        logger.info(f"[CRUD] Operación {operacion_id} eliminada exitosamente con todos sus registros relacionados")
         return True
 
     except Exception as e:
-        logger.error(f"Error eliminando operación: {e}")
+        logger.error(f"[CRUD] Error eliminando operación {operacion_id}: {type(e).__name__}: {e}")
         await db.rollback()
         return False
 

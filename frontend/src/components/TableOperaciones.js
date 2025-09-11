@@ -694,7 +694,8 @@ function TableOperaciones() {
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="border border-gray-300 p-3">
-                                        <input 
+                                        <input
+                                            id='checkboxops' 
                                             type="checkbox" 
                                             checked={allSelected[group] || false} 
                                             onChange={(e) => handleSelectAll(e, group)} 
@@ -760,6 +761,7 @@ function TableOperaciones() {
                                         <tr key={operacion.id} className="hover:bg-gray-50">
                                             <td className="border border-gray-300 p-3">
                                                 <input
+                                                    id={`checkbox-${group}-${operacion.id}`}
                                                     type="checkbox"
                                                     checked={selectedOperaciones[group]?.includes(operacion.id) || false}
                                                     onChange={(e) => handleSelectOperacion(e, operacion, group)}
@@ -1219,7 +1221,7 @@ function TableOperaciones() {
                                     </div>
                                     
                                     <div>
-                                        <label className="modal-form-label">Fecha de Creación:</label>
+                                        <span className="modal-form-label">Fecha de Creación:</span>
                                         <div className="text-gray-900">{formatDate(operacionDetails.creation_date)}</div>
                                     </div>
                                     

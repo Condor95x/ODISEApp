@@ -167,20 +167,55 @@ async def update_operacion_inputs_endpoint(
 @router.delete("/{operacion_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_operacion_endpoint(operacion_id: int, db: AsyncSession = Depends(get_db)):
     """
-    Eliminar una operación y sus insumos asociados
+    Eliminar una operación y todos sus registros relacionados
     """
+    logger.info(f"=== RECIBIDA PETICIÓN DELETE para operación ID: {operacion_id} ===")
+    
     try:
-        success = await delete_operacion_optimized(db, operacion_id)
-        if not success:
+        # Verificar que el ID es válido
+        if operacion_id <= 0:
+            logger.warning(f"ID inválido: {operacion_id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"ID de operación inválido: {operacion_id}"
+            )
+        
+        # Verificar que la operación existe antes de intentar eliminarla
+        operacion = await get_operacion_detailed(db, operacion_id)
+        if operacion is None:
+            logger.warning(f"Operación {operacion_id} no encontrada")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
                 detail=f"Operación con ID {operacion_id} no encontrada"
             )
+        
+        logger.info(f"Operación encontrada: {operacion.tipo_operacion} - Eliminando...")
+        
+        # Proceder con la eliminación
+        success = await delete_operacion_optimized(db, operacion_id)
+        
+        if not success:
+            logger.error(f"Falló la eliminación de operación {operacion_id}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                detail="Error interno al eliminar la operación"
+            )
+        
+        logger.info(f"=== OPERACIÓN {operacion_id} ELIMINADA EXITOSAMENTE ===")
         return None
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error eliminando operación {operacion_id}: {e}")
+        logger.error(f"Error inesperado eliminando operación {operacion_id}: {type(e).__name__}: {e}")
+        
+        # Si es error de integridad, dar mensaje más específico
+        if "ForeignKeyViolationError" in str(e) or "foreign key constraint" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No se puede eliminar la operación porque tiene registros relacionados"
+            )
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al eliminar la operación"

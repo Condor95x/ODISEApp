@@ -134,8 +134,10 @@ const MobilePlotMapComponent = () => {
       <div className="mobile-map-sidebar">
         {/* Selector de leyenda */}
         <div className="mobile-legend-selector">
-          <label className="control-label">Leyenda por:</label>
-          <select 
+          <label className="control-label" htmlFor='legendFieldSelect'>Leyenda por:</label>
+          <select
+            id="legendFieldSelect"
+            name='legendFieldSelect'
             value={legendField} 
             onChange={(e) => setLegendField(e.target.value)} 
             className="control-select"

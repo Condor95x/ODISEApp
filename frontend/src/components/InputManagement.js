@@ -289,9 +289,9 @@ function InputManagement({ onInputCreated }) {
 
       <div className="filter-controls-container">
         <div className="control-group">
-          <label htmlFor="groupingFieldinput" className="control-label">
+          <span htmlFor="groupingFieldinput" className="control-label">
             Agrupar por:
-          </label>
+          </span>
         <select
           id="groupingFieldInput"
           value={groupBy || "none"}
@@ -304,9 +304,9 @@ function InputManagement({ onInputCreated }) {
         </select>
       </div>
       <div className="control-group">
-        <label htmlFor="FilterFieldinput" className="control-label">
+        <span htmlFor="FilterFieldinput" className="control-label">
           Filtrar por:
-        </label>
+        </span>
         <div className="filter-inputs">
           <select
             id="FilterFieldInput"

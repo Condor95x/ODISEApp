@@ -1,6 +1,10 @@
 NOTEBOOK ODISEA
 ---------------------------------------------------------------------------------
 ISSUES
+------
+*parcelas
+  *ERRORES DE MAPAS
+  *mod crear
 Estilo
 Parcelas
 Probar todo

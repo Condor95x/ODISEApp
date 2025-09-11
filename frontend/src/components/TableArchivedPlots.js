@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   getPlotsWithData, 
   activatePlot,
+  deletePlot,
   buildSearchFilters 
 } from "../services/api";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faSpinner, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import Modal from 'react-modal';
 import Map from './Map';
 
@@ -67,6 +68,12 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
   // Map and plot details
   const [mapToDisplay, setMapToDisplay] = useState(null);
   const [plotDetails, setPlotDetails] = useState(null);
+
+  //DeletePlot
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [plotToDelete, setPlotToDelete] = useState(null);
+  const [sliderValue, setSliderValue] = useState(0);
+  const [isSliderCompleted, setIsSliderCompleted] = useState(false);
 
   // Optimized data fetching function
   const fetchArchivedPlotsData = useCallback(async (customFilters = {}) => {
@@ -248,6 +255,46 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
     );
   }
 
+  const handleDeletePlot = async (plotId) => {
+    try {
+      // Importar deletePlot desde api.js
+      await deletePlot(plotId);
+      
+      // Reload archived plots data
+      await fetchArchivedPlotsData();
+      
+      // Notify parent component
+      if (onPlotActivated) {
+        onPlotActivated();
+      }
+      
+      setSuccessMessage("La parcela ha sido eliminada permanentemente.");
+      setShowSuccessModal(true);
+      setShowDeleteConfirmModal(false);
+      setPlotToDelete(null);
+      resetSlider();
+    } catch (error) {
+      console.error("Error al eliminar la parcela:", error);
+      setErrorMessage(error.userMessage || "Error al eliminar la parcela");
+      setShowErrorModal(true);
+    }
+  };
+
+  const resetSlider = () => {
+    setSliderValue(0);
+    setIsSliderCompleted(false);
+  };
+
+  const handleSliderChange = (e) => {
+    const value = parseInt(e.target.value);
+    setSliderValue(value);
+    setIsSliderCompleted(value >= 90);
+    
+    if (value >= 90) {
+      handleDeletePlot(plotToDelete.plot_id);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-auto">
@@ -395,7 +442,7 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
               <div className="modal-form-grid"> {/* Contenedor para las columnas */}
                 <div className="modal-column"> {/* Columna 1 - Mapa */}
                   <div className="mb-4">
-                    <label className="modal-form-label">Ubicación:</label>
+                    <span className="modal-form-label">Ubicación:</span>
                     <div className="leaflet-container" style={{ height: '300px', border: '1px solid #ddd', borderRadius: '4px' }}>
                       {mapToDisplay && (
                         <Map 
@@ -545,6 +592,16 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
                   Cerrar
                 </button>
                 <button
+                  onClick={() => {
+                    setPlotToDelete(plotDetails);
+                    setShowDeleteConfirmModal(true);
+                  }}
+                  className="btn btn-danger mr-2"
+                  title="Eliminar permanentemente"
+                >
+                  Eliminar
+                </button>
+                <button
                   onClick={() => handleActivatePlot(plotDetails.plot_id)}
                   className="btn btn-primary"
                   type="button"
@@ -604,6 +661,70 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
                   type="button"
                 >
                   Entendido
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Modal de confirmación de eliminación con slider */}
+        <Modal
+          isOpen={showDeleteConfirmModal}
+          onRequestClose={() => {
+            setShowDeleteConfirmModal(false);
+            setPlotToDelete(null);
+            resetSlider();
+          }}
+          className="modal-content"
+          overlayClassName="modal-overlay"
+          contentLabel="Confirmar Eliminación"
+        >
+          <div className="modal-wrapper">
+            <div className="modal-content p-6">
+              <h2 className="modal-title"><FontAwesomeIcon icon={faTriangleExclamation} /> Eliminar Permanentemente</h2>
+              <p className="mb-6 text-gray-700">
+                Estás a punto de eliminar permanentemente la parcela <label className="control-label"><strong>{plotToDelete?.plot_name}</strong></label>.
+                <br />
+                <span className="text-sm text-red-500 font-semibold">
+                  Esta acción NO se puede deshacer.
+                </span>
+              </p>
+              
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Desliza hacia la derecha para confirmar la eliminación:
+                </label>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={sliderValue}
+                    onChange={handleSliderChange}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sliderValue}%, #e5e7eb ${sliderValue}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+
+                  </div>
+                </div>
+
+              </div>
+              
+              <div className="modal-buttons mt-4">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirmModal(false);
+                    setPlotToDelete(null);
+                    resetSlider();
+                  }}
+                  className="btn btn-secondary"
+                  type="button"
+                  disabled={isSliderCompleted}
+                >
+                  Cancelar
                 </button>
               </div>
             </div>

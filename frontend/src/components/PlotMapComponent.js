@@ -149,7 +149,8 @@ const PlotMapComponent = () => {
         <div className="control-group" style={{ minWidth: 10 }}>
           <label htmlFor="legendField" className="control-label">Leyenda por:</label>
           <select 
-            id="legendField" 
+            id="legendField"
+            name="legendField" 
             value={legendField} 
             onChange={(e) => setLegendField(e.target.value)} 
             className="control-select"

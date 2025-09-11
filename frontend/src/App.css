@@ -1069,6 +1069,72 @@ body {
  margin: 16px 0;
 }
 
+/* Color del track (el relleno) */
+.slider-burdeos {
+  background: linear-gradient(to right, #800020 0%, #800020 50%, #e5e7eb 50%, #e5e7eb 100%);
+  /* El valor de 50% es un ejemplo, tú puedes usar la variable sliderValue */
+}
+
+/* Color del thumb (el punto) para WebKit */
+.slider-burdeos::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Elimina la apariencia por defecto */
+  width: 16px; /* Ancho del thumb */
+  height: 16px; /* Alto del thumb */
+  background: #800020; /* Color rojo-burdeos */
+  cursor: pointer;
+  border-radius: 50%; /* Lo hace circular */
+}
+
+/* Color del thumb (el punto) para Firefox */
+.slider-burdeos::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #800020;
+  cursor: pointer;
+  border-radius: 50%;
+}
+/* Track base (la barra) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px; /* igual que rounded-full */
+  cursor: pointer;
+  background: transparent; /* lo manejarás con el inline style dinámico */
+}
+
+/* Track en navegadores WebKit (Chrome, Safari, Edge nuevo) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+
+/* Track en Firefox */
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+
+/* Thumb (el círculo que arrastras) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #b12a2a; /* rojo-500 de Tailwind */
+  cursor: pointer;
+  margin-top: -6px; /* para centrarlo en el track */
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #b12a2a;
+  cursor: pointer;
+}
 /* ========================================
  Leaflet/Mapa
  ======================================== */

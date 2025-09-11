@@ -3,8 +3,7 @@ import {
   getPlotsWithData, 
   getPlotsMetadata, 
   createPlot, 
-  updatePlot, 
-  deletePlot, 
+  updatePlot,
   archivePlot,
   buildSearchFilters 
 } from "../services/api"; // Make sure this path matches your file
@@ -543,31 +542,6 @@ const TablePlots = () => {
     }
   };
 
-  const handleDeletePlot = async (plotId) => {
-    if (!plotId) {
-      setErrorMessage("No se ha proporcionado un ID de parcela para eliminar.");
-      setShowErrorModal(true);
-      return;
-    }
-    
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta parcela? Esta acción no se puede deshacer.")) {
-      try {
-        await deletePlot(plotId);
-        await fetchPlotsData();
-        setShowMapModal(false);
-        setShowArchiveModal(false);
-        setPlotDetails(null);
-        setPlotToArchive(null);
-        setSuccessMessage("La parcela fue eliminada correctamente.");
-        setShowSuccessModal(true);
-      } catch (error) {
-        console.error("Error al eliminar la parcela:", error);
-        setErrorMessage(error.userMessage || "Hubo un error al eliminar la parcela.");
-        setShowErrorModal(true);
-      }
-    }
-  };
-
   const handleArchivePlot = async (plotId) => {
     try {
       await archivePlot(plotId);
@@ -908,9 +882,9 @@ const TablePlots = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="modal-form-label" htmlFor="NewPlotVar">Variedad:</label>
+                  <label className="modal-form-label" htmlFor="new-plot-variety">Variedad:</label>
                   <Select
-                    inputId="NewPlotVar"
+                    inputId="new-plot-variety"
                     value={newPlot.plot_var ? { value: newPlot.plot_var, label: newPlot.plot_var } : null}
                     onChange={(selectedOption) => {
                       setNewPlot({ ...newPlot, plot_var: selectedOption?.value || "" });
@@ -1070,7 +1044,7 @@ const TablePlots = () => {
 
             {/* Sección del mapa - Ancho completo */}
             <div className="mb-4">
-              <label className="modal-form-label">Ubicación en el mapa:</label>
+              <span className="modal-form-label">Ubicación en el mapa:</span>
               <div className="leaflet-container" style={{ height: '400px', marginBottom: '20px' }}>
                 <Map 
                   ref={createMapRef}
@@ -1166,8 +1140,9 @@ const TablePlots = () => {
                 <div className="modal-column">
                   {/* Nombre */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotName">Nombre:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotName">Nombre:</label>
                       <input
                         id="editPlotName"
                         type="text"
@@ -1176,6 +1151,7 @@ const TablePlots = () => {
                         className="modal-form-input"
                         required
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">{plotDetails.plot_name}</p>
                     )}
@@ -1183,8 +1159,9 @@ const TablePlots = () => {
                   
                   {/* Sector */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotSector">Sector:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotSector">Sector:</label>
                       <Select
                         inputId="editPlotSector"
                         value={getSafeSelectValue('sector_id', plotDetails, metadata)}
@@ -1200,6 +1177,7 @@ const TablePlots = () => {
                           menu: (provided) => ({ ...provided, zIndex: 10000 })
                         }}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {metadata.sectors.find(s => s.sector_id === plotDetails.sector_id)?.etiqueta || 'Sin especificar'}
@@ -1209,8 +1187,9 @@ const TablePlots = () => {
 
                   {/* Variedad */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotVar">Variedad:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotVar">Variedad:</label>
                       <Select
                         inputId="editPlotVar"
                         value={getSafeSelectValue('plot_var', plotDetails, metadata)}
@@ -1227,6 +1206,7 @@ const TablePlots = () => {
                           menu: (provided) => ({ ...provided, zIndex: 10000 })
                         }}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {metadata.varieties.find(v => v.gv_id === plotDetails.plot_var)?.name || 
@@ -1237,8 +1217,9 @@ const TablePlots = () => {
 
                   {/* Portainjerto */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotRoots">Portainjerto:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotRoots">Portainjerto:</label>
                       <Select
                         inputId="editPlotRoots"
                         value={getSafeSelectValue('plot_rootstock', plotDetails, metadata)}
@@ -1254,6 +1235,7 @@ const TablePlots = () => {
                           menu: (provided) => ({ ...provided, zIndex: 10000 })
                         }}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {metadata.rootstocks.find(r => r.gv_id === plotDetails.plot_rootstock)?.name || 
@@ -1264,8 +1246,9 @@ const TablePlots = () => {
 
                   {/* Año de implantación */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotPlantaY">Año de implantación:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotPlantaY">Año de implantación:</label>
                       <input
                         id="editPlotPlantaY"
                         type="number"
@@ -1275,6 +1258,7 @@ const TablePlots = () => {
                         min="1900"
                         max={new Date().getFullYear()}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {plotDetails.plot_implant_year || 'Sin especificar'}
@@ -1287,8 +1271,9 @@ const TablePlots = () => {
                 <div className="modal-column">
                   {/* Año de creación */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotCreatY">Año de creación:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotCreatY">Año de creación:</label>
                       <input
                         id="editPlotCreatY"
                         type="number"
@@ -1298,6 +1283,7 @@ const TablePlots = () => {
                         min="1900"
                         max={new Date().getFullYear()}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {plotDetails.plot_creation_year || 'Sin especificar'}
@@ -1307,8 +1293,9 @@ const TablePlots = () => {
 
                   {/* Sistema de conducción */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotConduc">Sistema de conducción:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotConduc">Sistema de conducción:</label>
                       <Select
                         inputId="editPlotConduc"
                         value={getSafeSelectValue('plot_conduction', plotDetails, metadata)}
@@ -1324,6 +1311,7 @@ const TablePlots = () => {
                           menu: (provided) => ({ ...provided, zIndex: 10000 })
                         }}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {metadata.conduction.find(c => c.vy_id === plotDetails.plot_conduction)?.value || 'Sin especificar'}
@@ -1333,8 +1321,9 @@ const TablePlots = () => {
 
                   {/* Tipo de manejo */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotManagement">Tipo de manejo:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotManagement">Tipo de manejo:</label>
                       <Select
                         inputId="editPlotManagement"
                         value={getSafeSelectValue('plot_management', plotDetails, metadata)}
@@ -1350,6 +1339,7 @@ const TablePlots = () => {
                           menu: (provided) => ({ ...provided, zIndex: 10000 })
                         }}
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">
                         {metadata.management.find(m => m.vy_id === plotDetails.plot_management)?.value || 'Sin especificar'}
@@ -1359,8 +1349,9 @@ const TablePlots = () => {
 
                   {/* Descripción */}
                   <div className="mb-4">
-                    <label className="modal-form-label" htmlFor="editPlotDescript">Descripción:</label>
                     {isEditingDetails ? (
+                      <>
+                      <label className="modal-form-label" htmlFor="editPlotDescript">Descripción:</label>
                       <textarea
                         id="editPlotDescript"
                         value={plotDetails.plot_description || ''}
@@ -1368,6 +1359,7 @@ const TablePlots = () => {
                         className="modal-form-input h-24"
                         placeholder="Descripción opcional de la parcela..."
                       />
+                      </>
                     ) : (
                       <p className="modal-form-input-static">{plotDetails.plot_description || 'Sin especificar'}</p>
                     )}
@@ -1375,7 +1367,7 @@ const TablePlots = () => {
                   
                   {/* Área */}
                   <div className="mb-4">
-                    <label className="modal-form-label">Área:</label>
+                    <span className="modal-form-label">Área:</span>
                     <p className="modal-form-input-static">
                       {plotDetails.plot_area ? `${plotDetails.plot_area} m²` : 'No calculada'}
                     </p>
@@ -1453,9 +1445,9 @@ const TablePlots = () => {
       >
         <div className="modal-wrapper">
           <div className="modal-content p-6">
-            <h2 className="text-xl font-bold mb-4">Confirmar Archivo</h2>
+            <h2 className="modal-title">Confirmar Archivo</h2>
             <p className="mb-6 text-gray-700">
-              ¿Estás seguro que deseas archivar la parcela <strong>{plotToArchive?.plot_name}</strong>?
+              ¿Estás seguro que deseas archivar la parcela <label className="control-label"><strong>{plotToArchive?.plot_name}</strong></label>?
               <br />
               <span className="text-sm text-gray-500">
                 La parcela se ocultará de la vista principal pero no se eliminará permanentemente.
@@ -1471,13 +1463,6 @@ const TablePlots = () => {
                 type="button"
               >
                 Cancelar
-              </button>
-              <button
-                onClick={() => handleDeletePlot(plotToArchive?.plot_id)}
-                className="btn btn-danger mr-2"
-                type="button"
-              >
-                Eliminar Permanentemente
               </button>
               <button
                 onClick={() => handleArchivePlot(plotToArchive?.plot_id)}
