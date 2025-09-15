@@ -447,7 +447,7 @@ class CategoriaImagenes(Base):
     fecha_actualizacion = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
     # Relación con vitacora_campo
-    #imagenes = relationship("CategoriaImagenes", back_populates="categoria")
+    imagenes = relationship("VitacoraCampo", back_populates="categoria")
 
 class VitacoraCampo(Base):
     __tablename__ = "vitacora_campo"
@@ -464,4 +464,4 @@ class VitacoraCampo(Base):
     activo = Column(Boolean, default=True)
     fecha_actualizacion = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    #imagenes = relationship("VitacoraCampo", back_populates="categoria")
+    categoria = relationship("CategoriaImagenes", back_populates="imagenes")

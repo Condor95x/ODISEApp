@@ -11,7 +11,7 @@ const filterFields = [
   { key: 'plot_rootstock', label: 'Portainjerto', metadataKey: 'rootstocks' }
 ];
 
-const PlotMapComponent = () => {
+const PlotMapComponent = ({ refreshTrigger }) => {
   const mapRef = useRef(null);
   const [plots, setPlots] = useState([]);
   const [metadata, setMetadata] = useState(null);
@@ -77,7 +77,7 @@ const PlotMapComponent = () => {
     };
 
     fetchData();
-  }, []);
+  }, [[refreshTrigger]]);
 
   useEffect(() => {
     let result = plots;

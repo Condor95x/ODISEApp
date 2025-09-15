@@ -559,9 +559,6 @@ const TablePlots = ({ onPlotArchived, refreshTrigger }) => {
       setSuccessMessage("La parcela fue archivada correctamente.");
       setShowSuccessModal(true);
 
-      if (onPlotArchived) {
-        onPlotArchived();
-      }
     } catch (error) {
       console.error("Error al archivar la parcela:", error);
       setErrorMessage(error.userMessage || "Hubo un error al archivar la parcela.");
@@ -1502,7 +1499,14 @@ const TablePlots = ({ onPlotArchived, refreshTrigger }) => {
             </div>
             <div className="modal-buttons">
               <button 
-                onClick={() => setShowSuccessModal(false)} 
+                onClick={() =>{
+                  setShowSuccessModal(false)
+                  if (successMessage.includes("archivada")) {
+                    if (onPlotArchived) {
+                      onPlotArchived();
+                    }
+                  }
+                }}
                 className="btn btn-primary"
                 type="button"
               >

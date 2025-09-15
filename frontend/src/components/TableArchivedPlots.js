@@ -206,11 +206,6 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose, refreshTrigger }) => {
       // Reload archived plots data
       await fetchArchivedPlotsData();
       
-      // Notify parent component
-      if (onPlotActivated) {
-        onPlotActivated();
-      }
-      
       setSuccessMessage("La parcela ha sido activada correctamente.");
       setShowSuccessModal(true);
     } catch (error) {
@@ -267,12 +262,7 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose, refreshTrigger }) => {
       
       // Reload archived plots data
       await fetchArchivedPlotsData();
-      
-      // Notify parent component
-      if (onPlotActivated) {
-        onPlotActivated();
-      }
-      
+           
       setSuccessMessage("La parcela ha sido eliminada permanentemente.");
       setShowSuccessModal(true);
       setShowDeleteConfirmModal(false);
@@ -303,9 +293,6 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose, refreshTrigger }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Parcelas Archivadas</h2>
-        </div>
         
         <div className="mb-4 p-2 bg-gray-100 rounded">
           <p>Total de parcelas archivadas: {archivedPlots.length}</p>
@@ -634,7 +621,14 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose, refreshTrigger }) => {
               </div>
               <div className="modal-buttons">
                 <button 
-                  onClick={() => setShowSuccessModal(false)} 
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    if (successMessage.includes("activada") || successMessage.includes("eliminada")) {
+                      if (onPlotActivated) {
+                        onPlotActivated();
+                      }
+                    }
+                  }}  
                   className="btn btn-primary"
                   type="button"
                 >

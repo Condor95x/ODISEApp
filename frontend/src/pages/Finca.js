@@ -24,14 +24,14 @@ const Finca = () => {
           onClick={handleShowOperaciones}
           className={showOperaciones ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-          {showOperaciones ? 'Ocultar Cuaderno de campo' : 'Mostrar Cuaderno de campo'}
+          {showOperaciones ? 'Ocultar Cuaderno de campo' : 'Cuaderno de campo'}
         </button>
         <Spacer width={0.5} />
                 <button
           onClick={handleShowVitacora}
           className={showVitacora ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-          {showVitacora ? 'Ocultar Vitacora' : 'Mostrar Vitacora'}
+          {showVitacora ? 'Ocultar Vitacora' : 'Vitacora de campo'}
         </button>
         <Spacer width={0.5} />
       </div>

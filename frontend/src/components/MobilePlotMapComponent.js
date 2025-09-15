@@ -13,7 +13,7 @@ const filterFields = [
 
 
 // Componente móvil integrado
-const MobilePlotMapComponent = () => {
+const MobilePlotMapComponent = ({ refreshTrigger }) => {
   const mapRef = useRef(null);
   const [plots, setPlots] = useState([]);
   const [metadata, setMetadata] = useState(null);
@@ -73,7 +73,7 @@ const MobilePlotMapComponent = () => {
     };
 
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   // Para móvil, mostramos todas las parcelas sin filtros
   useEffect(() => {

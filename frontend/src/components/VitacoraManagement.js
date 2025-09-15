@@ -21,6 +21,11 @@ function VitacoraCampo() {
     id_categoria_img: ''
   });
   
+  // ✅ AGREGAR estos nuevos estados para manejo de archivos
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [fileError, setFileError] = useState('');
+  
   // Estados para filtros y agrupación
   const [filterField, setFilterField] = useState('categoria_nombre');
   const [filterValue, setFilterValue] = useState('');
@@ -103,12 +108,53 @@ function VitacoraCampo() {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Por favor seleccione un archivo de imagen válido');
-        return;
-      }
-      setUploadForm({ ...uploadForm, archivo: file });
+    setFileError('');
+    
+    if (!file) {
+      setSelectedFile(null);
+      setImagePreview(null);
+      // ✅ Limpiar también uploadForm.archivo
+      setUploadForm(prev => ({
+        ...prev,
+        archivo: null
+      }));
+      return;
+    }
+    
+    // Validaciones...
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf'
+    ];
+    
+    if (file.size > maxSize) {
+      setFileError('El archivo es demasiado grande. Máximo 10MB permitido.');
+      return;
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      setFileError('Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP) y archivos PDF.');
+      return;
+    }
+    
+    setSelectedFile(file);
+    
+    // ✅ AGREGAR: Actualizar uploadForm con el archivo seleccionado
+    setUploadForm(prev => ({
+      ...prev,
+      archivo: file
+    }));
+    
+    // Preview solo para imágenes
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
     }
   };
 
@@ -137,9 +183,8 @@ function VitacoraCampo() {
 
       await fetchImagenes();
       handleCloseUploadForm();
-      alert('Imagen subida exitosamente');
     } catch (err) {
-      alert(`Error al subir imagen: ${err.message}`);
+      alert(`Error al subir Archivo: ${err.message}`);
     }
   };
 
@@ -164,7 +209,6 @@ function VitacoraCampo() {
       }
 
       await fetchImagenes();
-      alert('Imagen eliminada exitosamente');
     } catch (err) {
       alert(`Error al eliminar: ${err.message}`);
     }
@@ -247,11 +291,6 @@ function VitacoraCampo() {
       }
     }
     
-    if (selectedIds.length === 0) {
-      alert("No hay imágenes seleccionadas para descargar.");
-      return;
-    }
-
     try {
       const response = await fetch(`${API_BASE_URL}/vitacora-campo/descargar-zip`, {
         method: 'POST',
@@ -276,7 +315,6 @@ function VitacoraCampo() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      alert(`ZIP descargado exitosamente con ${selectedIds.length} imágenes`);
     } catch (err) {
       alert(`Error al descargar: ${err.message}`);
     }
@@ -309,7 +347,7 @@ function VitacoraCampo() {
             onClick={handleOpenUploadForm} 
             className="btn btn-primary"
           >
-            <FontAwesomeIcon icon={faPlus} />   Subir Imagen
+            <FontAwesomeIcon icon={faPlus} />   Subir Archivo
           </button>
 
           <Spacer width={0.5} />
@@ -330,7 +368,7 @@ function VitacoraCampo() {
             onClick={handleShowCategorias}
             className={showCategorias ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showCategorias ? 'Ocultar Gestión de Categorías' : 'Mostrar Gestión de Categorías'}
+            {showCategorias ? 'Ocultar Gestión de Categorías' : 'Gestión de Categorías'}
           </button>
 
         </div>
@@ -469,7 +507,7 @@ function VitacoraCampo() {
         </div>
       ))}
 
-      {/* Modal para subir imagen */}
+      {/* Modal para subir Archivo */}
       <Modal 
         isOpen={showUploadForm} 
         onRequestClose={handleCloseUploadForm}
@@ -479,28 +517,64 @@ function VitacoraCampo() {
         <div className="modal-wrapper">
           <div className="modal-content max-w-4xl">
             <h2 className="modal-title">
-              <FontAwesomeIcon icon={faImage} />   Subir Nueva Imagen
+              <FontAwesomeIcon icon={faImage} />   Subir Nuevo Archivo
             </h2>
             
             <div className="modal-form-grid">
               <div className="modal-column">
                 <div className="mb-4">
                   <label htmlFor="archivoInput" className="modal-form-label">
-                    Seleccionar Imagen *
+                    Seleccionar Archivo (Imagen o PDF)
                   </label>
+                  
                   <input
                     id="archivoInput"
                     type="file"
-                    accept="image/*"
+                    accept="image/*,application/pdf,.pdf"
                     onChange={handleFileChange}
-                    className="btn btn-primary"
+                    className="form-control-file"
                     required
                   />
+                  
+                  {selectedFile && (
+                    <div className="file-info mt-2">
+                      <small className="text-muted">
+                        Archivo: {selectedFile.name} 
+                        ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                        <br />
+                        Tipo: {selectedFile.type}
+                      </small>
+                    </div>
+                  )}
+                  
+                  {/* Preview condicional */}
+                  {selectedFile && (
+                    <div className="file-preview mt-3">
+                      {selectedFile.type.startsWith('image/') ? (
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          style={{maxWidth: '200px', maxHeight: '200px', objectFit: 'cover'}}
+                          className="img-thumbnail"
+                        />
+                      ) : selectedFile.type === 'application/pdf' ? (
+                        <div className="pdf-preview">
+                          <i className="fas fa-file-pdf fa-3x text-danger"></i>
+                          <p>Archivo PDF seleccionado</p>
+                        </div>
+                      ) : (
+                        <div className="file-preview">
+                          <i className="fas fa-file fa-3x"></i>
+                          <p>Archivo seleccionado</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <div>
                   <label htmlFor="fechaCapturaInput" className="modal-form-label">
-                    Fecha de Captura *
+                    Fecha de Captura
                   </label>
                   <input
                     id="fechaCapturaInput"
@@ -559,14 +633,14 @@ function VitacoraCampo() {
                 className="btn btn-primary"
                 disabled={!uploadForm.archivo || !uploadForm.fecha_captura || !uploadForm.id_categoria_img}
               >
-                Subir Imagen
+                Subir Archivo
               </button>
             </div>
           </div>
         </div>
       </Modal>
 
-      {/* Modal para visualizar imagen */}
+      {/* Modal para visualizar archivo */}
       <Modal 
         isOpen={showImageModal} 
         onRequestClose={() => setShowImageModal(false)}

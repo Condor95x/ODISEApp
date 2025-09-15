@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, R
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession # Asegúrate de importar esto
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import desc, asc, select # Importa select
+from sqlalchemy import desc, asc, select, func # Importa select
 from typing import List, Optional
 from datetime import datetime
 import io
@@ -182,7 +182,7 @@ async def get_imagen_archivo(imagen_id: int, db: AsyncSession = Depends(get_db))
     )
 
 @router.post("/vitacora-campo/", response_model=VitacoraCampoResponse)
-async def create_imagen_vitacora(
+async def create_archivo_vitacora(  # Cambié el nombre para ser más genérico
     archivo: UploadFile = File(...),
     fecha_captura: str = Form(...),
     descripcion: str = Form(""),
@@ -195,22 +195,37 @@ async def create_imagen_vitacora(
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
     
-    # Validar que sea una imagen
-    if not archivo.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen")
+    # ✅ NUEVA VALIDACIÓN: Permitir imágenes Y PDFs
+    allowed_types = [
+        "image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff",
+        "application/pdf"
+    ]
     
-    # Leer el archivo
+    if archivo.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Tipo de archivo no permitido. Tipos permitidos: {', '.join(allowed_types)}"
+        )
+    
+    # ✅ VALIDACIÓN ADICIONAL: Tamaño máximo
+    max_size = 10 * 1024 * 1024  # 10MB
     contenido = await archivo.read()
+    
+    if len(contenido) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail="El archivo es demasiado grande. Tamaño máximo permitido: 10MB"
+        )
     
     # Parsear fecha de captura
     try:
         fecha_captura_dt = datetime.fromisoformat(fecha_captura.replace('Z', '+00:00'))
-    except ValueError: # Captura ValueError específico para formatos de fecha incorrectos
+    except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido")
     
     # Crear el registro
-    db_imagen = VitacoraCampo(
-        imagen=contenido,
+    db_archivo = VitacoraCampo(
+        imagen=contenido,  # Mantén el nombre de columna actual
         tipo_mime=archivo.content_type,
         nombre_archivo=archivo.filename,
         tamaño_archivo=len(contenido),
@@ -219,16 +234,15 @@ async def create_imagen_vitacora(
         id_categoria_img=id_categoria_img
     )
     
-    db.add(db_imagen)
+    db.add(db_archivo)
     await db.commit()
-    await db.refresh(db_imagen)
+    await db.refresh(db_archivo)
     
     # Cargar la relación con categoría para la respuesta
-    # Es mejor recargar el objeto completo si se necesita la relación para la respuesta
-    stmt_refresh = select(VitacoraCampo).options(joinedload(VitacoraCampo.categoria)).filter(VitacoraCampo.id_vitacora == db_imagen.id_vitacora)
-    imagen_con_categoria = await db.scalar(stmt_refresh)
+    stmt_refresh = select(VitacoraCampo).options(joinedload(VitacoraCampo.categoria)).filter(VitacoraCampo.id_vitacora == db_archivo.id_vitacora)
+    archivo_con_categoria = await db.scalar(stmt_refresh)
     
-    return imagen_con_categoria
+    return archivo_con_categoria
 
 @router.put("/vitacora-campo/{imagen_id}", response_model=VitacoraCampoResponse)
 async def update_imagen_vitacora(

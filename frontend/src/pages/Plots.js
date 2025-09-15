@@ -24,13 +24,14 @@ const Plots = () => {
     setShowActivePlots(!showActivePlots);
   };
 
-  const handleShowSectors = () => {
-    setShowSectors(!showSectors);
+    // Opción 1: Un solo botón que alterna ambos estados juntos
+  const handleToggleBoth = () => {
+    const newShowState = !(showSectors && showFincas);
+    setShowSectors(newShowState);
+    setShowFincas(newShowState);
   };
 
-  const handleShowFincas = () => {
-    setShowFincas(!showFincas);
-  };
+  const bothVisible = showSectors && showFincas;
 
   const handlePlotActivatedFromArchive = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -44,7 +45,7 @@ const Plots = () => {
     <div className="Contenedor">
       {/* Mapa fijo a la derecha en desktop, oculto en móvil */}
       <div className="plot-map-wrapper">
-        <PlotMapComponent />
+        <PlotMapComponent refreshTrigger={refreshTrigger} />
       </div>
 
       {/* Contenido principal */}
@@ -55,7 +56,7 @@ const Plots = () => {
 
         {/* Mapa móvil - solo visible en dispositivos móviles */}
         <div className="mobile-map-container">
-          <MobilePlotMapComponent/>
+          <MobilePlotMapComponent refreshTrigger={refreshTrigger} />
         </div>
 
         <div className="titulo-seccion">
@@ -78,20 +79,12 @@ const Plots = () => {
           <Spacer width={0.5} />
 
           <button
-            onClick={handleShowSectors}
-            className={showSectors ? 'btn btn-secondary' : 'btn btn-primary'}
+            onClick={handleToggleBoth}
+            className={bothVisible ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-            {showSectors ? 'Ocultar Sectores' : 'Sectores'}
+            {bothVisible ? 'Ocultar Gestión de fincas' : 'Gestión de fincas'}
           </button>
-          
-          <Spacer width={0.5} />
-          
-          <button
-            onClick={handleShowFincas}
-            className={showFincas ? 'btn btn-secondary' : 'btn btn-primary'}
-          >
-            {showFincas ? 'Ocultar Fincas' : 'Fincas'}
-          </button>
+
         </div>
 
         {showActivePlots && (
