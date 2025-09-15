@@ -10,9 +10,9 @@ function Inicio() {
         <h1>Bienvenido</h1>
         <img src={odiseaLogo} alt="Logo de Odisea" className="w-32 h-auto" />
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-6 p-6 bg-white rounded-xl shadow-lg max-w-2xl w-full">
-          <img src={Meteo} alt="Meteo" className="w-32 h-auto" />
-          <img src={Resumen} alt="Resumen" className="w-32 h-auto" />
+      <div className="imagenes-container">
+        <img src={Meteo} alt="Meteo" />
+        <img src={Resumen} alt="Resumen" />
       </div>
     </div>
   );
