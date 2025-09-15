@@ -52,6 +52,20 @@ body {
   font-size: 1.5em;
   margin: 0;
 }
+.imagenes-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  margin-bottom: 10px;
+}
+
+.imagenes-container img {
+  width: 128px;
+  height: auto;
+}
 
 /* ========================================
    Sistema de Filtros y Controles
