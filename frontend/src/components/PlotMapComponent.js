@@ -166,7 +166,7 @@ const PlotMapComponent = () => {
              { /* 
         <div className="control-group" style={{ minWidth: 0 }}>
           <label htmlFor="filterFieldSelect" className="control-label">
-            Filtrar por:
+            Buscar por:
           </label>
           <div style={{ display: 'flex', gap: '8px', flexDirection: 'column', minWidth: 0 }}>
             <select 

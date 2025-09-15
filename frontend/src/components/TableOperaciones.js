@@ -648,7 +648,7 @@ function TableOperaciones() {
                     
                     <div className="control-group">
                         <label htmlFor="FilterFieldOperaciones" className="control-label">
-                            Filtrar por:
+                            Buscar por:
                         </label>
                         <div className="filter-inputs">
                             <select
@@ -677,7 +677,7 @@ function TableOperaciones() {
                             />
                         </div>
                     </div>
-                </div>
+            </div>
             
 
             {/* Tabla de operaciones */}

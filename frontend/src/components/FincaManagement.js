@@ -282,7 +282,7 @@ function FincaManagement() {
         </div>
         <div className="control-group">
           <label htmlFor="FilterFieldFinca" className="control-label">
-            Filtrar por:
+            Buscar por:
           </label>
           <div className="filter-inputs">
             <select id="FilterFieldFinca" value={filterField} onChange={(e) => setFilterField(e.target.value)} className="control-select filter-field">

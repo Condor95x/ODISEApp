@@ -575,7 +575,7 @@ const TableWineryTask = () => {
                 </div>
                 <div className="control-group">
                     <label htmlFor="FilterFieldWineryTasks" className="control-label">
-                        Filtrar por:
+                        Buscar por:
                     </label>
                     <div className="filter-inputs">
                         <select

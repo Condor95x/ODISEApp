@@ -104,6 +104,17 @@ export const getPlotsWithData = async (filters = {}) => {
   }
 };
 
+//Obtengo los plotarchived solamente
+export const getArchivedPlotsWithData = async () => {
+  try {
+    const response = await getPlotsWithData({ active_only: false });
+    return response;
+  } catch (error) {
+    console.error("Error fetching archived plots:", error);
+    throw error;
+  }
+};
+
 /**
  * Obtener metadatos agregados para el componente
  */
@@ -130,6 +141,8 @@ export const getPlotsMetadata = async () => {
     throw error;
   }
 };
+
+
 
 // ====== EXISTING PLOTS ENDPOINTS (Updated) ======
 
@@ -739,5 +752,41 @@ export const deleteFinca = async (fincaId) => {
         throw error;
     }
 };
+// Funciones para Vitacora
+/*
+export const getCategoriasImagenes = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE_URL}/categorias-imagenes/${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+};
 
+export const getCategoriaImagen = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/categorias-imagenes/${id}`);
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const createCategoriaImagen = async (categoria) => {
+  const response = await fetch(`${API_BASE_URL}/categorias-imagenes/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(categoria),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || `Error ${response.status}`);
+  }
+  return response.json();
+};
+*/
 export default API;

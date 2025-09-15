@@ -357,7 +357,7 @@ function SectorsManagement() {
         
         <div className="control-group">
           <label htmlFor="FilterFieldSector" className="control-label">
-            Filtrar por:
+            Buscar por:
           </label>
           <div className="filter-inputs">
             <select 

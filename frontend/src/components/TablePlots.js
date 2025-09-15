@@ -61,7 +61,7 @@ const fieldConfig = [
   { key: 'plot_area', label: 'Área', type: 'text', disabled: true },
 ];
 
-const TablePlots = () => {
+const TablePlots = ({ onPlotArchived, refreshTrigger }) => {
   // State management
   const [plots, setPlots] = useState([]);
   const [selectedPlots, setSelectedPlots] = useState([]);
@@ -153,7 +153,7 @@ const TablePlots = () => {
     }
   }, [filterField, filterValue]);
 
-  useEffect(() => {//logs para debug
+  useEffect(() => {
     if (plots.length > 0 && metadata.sectors.length > 0) {
       
       // Verificar todos los sector_id únicos
@@ -168,6 +168,12 @@ const TablePlots = () => {
       });
     }
   }, [plots, metadata]);
+
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      fetchPlotsData();
+    }
+  }, [refreshTrigger, fetchPlotsData]);
 
   // Initial data load
   useEffect(() => {
@@ -552,6 +558,10 @@ const TablePlots = () => {
       setPlotToArchive(null);
       setSuccessMessage("La parcela fue archivada correctamente.");
       setShowSuccessModal(true);
+
+      if (onPlotArchived) {
+        onPlotArchived();
+      }
     } catch (error) {
       console.error("Error al archivar la parcela:", error);
       setErrorMessage(error.userMessage || "Hubo un error al archivar la parcela.");
@@ -722,7 +732,7 @@ const TablePlots = () => {
         </div>
         <div className="control-group">
           <label htmlFor="FilterFieldPlot" className="control-label">
-            Filtrar por:
+            Buscar por:
           </label>
           <div className="filter-inputs">
             <select

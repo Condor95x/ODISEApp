@@ -25,12 +25,12 @@ function Bodega() {
   return (
     <div cstyle={{ display: 'block', width: '100%' }}>
       <div className="titulo-seccion flex gap-20">
-      <h1>Mi cuaderno de Bodega</h1>
+      <h1>Gestión de Bodega</h1>
         <button
           onClick={handleShowActivities}
           className={showActivities ? 'btn btn-secondary' : 'btn btn-primary'}
           >
-          {showActivities ? 'Ocultar actividades' : 'Mostrar actividades'}
+          {showActivities ? 'Ocultar Cuaderno de bodega' : 'Mostrar Cuaderno de bodega'}
         </button>
         <Spacer width={0.5} />
         <button
@@ -50,7 +50,7 @@ function Bodega() {
       {showActivities && (
         <div>
           <div className="titulo-seccion">
-          <h2>Mis Actividades</h2>
+          <h2>Mi cuaderno de bodega</h2>
           </div>
           <TableWineryTask />
         </div>

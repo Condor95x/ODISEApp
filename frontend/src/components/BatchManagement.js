@@ -311,7 +311,7 @@ function BatchManagement({ onBatchCreated }) {
                 </div>
                 <div className="control-group">
                     <label htmlFor="FilterFieldBatch" className="control-label">
-                        Filtrar por:
+                        Buscar por:
                     </label>
                     <div className="filter-inputs">
                         <select

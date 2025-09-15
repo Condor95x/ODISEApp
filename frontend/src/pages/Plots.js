@@ -13,6 +13,7 @@ const Plots = () => {
   const [showSectors, setShowSectors] = useState(false);
   const [showFincas, setShowFincas] = useState(false);
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const Spacer = ({ width }) => <div style={{ width: `${width}rem`, display: 'inline-block' }}></div>;
 
   const handleShowArchivedPlots = () => {
@@ -32,8 +33,12 @@ const Plots = () => {
   };
 
   const handlePlotActivatedFromArchive = () => {
-    // Esta función no necesita hacer nada por ahora
+    setRefreshTrigger(prev => prev + 1);
   };
+
+  const handlePlotArchivedFromActive = () => {
+    setRefreshTrigger(prev => prev + 1);
+};
 
   return (
     <div className="Contenedor">
@@ -94,7 +99,10 @@ const Plots = () => {
             <div className="titulo-seccion">
               <h2>Parcelas Activas</h2>
             </div>
-            <TablePlots />
+            <TablePlots
+              onPlotArchived={handlePlotArchivedFromActive}
+              refreshTrigger={refreshTrigger}
+            />
           </div>
         )}
 
@@ -103,7 +111,10 @@ const Plots = () => {
             <div className="titulo-seccion">
               <h2>Mis parcelas archivadas</h2>
             </div>
-            <ArchivedPlotsTable onPlotActivated={handlePlotActivatedFromArchive} />
+            <ArchivedPlotsTable
+              onPlotActivated={handlePlotActivatedFromArchive}
+              refreshTrigger={refreshTrigger}
+            />
           </div>
         )}
 

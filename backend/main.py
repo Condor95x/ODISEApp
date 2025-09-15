@@ -1,5 +1,5 @@
 from .routers import( operaciones_router, router_plot, router_grapevines, router_vineyard ,router_inventory,
-                      router_users,router_tasklist,router_winery,router_finca,router_sector
+                      router_users,router_tasklist,router_winery,router_finca,router_sector,router_vitacora
                     )
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -55,6 +55,7 @@ app.add_middleware(
 # Ahora incluye tus routers
 app.include_router(router_finca.router)
 app.include_router(router_sector.router)
+app.include_router(router_vitacora.router)
 app.include_router(router_plot.router, prefix="/plots", tags=["plots"])
 app.include_router(router_winery.router, prefix="/winery", tags=["winery"])
 app.include_router(router_inventory.router, prefix="/inventory", tags=["inventory"])

@@ -335,7 +335,7 @@ function VesselsManagement() {
         </div>
         <div className="control-group">
           <label htmlFor="FilterFieldVessel" className="control-label">
-            Filtrar por:
+            Buscar por:
           </label>
           <div className="filter-inputs">
             <select id="FilterFieldVessel"value={filterField} onChange={(e) => setFilterField(e.target.value)} className="control-select filter-field">

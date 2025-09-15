@@ -251,7 +251,7 @@ function StockManagement() {
       </div>
       <div className="control-group">
         <span htmlFor="FilterFieldstock" className="control-label">
-          Filtrar por:
+          Buscar por:
         </span>
         <div className="filter-inputs">        <select
           id="FilterFieldStock"

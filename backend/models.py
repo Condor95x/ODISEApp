@@ -1,6 +1,6 @@
 from geoalchemy2 import Geometry
 from .database import Base
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Numeric, Text, Boolean, CheckConstraint, DateTime, event
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Numeric, Text, Boolean, CheckConstraint, DateTime, event, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -435,3 +435,33 @@ class VesselActivity(Base):
     responsible = relationship("Usuario")
     origin_batch = relationship("Batch", foreign_keys=[origin_batch_id], back_populates="origin_batch_activities")
     destination_batch = relationship("Batch", foreign_keys=[destination_batch_id], back_populates="destination_batch_activities")
+
+class CategoriaImagenes(Base):
+    __tablename__ = "categoria_imagenes"
+    
+    id_categoria_img = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nombre = Column(String(100), unique=True, nullable=False)
+    descripcion = Column(Text)
+    activo = Column(Boolean, default=True)
+    fecha_creacion = Column(DateTime, server_default=func.now())
+    fecha_actualizacion = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relación con vitacora_campo
+    #imagenes = relationship("CategoriaImagenes", back_populates="categoria")
+
+class VitacoraCampo(Base):
+    __tablename__ = "vitacora_campo"
+    
+    id_vitacora = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    imagen = Column(LargeBinary, nullable=False)
+    tipo_mime = Column(String(50), nullable=False)
+    nombre_archivo = Column(String(255), nullable=False)
+    tamaño_archivo = Column(Integer, nullable=False)
+    fecha_creacion = Column(DateTime, server_default=func.now())
+    fecha_captura = Column(DateTime, nullable=False)
+    descripcion = Column(Text)
+    id_categoria_img = Column(Integer, ForeignKey("categoria_imagenes.id_categoria_img"), nullable=False)
+    activo = Column(Boolean, default=True)
+    fecha_actualizacion = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    #imagenes = relationship("VitacoraCampo", back_populates="categoria")

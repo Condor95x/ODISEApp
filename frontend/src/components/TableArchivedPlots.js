@@ -38,7 +38,7 @@ export function parseCoordinates(coordinatesString, type) {
   return [];
 }
 
-const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
+const ArchivedPlotsTable = ({ onPlotActivated, onClose, refreshTrigger }) => {
   // State management
   const [archivedPlots, setArchivedPlots] = useState([]);
   const [metadata, setMetadata] = useState({
@@ -115,7 +115,12 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
   useEffect(() => {
     fetchArchivedPlotsData();
   }, [fetchArchivedPlotsData]);
-
+  
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      fetchArchivedPlotsData();
+    }
+}, [refreshTrigger, fetchArchivedPlotsData]);
   // Debounced filter effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -328,7 +333,7 @@ const ArchivedPlotsTable = ({ onPlotActivated, onClose }) => {
           
           <div className="control-group">
             <label htmlFor="FilterFieldArchivedPlot" className="control-label">
-              Filtrar por:
+              Buscar por:
             </label>
             <div className="filter-inputs">
               <select
