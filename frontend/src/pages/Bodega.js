@@ -24,7 +24,7 @@ function Bodega() {
 
   return (
     <div className="Contenedor">
-      <div className="titulo-seccion flex gap-20">
+      <div className="titulo-seccion">
       <h1>Mi cuaderno de Bodega</h1>
         <button
           onClick={handleShowActivities}
