@@ -536,7 +536,7 @@ const TableWineryTask = () => {
     }
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="max-w-screen-lg mx-auto px-4">
             <div className="table-header">
                 <button 
                     onClick={handleOpenForm} 
