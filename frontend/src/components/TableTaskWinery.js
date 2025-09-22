@@ -610,7 +610,7 @@ const TableWineryTask = () => {
             )}
     
             {Object.entries(groupedActivities).map(([group, activities]) => (
-                <div key={group} className="mb-4">
+                <div key={group} className="mb-4 overflow-x-auto">
                     {groupBy && <h3 className="titulo-seccion">{`${getGroupByDisplayName(groupBy)}: ${group}`}</h3>}
                     <table className="table-auto w-full border-collapse border border-gray-300">
                         <thead>
