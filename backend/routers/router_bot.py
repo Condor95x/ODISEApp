@@ -33,13 +33,16 @@ async def webhook(request: Request):
             async with httpx.AsyncClient() as client:
                 resp = await client.get(f"{API_BASE_URL}/plots")
                 logger.info(f"Respuesta /plots: {resp.status_code} {resp.text}")
-
-                parcelas = resp.json()
-
-                # si tu API devuelve {"data": [...]}, hay que acceder así:
+        
+                try:
+                    parcelas = resp.json()
+                except Exception:
+                    logger.error("No se pudo parsear JSON de /plots")
+                    parcelas = []
+        
                 if isinstance(parcelas, dict) and "data" in parcelas:
                     parcelas = parcelas["data"]
-
+        
                 if parcelas:
                     listado = "\n".join([
                         f"- {p['plot_name']} ({p.get('variety_name', 'sin variedad')})"
