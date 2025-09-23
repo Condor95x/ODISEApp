@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+API_BASE_URL = "https://odiseapp-bf4d8516bab4.herokuapp.com"
 
 router = APIRouter()
 
