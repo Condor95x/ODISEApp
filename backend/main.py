@@ -1,4 +1,4 @@
-from .routers import operaciones_router, router_plot, router_grapevines, router_vineyard ,router_inventory, router_users,router_tasklist,router_winery
+from .routers import operaciones_router, router_plot, router_grapevines, router_vineyard ,router_inventory, router_users,router_tasklist,router_winery, router_bot
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from .authentification import auth
@@ -52,6 +52,7 @@ app.add_middleware(
 )
 
 # Ahora incluye tus routers
+app.include_router(router_bot.router, tags=["bot"])
 app.include_router(router_winery.router, prefix="/winery", tags=["winery"])
 app.include_router(router_inventory.router, prefix="/inventory", tags=["inventory"])
 app.include_router(router_tasklist.router, prefix="/task", tags=["task"])
