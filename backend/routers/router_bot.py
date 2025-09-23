@@ -43,7 +43,7 @@ async def webhook(request: Request):
                 except Exception as e:
                     respuesta = f"⚠️ Error al consultar parcelas: {e}"
         else:
-        respuesta = f"comeme los huevos que me vas a decir: {texto}"
-        await enviar_mensaje(chat_id, respuesta)
+            respuesta = f"comeme los huevos que me vas a decir: {texto}"
+            await enviar_mensaje(chat_id, respuesta)
 
     return {"ok": True}
