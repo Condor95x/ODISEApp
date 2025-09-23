@@ -40,10 +40,8 @@ async def webhook(request: Request):
                     logger.error("No se pudo parsear JSON de /plots")
                     parcelas = []
         
-                if isinstance(parcelas, dict) and "data" in parcelas:
-                    parcelas = parcelas["data"]
-        
-                if parcelas:
+                # 🔹 Aquí quitamos el bloque de "if isinstance(parcelas, dict) and 'data' in parcelas"
+                if isinstance(parcelas, list) and len(parcelas) > 0:
                     listado = "\n".join([
                         f"- {p['plot_name']} ({p.get('variety_name', 'sin variedad')})"
                         for p in parcelas
