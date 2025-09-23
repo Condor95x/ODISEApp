@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
-import httpx
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
