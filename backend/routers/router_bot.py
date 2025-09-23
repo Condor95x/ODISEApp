@@ -1,9 +1,11 @@
 import os
-from fastapi import Request
 import httpx
+from fastapi import APIRouter, Request
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
+
+router = APIRouter()
 
 # Función para enviar mensajes
 async def enviar_mensaje(chat_id: int, texto: str):
@@ -14,7 +16,7 @@ async def enviar_mensaje(chat_id: int, texto: str):
         })
 
 # Endpoint webhook de Telegram
-@app.post("/webhook")
+@router.post("/webhook")
 async def webhook(request: Request):
     data = await request.json()
     if "message" in data:
