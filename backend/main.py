@@ -1,6 +1,5 @@
 from .routers import operaciones_router, router_plot, router_grapevines, router_vineyard ,router_inventory, router_users,router_tasklist,router_winery
 from fastapi import FastAPI
-from fastapi import Request
 from contextlib import asynccontextmanager
 from .authentification import auth
 from .database import engine, Base
@@ -17,32 +16,6 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
-
-TOKEN = "8433384808:AAF6SqvhDxYoS_-XHnUKtYmxi_EN_7nSJZw"
-TELEGRAM_API = f"https://api.telegram.org/bot{TOKEN}"
-
-# Función para enviar mensajes
-async def enviar_mensaje(chat_id: int, texto: str):
-    async with httpx.AsyncClient() as client:
-        await client.post(f"{TELEGRAM_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": texto
-        })
-
-# Endpoint webhook de Telegram
-@app.post("/webhook")
-async def webhook(request: Request):
-    data = await request.json()
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        texto = data["message"]["text"]
-
-        # Aquí conectas tu lógica real (DB, API interna, etc.)
-        respuesta = f"Recibí tu mensaje: {texto}"
-        await enviar_mensaje(chat_id, respuesta)
-
-    return {"ok": True}
-
 
 # CORS dinámico para desarrollo y producción
 def get_cors_origins():
