@@ -33,15 +33,25 @@ async def webhook(request: Request):
             async with httpx.AsyncClient() as client:
                 resp = await client.get(f"{API_BASE_URL}/plots")
                 logger.info(f"Respuesta /plots: {resp.status_code} {resp.text}")
-        
+            
                 try:
-                    parcelas = resp.json()
+                    respuesta_json = resp.json()
                 except Exception:
                     logger.error("No se pudo parsear JSON de /plots")
+                    respuesta_json = []
+
+                # --- LÓGICA CORREGIDA PARA MANEJAR AMBOS TIPOS DE RESPUESTA ---
+                # Si la respuesta es un diccionario y tiene una clave 'data', la usamos.
+                if isinstance(respuesta_json, dict) and 'data' in respuesta_json:
+                    parcelas = respuesta_json['data']
+                # Si la respuesta ya es una lista, la usamos directamente.
+                elif isinstance(respuesta_json, list):
+                    parcelas = respuesta_json
+                else:
                     parcelas = []
-        
-                # 🔹 Aquí quitamos el bloque de "if isinstance(parcelas, dict) and 'data' in parcelas"
-                if isinstance(parcelas, list) and len(parcelas) > 0:
+                # -------------------------------------------------------------
+
+                if len(parcelas) > 0:
                     listado = "\n".join([
                         f"- {p['plot_name']} ({p.get('variety_name', 'sin variedad')})"
                         for p in parcelas
