@@ -61,7 +61,7 @@ async def webhook(request: Request):
                         respuesta = "No hay parcelas registradas."
 
         else:
-            respuesta = f"No seas trolo mqn, como me vas a decir: {texto}"
+            respuesta = f"No seas trolo man, como me vas a decir: {texto}"
 
         if respuesta:
             await enviar_mensaje(chat_id, respuesta)
