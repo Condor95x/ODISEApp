@@ -40,10 +40,10 @@ async def webhook(request: Request):
                         parcelas = resp.json()
                         if isinstance(parcelas, list) and len(parcelas) > 0:
                             listado = "\n".join([
-                                f"- **{p.get('plot_name', 'Sin nombre')}** ({p.get('plot_var', 'sin variedad')})"
+                                f"- {p.get('plot_name', 'Sin nombre')} ({p.get('plot_var', 'sin variedad')})"
                                 for p in parcelas
                             ])
-                            respuesta = f"📋 Parcelas registradas:\n{listado}"
+                            respuesta = f"Hola rey,\n📋 Parcelas registradas:\n{listado}"
                         else:
                             respuesta = "📋 No hay parcelas registradas."
                     except Exception as e:
@@ -63,10 +63,10 @@ async def webhook(request: Request):
                         operaciones = resp.json()
                         if isinstance(operaciones, list) and len(operaciones) > 0:
                             listado = "\n".join([
-                                f"- {op.get('parcela_id', 'Sin parcela')} - {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
+                                f"- **{op.get('parcela_id', 'Sin parcela')}** -> {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
                                 for op in operaciones
                             ])
-                            respuesta = f"⚙️ Operaciones registradas:\n{listado}"
+                            respuesta = f"Hola rey,\n⚙️ Operaciones registradas:\n{listado}"
                         else:
                             respuesta = "⚙️ No hay operaciones registradas."
                     except Exception as e:
@@ -76,7 +76,7 @@ async def webhook(request: Request):
                     respuesta = f"❌ Error: La API de operaciones devolvió código {resp.status_code}."
         
         else:
-            respuesta = "Comando no reconocido. Puedes usar 'parcelas' u 'operaciones'."
+            respuesta = f"No entiendo tu mensaje \"{texto}\". Solo reconozco 'parcelas' u 'operaciones'."
             
         if respuesta:
             await enviar_mensaje(chat_id, respuesta)
