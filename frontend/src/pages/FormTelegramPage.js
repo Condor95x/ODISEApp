@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import FormTelegram from "../components/telegram/FormTelegram";
+import FormTelegram from "../components/telegram/form-telegram";
 
 export default function FormTelegramPage() {
   const [newOperacion, setNewOperacion] = useState({
