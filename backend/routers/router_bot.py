@@ -40,7 +40,7 @@ async def webhook(request: Request):
                         parcelas = resp.json()
                         if isinstance(parcelas, list) and len(parcelas) > 0:
                             listado = "\n".join([
-                                f"- {p.get('plot_name', 'Sin nombre')} ({p.get('variety_name', 'sin variedad')})"
+                                f"- {p.get('plot_name', 'Sin nombre')} ({p.get('plot_var', 'sin variedad')})"
                                 for p in parcelas
                             ])
                             respuesta = f"📋 Parcelas registradas:\n{listado}"
@@ -55,7 +55,7 @@ async def webhook(request: Request):
         # 🔹 Lógica para el nuevo comando "operaciones"
         elif texto == "operaciones":
             async with httpx.AsyncClient() as client:
-                url = f"{API_BASE_URL}/"  # Tu endpoint principal
+                url = f"{API_BASE_URL}/operaciones"
                 resp = await client.get(url)
 
                 if resp.status_code == 200:
