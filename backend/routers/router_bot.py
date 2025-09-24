@@ -11,12 +11,19 @@ API_BASE_URL = "https://odiseapp-bf4d8516bab4.herokuapp.com"
 
 router = APIRouter()
 
-async def enviar_mensaje(chat_id: int, texto: str):
+async def enviar_mensaje(chat_id: int, texto: str, reply_markup: dict | None = None):
+    """
+    Envía un mensaje a Telegram con o sin teclado inline.
+    """
+    payload = {
+        "chat_id": chat_id,
+        "text": texto,
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+
     async with httpx.AsyncClient() as client:
-        resp = await client.post(f"{TELEGRAM_API}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": texto
-        })
+        resp = await client.post(f"{TELEGRAM_API}/sendMessage", json=payload)
         logger.info(f"Respuesta de Telegram: {resp.status_code} {resp.text}")
 
 @router.post("/webhook")
@@ -29,7 +36,7 @@ async def webhook(request: Request):
         texto = data["message"].get("text", "").lower()
         respuesta = None
         
-        # Lógica para el comando "parcelas"
+        # 🔹 Lógica para el comando "parcelas"
         if texto == "parcelas":
             async with httpx.AsyncClient() as client:
                 url = f"{API_BASE_URL}/plots/?active_only=true"
@@ -43,16 +50,16 @@ async def webhook(request: Request):
                                 f"- {p.get('plot_name', 'Sin nombre')} ({p.get('plot_var', 'sin variedad')})"
                                 for p in parcelas
                             ])
-                            respuesta = f"Hola rey,\n📋 Parcelas registradas:\n{listado}"
+                            respuesta = f"📋 Parcelas registradas:\n{listado}"
                         else:
                             respuesta = "📋 No hay parcelas registradas."
                     except Exception as e:
-                        logger.error(f"Error al procesar la respuesta de parcelas: {e}")
-                        respuesta = f"❌ Error: Respuesta inesperada de la API de parcelas."
+                        logger.error(f"Error al procesar parcelas: {e}")
+                        respuesta = "❌ Error procesando la respuesta de parcelas."
                 else:
-                    respuesta = f"❌ Error: La API de parcelas devolvió código {resp.status_code}."
+                    respuesta = f"❌ API de parcelas devolvió {resp.status_code}."
         
-        # 🔹 Lógica para el nuevo comando "operaciones"
+        # 🔹 Lógica para el comando "operaciones"
         elif texto == "operaciones":
             async with httpx.AsyncClient() as client:
                 url = f"{API_BASE_URL}/operaciones/vineyard"
@@ -66,17 +73,32 @@ async def webhook(request: Request):
                                 f"- {op.get('parcela_id', 'Sin parcela')} -> {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
                                 for op in operaciones
                             ])
-                            respuesta = f"Hola rey,\n⚙️ Operaciones registradas:\n{listado}"
+                            respuesta = f"⚙️ Operaciones registradas:\n{listado}"
                         else:
                             respuesta = "⚙️ No hay operaciones registradas."
                     except Exception as e:
-                        logger.error(f"Error al procesar la respuesta de operaciones: {e}")
-                        respuesta = f"❌ Error: Respuesta inesperada de la API de operaciones."
+                        logger.error(f"Error procesando operaciones: {e}")
+                        respuesta = "❌ Error procesando la respuesta de operaciones."
                 else:
-                    respuesta = f"❌ Error: La API de operaciones devolvió código {resp.status_code}."
+                    respuesta = f"❌ API de operaciones devolvió {resp.status_code}."
+
+        # 🔹 Nuevo comando para abrir WebApp en Telegram
+        elif texto == "/crear_operacion":
+            keyboard = {
+                "inline_keyboard": [[
+                    {
+                        "text": "➕ Crear Operación",
+                        "web_app": {
+                            # ⚠️ Cambiá esta URL por la de tu frontend desplegado
+                            "url": "https://tu-app.com/form-telegram"
+                        }
+                    }
+                ]]
+            }
+            await enviar_mensaje(chat_id, "Abrí el formulario para cargar la operación:", keyboard)
         
         else:
-            respuesta = f"No entiendo tu mensaje \"{texto}\". Solo reconozco 'parcelas' u 'operaciones'."
+            respuesta = f"No entiendo tu mensaje \"{texto}\". Solo reconozco 'parcelas', 'operaciones' o '/crear_operacion'."
             
         if respuesta:
             await enviar_mensaje(chat_id, respuesta)
