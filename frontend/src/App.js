@@ -13,6 +13,7 @@ import Bodega from './pages/Bodega';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Analisis from './pages/Analisis';
+import FormTelegramPage from './pages/FormTelegramPage';
 
 function App() {
   return (
