@@ -20,6 +20,8 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
+            {/* Ruta pública para Telegram */}
+            <Route path="/form-telegram" element={<FormTelegramPage />} />
             {/* Ruta de login pública */}
             <Route path="/login" element={<Login />} />
 
