@@ -66,7 +66,7 @@ async def webhook(request: Request):
                             if not respuesta and parcelas is not None:
                                 if len(parcelas) > 0:
                                     listado = "\n".join([
-                                        f"- {p.get('plot_name', 'Sin nombre')} ({p.get('variety_name', 'sin variedad')})"
+                                        f"- {p.get('plot_name', 'Sin nombre')} ({p.get('plot_var', 'sin variedad')})"
                                         for p in parcelas
                                     ])
                                     respuesta = f"📋 Parcelas registradas:\n{listado}"
