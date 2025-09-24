@@ -31,10 +31,12 @@ async def webhook(request: Request):
 
         if texto == "parcelas":
             async with httpx.AsyncClient() as client:
-                # 🔹 Agrega el parámetro `active_only` a la URL
                 url = f"{API_BASE_URL}/plots?active_only=true"
                 resp = await client.get(url)
-                logger.info(f"Respuesta de la API de parcelas: {resp.status_code} {resp.text}")
+
+                # 🔹 Imprime el contenido completo de la respuesta aquí
+                logger.info(f"Contenido de la respuesta de la API: {resp.text}")
+
 
                 parcelas = []
                 if resp.status_code == 200:
