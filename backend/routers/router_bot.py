@@ -40,7 +40,7 @@ async def webhook(request: Request):
                         parcelas = resp.json()
                         if isinstance(parcelas, list) and len(parcelas) > 0:
                             listado = "\n".join([
-                                f"- {p.get('plot_name', 'Sin nombre')} ({p.get('plot_var', 'sin variedad')})"
+                                f"- **{p.get('plot_name', 'Sin nombre')}** ({p.get('plot_var', 'sin variedad')})"
                                 for p in parcelas
                             ])
                             respuesta = f"📋 Parcelas registradas:\n{listado}"
