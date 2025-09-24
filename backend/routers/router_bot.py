@@ -16,6 +16,7 @@ async def enviar_mensaje(chat_id: int, texto: str):
         resp = await client.post(f"{TELEGRAM_API}/sendMessage", json={
             "chat_id": chat_id,
             "text": texto
+            "parse_mode": "MarkdownV2"
         })
         logger.info(f"Respuesta de Telegram: {resp.status_code} {resp.text}")
 
@@ -63,7 +64,7 @@ async def webhook(request: Request):
                         operaciones = resp.json()
                         if isinstance(operaciones, list) and len(operaciones) > 0:
                             listado = "\n".join([
-                                f"- **{op.get('parcela_id', 'Sin parcela')}** -> {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
+                                f"- **{op.get('parcela_id', 'Sin parcela')}** \\-> {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
                                 for op in operaciones
                             ])
                             respuesta = f"Hola rey,\n⚙️ Operaciones registradas:\n{listado}"
