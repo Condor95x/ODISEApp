@@ -55,7 +55,7 @@ async def webhook(request: Request):
         # 🔹 Lógica para el nuevo comando "operaciones"
         elif texto == "operaciones":
             async with httpx.AsyncClient() as client:
-                url = f"{API_BASE_URL}/task/task/vineyard"
+                url = f"{API_BASE_URL}/operaciones/vineyard"
                 resp = await client.get(url)
 
                 if resp.status_code == 200:
