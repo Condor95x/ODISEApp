@@ -30,7 +30,7 @@ async def webhook(request: Request):
         
         if texto == "parcelas":
             async with httpx.AsyncClient() as client:
-                url = f"{API_BASE_URL}/plots?active_only=true"
+                url = f"{API_BASE_URL}/plots/?active_only=true"
                 resp = await client.get(url)
                 
                 # 🔍 Debug mejorado
