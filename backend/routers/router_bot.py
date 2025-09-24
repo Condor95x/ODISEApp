@@ -55,7 +55,7 @@ async def webhook(request: Request):
         # 🔹 Lógica para el nuevo comando "operaciones"
         elif texto == "operaciones":
             async with httpx.AsyncClient() as client:
-                url = f"{API_BASE_URL}/operaciones"
+                url = f"{API_BASE_URL}/task/task/vineyard"
                 resp = await client.get(url)
 
                 if resp.status_code == 200:
@@ -63,7 +63,7 @@ async def webhook(request: Request):
                         operaciones = resp.json()
                         if isinstance(operaciones, list) and len(operaciones) > 0:
                             listado = "\n".join([
-                                f"- {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
+                                f"- {op.get('parcela_id', 'Sin parcela')} - {op.get('tipo_operacion', 'Sin tipo')} ({op.get('estado', 'sin estado')})"
                                 for op in operaciones
                             ])
                             respuesta = f"⚙️ Operaciones registradas:\n{listado}"
