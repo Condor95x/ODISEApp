@@ -15,7 +15,7 @@ async def enviar_mensaje(chat_id: int, texto: str):
     async with httpx.AsyncClient() as client:
         resp = await client.post(f"{TELEGRAM_API}/sendMessage", json={
             "chat_id": chat_id,
-            "text": texto
+            "text": texto,
             "parse_mode": "MarkdownV2"
         })
         logger.info(f"Respuesta de Telegram: {resp.status_code} {resp.text}")
