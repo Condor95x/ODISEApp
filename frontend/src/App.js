@@ -13,7 +13,6 @@ import Bodega from './pages/Bodega';
 import Login from './pages/Login';
 import Inventory from './pages/Inventory';
 import Analisis from './pages/Analisis';
-import FormTelegramPage from './pages/FormTelegramPage';
 
 function App() {
   return (
@@ -21,8 +20,6 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            {/* Ruta pública para Telegram */}
-            <Route path="/form-telegram" element={<FormTelegramPage />} />
             {/* Ruta de login pública */}
             <Route path="/login" element={<Login />} />
 
