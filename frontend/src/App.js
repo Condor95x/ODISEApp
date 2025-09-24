@@ -15,6 +15,7 @@ import Inventory from './pages/Inventory';
 import Analisis from './pages/Analisis';
 import Meteorologia from './pages/Meteorologia';
 import Administracion from './pages/Administracion';
+import FormTelegramPage from './pages/FormTelegramPage';
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
+            {/* Ruta pública para Telegram */}
+            <Route path="/form-telegram" element={<FormTelegramPage />} />
             {/* Ruta de login pública */}
             <Route path="/login" element={<Login />} />
 
