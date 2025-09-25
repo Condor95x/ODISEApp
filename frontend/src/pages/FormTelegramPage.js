@@ -17,7 +17,14 @@ export default function FormTelegramPage() {
   return (
     <div style={{ padding: "20px" }}>
       <h2>Crear Operación</h2>
-      <FormTelegram newOperacion={newOperacion} setNewOperacion={setNewOperacion} />
+      <FormTelegram
+        newOperacion={newOperacion}
+        setNewOperacion={setNewOperacion}
+        options={[]}             // lista de tareas
+        responsableOptions={[]}  // lista de responsables
+        parcelaOptions={[]}      // lista de parcelas
+        insumos={[]}             // lista de insumos
+      />
     </div>
   );
 }
