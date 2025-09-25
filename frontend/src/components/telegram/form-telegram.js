@@ -341,17 +341,10 @@ export default function FormTelegram({ 
       minHeight: '100vh',
       padding: '16px'
     }}>
-      <h2 style={{
-        color: 'var(--tg-theme-text-color, #000000)',
-        fontSize: '20px',
-        fontWeight: 'bold',
-        marginBottom: '20px',
-        textAlign: 'center'
-      }}>
-        Nueva Operación
-      </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="titulo-seccion">
+        <h2> Nueva Operación</h2>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Tipo de Operación */}
         <div>
           <label className="modal-form-label">Operación:</label>
