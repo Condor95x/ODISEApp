@@ -1,17 +1,72 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
-import { createOperacion } from "../../services/api";
+import { createOperacion, getPlots, getInputs, getUsers, getVineyardTasks } from "../../services/api";
 
 export default function FormTelegram({ 
   newOperacion, 
-  setNewOperacion, 
-  options, 
-  responsableOptions, 
-  parcelaOptions, 
-  insumos 
+  setNewOperacion
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  
+  // Estados para los datos de las listas
+  const [insumos, setInsumos] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
+  const [tasks, setVineyardsTasks] = useState([]);
+  const [plotsData, setPlotsData] = useState([]);
+
+  // Cargar datos al inicializar el componente
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        setLoading(true);
+        const [plotsResponse, insumosData, usuariosData, taskData] = await Promise.all([
+          getPlots(),
+          getInputs(),
+          getUsers(),
+          getVineyardTasks(),
+        ]);
+
+        setPlotsData(plotsResponse);
+        setInsumos(insumosData);
+        setUsuarios(usuariosData);
+        setVineyardsTasks(taskData);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+          tg.showAlert("Error al cargar los datos iniciales");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
+  // Mostrar botón de Telegram cuando los datos estén cargados
+  useEffect(() => {
+    if (window.Telegram?.WebApp && !loading) {
+      const tg = window.Telegram.WebApp;
+      tg.MainButton.show();
+    }
+  }, [loading]);
+  const options = tasks.map((task) => ({
+    value: task.task_name,
+    label: task.task_name,
+  }));
+
+  const responsableOptions = usuarios.map(usuario => ({
+    value: usuario.id,
+    label: `${usuario.nombre} ${usuario.apellido}`
+  }));
+
+  const parcelaOptions = plotsData.map(parcela => ({
+    value: parcela.plot_id,
+    label: parcela.plot_name
+  }));
 
   // Validación de campos obligatorios
   const validateForm = () => {
@@ -143,13 +198,17 @@ export default function FormTelegram({
       tg.MainButton.setText("✅ Crear Operación");
       tg.MainButton.color = tg.themeParams.button_color || '#0088cc';
       tg.MainButton.textColor = tg.themeParams.button_text_color || '#ffffff';
-      tg.MainButton.show();
+      
+      // Solo mostrar el botón si no está cargando
+      if (!loading) {
+        tg.MainButton.show();
+      }
 
       // Configurar botón de regreso
       tg.BackButton.show();
       
       const handleMainButtonClick = () => {
-        if (!isProcessing) {
+        if (!isProcessing && !loading) {
           handleCreateOperacion();
         }
       };
@@ -162,12 +221,52 @@ export default function FormTelegram({
       tg.onEvent("backButtonClicked", handleBackButtonClick);
 
       // Cleanup
-      return () => {
+      // Mostrar pantalla de carga
+  if (loading) {
+    return (
+      <div style={{
+        backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
+        color: 'var(--tg-theme-text-color, #000000)',
+        minHeight: '100vh',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid var(--tg-theme-hint-color, #999999)',
+          borderTop: '3px solid var(--tg-theme-button-color, #0088cc)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '16px'
+        }}></div>
+        <p style={{ 
+          fontSize: '16px',
+          color: 'var(--tg-theme-hint-color, #999999)'
+        }}>
+          Cargando datos...
+        </p>
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+      </div>
+    );
+  }
+
+  return () => {
         tg.offEvent("mainButtonClicked", handleMainButtonClick);
         tg.offEvent("backButtonClicked", handleBackButtonClick);
       };
     }
-  }, [newOperacion, isProcessing]);
+  }, [newOperacion, isProcessing, loading]);
 
   // Funciones de manejo de cambios (sin cambios)
   const handleCreateChange = (field, value) => {
@@ -260,9 +359,11 @@ export default function FormTelegram({
             options={options}
             onChange={(opt) => handleCreateSelectChange("tipo_operacion", opt)}
             value={options.find((opt) => opt.value === newOperacion.tipo_operacion)}
-            placeholder="Selecciona una tarea"
+            placeholder={options.length > 0 ? "Selecciona una tarea" : "Cargando tareas..."}
             isSearchable
+            isDisabled={options.length === 0}
             styles={telegramSelectStyles}
+            noOptionsMessage={() => "No hay tareas disponibles"}
           />
           {validationErrors.tipo_operacion && (
             <span style={{ color: '#ff3b30', fontSize: '12px' }}>
@@ -287,9 +388,11 @@ export default function FormTelegram({
             options={parcelaOptions}
             onChange={(opt) => handleCreateSelectChange("parcela_id", opt)}
             value={parcelaOptions.find((opt) => opt.value === newOperacion.parcela_id)}
-            placeholder="Selecciona una parcela"
+            placeholder={parcelaOptions.length > 0 ? "Selecciona una parcela" : "Cargando parcelas..."}
             isSearchable
+            isDisabled={parcelaOptions.length === 0}
             styles={telegramSelectStyles}
+            noOptionsMessage={() => "No hay parcelas disponibles"}
           />
           {validationErrors.parcela_id && (
             <span style={{ color: '#ff3b30', fontSize: '12px' }}>
@@ -313,9 +416,11 @@ export default function FormTelegram({
             options={responsableOptions}
             onChange={(opt) => handleCreateSelectChange("responsable_id", opt)}
             value={responsableOptions.find((opt) => opt.value === newOperacion.responsable_id)}
-            placeholder="Selecciona un responsable"
+            placeholder={responsableOptions.length > 0 ? "Selecciona un responsable" : "Cargando responsables..."}
             isSearchable
+            isDisabled={responsableOptions.length === 0}
             styles={telegramSelectStyles}
+            noOptionsMessage={() => "No hay responsables disponibles"}
           />
         </div>
 
@@ -468,84 +573,98 @@ export default function FormTelegram({
         </div>
 
         {/* Insumos */}
-        {insumos && insumos.length > 0 && (
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px',
-              color: 'var(--tg-theme-text-color, #000000)',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}>
-              Insumos Consumidos
-            </label>
-            <select
-              multiple
-              value={newOperacion.inputs.map((i) => i.insumo_id)}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions).map((o) => parseInt(o.value));
-                const insumosSeleccionados = selected.map((id) => {
-                  const existente = newOperacion.inputs.find((i) => i.insumo_id === id);
-                  return existente ? existente : { insumo_id: id, cantidad: 0 };
-                });
-                handleCreateChange("inputs", insumosSeleccionados);
-              }}
-              style={{
-                width: '100%',
-                minHeight: '120px',
-                padding: '12px',
-                border: '1px solid var(--tg-theme-hint-color, #999999)',
-                borderRadius: '10px',
-                backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
-                color: 'var(--tg-theme-text-color, #000000)',
-                fontSize: '16px'
-              }}
-            >
-              {insumos.map((insumo) => (
-                <option key={insumo.id} value={insumo.id}>
-                  {insumo.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Cantidades de insumos */}
-            {newOperacion.inputs.map((insumo) => (
-              <div key={insumo.insumo_id} style={{ marginTop: '12px' }}>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px',
+        <div>
+          <label style={{ 
+            display: 'block', 
+            marginBottom: '8px',
+            color: 'var(--tg-theme-text-color, #000000)',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            Insumos Consumidos
+          </label>
+          
+          {insumos.length > 0 ? (
+            <>
+              <select
+                multiple
+                value={newOperacion.inputs.map((i) => i.insumo_id)}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions).map((o) => parseInt(o.value));
+                  const insumosSeleccionados = selected.map((id) => {
+                    const existente = newOperacion.inputs.find((i) => i.insumo_id === id);
+                    return existente ? existente : { insumo_id: id, cantidad: 0 };
+                  });
+                  handleCreateChange("inputs", insumosSeleccionados);
+                }}
+                style={{
+                  width: '100%',
+                  minHeight: '120px',
+                  padding: '12px',
+                  border: '1px solid var(--tg-theme-hint-color, #999999)',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
                   color: 'var(--tg-theme-text-color, #000000)',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}>
-                  Cantidad {insumos.find((i) => i.id === insumo.insumo_id)?.name || "Insumo"}:
-                </label>
-                <input
-                  type="number"
-                  value={insumo.cantidad}
-                  onChange={(e) => {
-                    const updated = [...newOperacion.inputs];
-                    const idx = updated.findIndex((i) => i.insumo_id === insumo.insumo_id);
-                    if (idx !== -1) {
-                      updated[idx].cantidad = parseInt(e.target.value) || 0;
-                      handleCreateChange("inputs", updated);
-                    }
-                  }}
-                  style={{
-                    width: '100%',
-                    minHeight: '44px',
-                    padding: '12px',
-                    border: '1px solid var(--tg-theme-hint-color, #999999)',
-                    borderRadius: '10px',
-                    backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
+                  fontSize: '16px'
+                }}
+              >
+                {insumos.map((insumo) => (
+                  <option key={insumo.id} value={insumo.id}>
+                    {insumo.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Cantidades de insumos */}
+              {newOperacion.inputs.map((insumo) => (
+                <div key={insumo.insumo_id} style={{ marginTop: '12px' }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: '8px',
                     color: 'var(--tg-theme-text-color, #000000)',
-                    fontSize: '16px'
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Cantidad {insumos.find((i) => i.id === insumo.insumo_id)?.name || "Insumo"}:
+                  </label>
+                  <input
+                    type="number"
+                    value={insumo.cantidad}
+                    onChange={(e) => {
+                      const updated = [...newOperacion.inputs];
+                      const idx = updated.findIndex((i) => i.insumo_id === insumo.insumo_id);
+                      if (idx !== -1) {
+                        updated[idx].cantidad = parseInt(e.target.value) || 0;
+                        handleCreateChange("inputs", updated);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      minHeight: '44px',
+                      padding: '12px',
+                      border: '1px solid var(--tg-theme-hint-color, #999999)',
+                      borderRadius: '10px',
+                      backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
+                      color: 'var(--tg-theme-text-color, #000000)',
+                      fontSize: '16px'
+                    }}
+                  />
+                </div>
+              ))}
+            </>
+          ) : (
+            <div style={{
+              padding: '20px',
+              backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
+              borderRadius: '10px',
+              textAlign: 'center',
+              color: 'var(--tg-theme-hint-color, #999999)',
+              fontSize: '14px'
+            }}>
+              No hay insumos disponibles
+            </div>
+          )}
+        </div>
 
         {/* Espacio adicional para el botón de Telegram */}
         <div style={{ height: '80px' }} />
