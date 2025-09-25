@@ -90,7 +90,7 @@ async def webhook(request: Request):
                         "text": "➕ Crear Operación",
                         "web_app": {
                             # ⚠️ Cambiá esta URL por la de tu frontend desplegado
-                            "url": "https://tu-app.com/form-telegram"
+                            "url": "https://odiseapp-bf4d8516bab4.herokuapp.com/form-telegram"
                         }
                     }
                 ]]
